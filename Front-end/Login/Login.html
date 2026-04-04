@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Groundwork | Secure Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#353535",
+                        "surface-container": "#1f1f1f",
+                        "secondary-fixed-dim": "#fdb881",
+                        "tertiary-container": "#00b5fc",
+                        "surface-variant": "#353535",
+                        "secondary-fixed": "#ffdcc3",
+                        "primary-fixed": "#ffdcc3",
+                        "inverse-surface": "#e2e2e2",
+                        "on-secondary": "#4d2600",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#2f1500",
+                        "error-container": "#93000a",
+                        "on-primary": "#4d2600",
+                        "on-tertiary": "#00344c",
+                        "tertiary-fixed": "#c7e7ff",
+                        "outline-variant": "#564334",
+                        "on-surface": "#e2e2e2",
+                        "inverse-on-surface": "#303030",
+                        "tertiary": "#85cfff",
+                        "on-primary-container": "#623200",
+                        "surface-tint": "#ffb77d",
+                        "primary": "#ffb77d",
+                        "on-tertiary-fixed-variant": "#004c6c",
+                        "surface-bright": "#393939",
+                        "surface-dim": "#131313",
+                        "on-tertiary-container": "#004360",
+                        "surface": "#131313",
+                        "on-background": "#e2e2e2",
+                        "on-primary-fixed-variant": "#6e3900",
+                        "tertiary-fixed-dim": "#85cfff",
+                        "on-secondary-fixed": "#2f1500",
+                        "on-secondary-fixed-variant": "#6a3b0f",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#1b1b1b",
+                        "on-error": "#690005",
+                        "on-secondary-container": "#e9a771",
+                        "secondary": "#fdb881",
+                        "primary-fixed-dim": "#ffb77d",
+                        "inverse-primary": "#904d00",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-container": "#ff8c00",
+                        "outline": "#a48c7a",
+                        "on-surface-variant": "#ddc1ae",
+                        "on-tertiary-fixed": "#001e2e",
+                        "background": "#131313",
+                        "secondary-container": "#6a3b0f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Public Sans"],
+                        "body": ["Public Sans"],
+                        "label": ["Public Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #131313;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+<!-- Top Orange Banner -->
+<header class="w-full bg-primary-container h-16 flex items-center px-8 z-50">
+<h1 class="text-white text-2xl font-black tracking-tighter uppercase">groundwork.</h1>
+</header>
+<main class="flex-grow flex items-center justify-center relative overflow-hidden px-4">
+<!-- Subtle background texture -->
+<figure class="absolute inset-0 z-0 opacity-10 pointer-events-none m-0">
+<img alt="cyber security digital grid" class="w-full h-full object-cover" data-alt="abstract dark architectural lines and futuristic circuit patterns in deep grey and black monochrome tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8p9e3pjqQ3iLT8jhi1Gko1wdo3XLRlQ-GEoJRZ0TRJaMXkFv6D9YAfzhMSH48CuKlN3gnKdEqgWWEJQQR3jxXrKgm8tWvUfb5oq1VI4w7B-yjQRhubCvu522T8gJzE6JSoRzxvCcWwxOGHHqg6p2U7utnJ9ueJk6R76ye4m0XTAEVfUuQbsWYO6tN2s2JA4P8u4ZqZG5HLZ7NukiKAIAlJn3mG7DFaAfpwgBgx2S9ouLwP15I-Zr2fZ9F7sRgKQxMMVFzShkNaB8"/>
+</figure>
+<section class="w-full max-w-[480px] z-10">
+<!-- Login Card -->
+<article class="bg-surface-container-low rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden">
+<section class="p-10 md:p-12">
+<header class="mb-10 text-center">
+<h2 class="text-3xl font-black text-on-surface tracking-tight mb-2">Secure Access</h2>
+<p class="text-on-surface-variant text-sm tracking-wide font-medium uppercase opacity-70">Enter your credentials to continue</p>
+</header>
+<form class="space-y-6">
+<!-- Username Field -->
+<fieldset class="space-y-2 border-none p-0 m-0">
+<label class="block text-xs font-bold text-on-surface uppercase tracking-widest ml-1" for="username">Username</label>
+<input class="w-full bg-surface-container-lowest border-none border-b-2 border-transparent focus:border-primary-container focus:ring-0 text-on-surface p-4 text-base transition-all placeholder:text-on-surface/20 rounded-lg" id="username" placeholder="j_smith@city.gov" type="text"/>
+</fieldset>
+<!-- Password Field -->
+<fieldset class="space-y-2 border-none p-0 m-0">
+<nav class="flex justify-between items-end">
+<label class="block text-xs font-bold text-on-surface uppercase tracking-widest ml-1" for="password">Password</label>
+<a class="text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-widest" href="#">forgot password?</a>
+</nav>
+<input class="w-full bg-surface-container-lowest border-none border-b-2 border-transparent focus:border-primary-container focus:ring-0 text-on-surface p-4 text-base transition-all placeholder:text-on-surface/20 rounded-lg" id="password" placeholder="********" type="password"/>
+</fieldset>
+<!-- Login Button -->
+<button class="w-full bg-primary-container hover:bg-primary text-white font-black uppercase tracking-widest py-4 px-6 flex justify-center items-center gap-3 transition-all transform active:scale-[0.98] mt-8 group rounded-lg" type="submit">
+<span>login</span>
+<span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Divider -->
+<section class="relative flex items-center my-10">
+<hr class="flex-grow border-t border-on-surface/5"/>
+<span class="flex-shrink mx-4 text-[10px] font-bold text-on-surface/30 uppercase tracking-widest">or</span>
+<hr class="flex-grow border-t border-on-surface/5"/>
+</section>
+<!-- Social Logins -->
+<section class="space-y-4">
+<button class="w-full bg-surface-container-highest hover:bg-surface-variant text-on-surface font-bold text-sm py-4 px-6 rounded-lg flex items-center justify-center gap-3 transition-colors">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="currentColor"></path>
+</svg>
+                            Sign in with Google
+                        </button>
+</section>
+<footer class="mt-10 text-center"><nav class="flex justify-center items-center gap-6">
+<a class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="#">Municipal worker login</a>
+<span class="w-1 h-1 bg-on-surface/20 rounded-full"></span>
+<a class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="#">Sign Up</a>
+</nav></footer>
+</section>
+</article>
+</section>
+</main>
+<!-- Contextual Footer from Shared Components -->
+<footer class="w-full py-6 bg-surface-container-lowest border-t border-on-surface/5 flex justify-between items-center px-12 mt-auto">
+<p class="font-['Public_Sans'] text-xs font-medium uppercase tracking-widest text-on-surface opacity-40">© 2024 Groundwork Municipal Services</p>
+<nav class="flex gap-8">
+<a class="font-['Public_Sans'] text-xs font-medium uppercase tracking-widest text-on-surface opacity-40 hover:opacity-100 hover:text-[#FFB77D] transition-opacity duration-300" href="#">Accessibility</a>
+<a class="font-['Public_Sans'] text-xs font-medium uppercase tracking-widest text-on-surface opacity-40 hover:opacity-100 hover:text-[#FFB77D] transition-opacity duration-300" href="#">Terms</a>
+<a class="font-['Public_Sans'] text-xs font-medium uppercase tracking-widest text-on-surface opacity-40 hover:opacity-100 hover:text-[#FFB77D] transition-opacity duration-300" href="#">Data Policy</a>
+</nav>
+</footer>
+</body></html>
