@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-    <script src="Worker_Login.js" defer></script>
+    <script src="Worker_login.js" defer></script>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Groundwork | Municipal Login</title>
@@ -41,83 +41,77 @@
 <header class="bg-primary-container w-full h-20 flex items-center justify-between px-8 z-50">
     <h1 class="text-white text-3xl font-black tracking-tighter uppercase">groundwork.</h1>
     
-    <a id="back-to-login" href="login.html" class="flex items-center gap-2 text-white/80 hover:text-white transition-colors group">
+    <a id="back-to-login" href="Login.html" class="flex items-center gap-2 text-white/80 hover:text-white transition-colors group">
         <span class="material-symbols-outlined transition-transform group-hover:-translate-x-1">arrow_back</span>
         <span class="text-xs font-bold uppercase tracking-widest">Back to Login</span>
     </a>
 </header>
 
 <main class="flex-grow flex items-center justify-center px-4 py-12 relative overflow-hidden">
-<aside class="absolute top-1/4 -right-20 w-96 h-96 bg-primary-container opacity-5 blur-[120px] rounded-full"></aside>
-<aside class="absolute bottom-1/4 -left-20 w-96 h-96 bg-primary opacity-5 blur-[120px] rounded-full"></aside>
-<section class="w-full max-w-md z-10">
-<article class="bg-surface-container-low p-10 rounded-lg shadow-2xl border-l-4 border-primary-container">
-<header class="mb-10">
-<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-headline uppercase">
-                        Portal Access
-                    </h2>
-<p class="text-on-surface-variant text-sm font-label tracking-widest uppercase opacity-70">
-                        Municipal Worker Authentication
-                    </p>
-</header>
-<form id="MunicipalLoginForm" action="#" class="space-y-8" method="POST" novalidate>
-<section class="space-y-2">
-<label class="block text-xs font-bold tracking-widest text-primary uppercase" for="municipal-id">
-                            Municipal ID
-                        </label>
-<section class="relative group">
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="municipalID" name="municipal-id" placeholder="Enter Badge or ID Number" required="" type="text"/>
-<span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
-</section>
-</section>
-<section class="space-y-2">
-<label class="block text-xs font-bold tracking-widest text-primary uppercase" for="password">
-                            Password
-                        </label>
-<section class="relative group">
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="password" name="password" placeholder="••••••••" required="" type="password"/>
-<span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
-</section>
-</section>
-<footer class="pt-4">
-<button class="w-full bg-primary-container hover:bg-primary text-on-primary font-black py-5 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg shadow-primary-container/20" type="submit">
-                            LOGIN
-                        </button>
-</footer>
-</form>
-<p id="error" class="hidden text-red-500 text-[10px] font-bold mt-1 uppercase tracking-tighter">
-                ID is required to continue.
-</p>
-<nav class="mt-12 text-center">
-<a class="inline-block text-xs font-bold tracking-widest text-primary hover:text-primary-container transition-colors uppercase border-b border-primary/20 pb-1" href="#">
-                        SIGN UP AS A MUNICIPAL WORKER
-                    </a>
-</nav>
-</article>
-<section class="mt-8 flex justify-center gap-8 opacity-40">
-<article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
-<span class="material-symbols-outlined text-sm">security</span>
-                    Encrypted Ledger
-                </article>
-<article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
-<span class="material-symbols-outlined text-sm">verified_user</span>
-                    Verified Access
-                </article>
-</section>
-</section>
+    <aside class="absolute top-1/4 -right-20 w-96 h-96 bg-primary-container opacity-5 blur-[120px] rounded-full"></aside>
+    <aside class="absolute bottom-1/4 -left-20 w-96 h-96 bg-primary opacity-5 blur-[120px] rounded-full"></aside>
+
+    <div id="worker-section" class="w-full max-w-md z-10 transition-all duration-500 ease-out transform opacity-0 translate-x-12">
+        <article class="bg-surface-container-low p-10 rounded-lg shadow-2xl border-l-4 border-primary-container">
+            <header class="mb-10">
+                <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-headline uppercase">Portal Access</h2>
+                <p class="text-on-surface-variant text-sm font-label tracking-widest uppercase opacity-70">Municipal Worker Authentication</p>
+            </header>
+
+            <form id="MunicipalLoginForm" action="#" class="space-y-8" method="POST" novalidate>
+                <section class="space-y-2">
+                    <label class="block text-xs font-bold tracking-widest text-primary uppercase" for="municipalID">Municipal ID</label>
+                    <section class="relative group">
+                        <input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="municipalID" name="municipal-id" placeholder="Enter Badge or ID Number" required="" type="text"/>
+                        <span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
+                    </section>
+                </section>
+
+                <section class="space-y-2">
+                    <label class="block text-xs font-bold tracking-widest text-primary uppercase" for="password">Password</label>
+                    <section class="relative group">
+                        <input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+                        <span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
+                    </section>
+                </section>
+
+                <footer class="pt-4">
+                    <button class="w-full bg-primary-container hover:bg-primary text-on-primary font-black py-5 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg shadow-primary-container/20" type="submit">LOGIN</button>
+                </footer>
+            </form>
+
+            <p id="error" class="hidden text-red-500 text-[10px] font-bold mt-1 uppercase tracking-tighter">ID is required to continue.</p>
+
+            <nav class="mt-12 text-center">
+                <a class="inline-block text-xs font-bold tracking-widest text-primary hover:text-primary-container transition-colors uppercase border-b border-primary/20 pb-1" href="#">SIGN UP AS A MUNICIPAL WORKER</a>
+            </nav>
+        </article>
+
+        <section class="mt-8 flex justify-center gap-8 opacity-40">
+            <article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
+                <span class="material-symbols-outlined text-sm">security</span> Encrypted Ledger
+            </article>
+            <article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
+                <span class="material-symbols-outlined text-sm">verified_user</span> Verified Access
+            </article>
+        </section>
+    </div>
 </main>
 
 <script>
-    // 1. Entrance Animation (Slides in from RIGHT)
+    // 1. Entrance Animation
     window.addEventListener('DOMContentLoaded', () => {
         const workerSection = document.getElementById('worker-section');
-        setTimeout(() => {
-            workerSection.classList.remove('opacity-0', 'translate-x-12');
-            workerSection.classList.add('opacity-100', 'translate-x-0');
-        }, 100);
+        if (workerSection) {
+            // Small delay to ensure the browser registers the initial state before animating
+            setTimeout(() => {
+                workerSection.classList.remove('opacity-0', 'translate-x-12');
+                workerSection.classList.add('opacity-100', 'translate-x-0');
+            }, 100);
+        }
     });
 
-    // 2. Back Button Logic (Slides out to RIGHT to go back)
+    // 2. Back Button Logic
     const backBtn = document.getElementById('back-to-login');
     const workerSection = document.getElementById('worker-section');
 
@@ -125,14 +119,20 @@
         e.preventDefault();
         const targetUrl = this.getAttribute('href');
 
-        // Animation: Slide right and fade out
-        workerSection.classList.add('opacity-0', 'translate-x-12');
+        if (workerSection) {
+            // Animation: Slide right and fade out
+            workerSection.classList.remove('opacity-100', 'translate-x-0');
+            workerSection.classList.add('opacity-0', 'translate-x-12');
 
-        setTimeout(() => {
+            // Wait for animation to finish (500ms matches Tailwind duration-500)
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 500);
+        } else {
+            // Fallback if element isn't found
             window.location.href = targetUrl;
-        }, 500);
+        }
     });
 </script>
-
 </body>
 </html>

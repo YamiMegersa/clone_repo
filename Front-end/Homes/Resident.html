@@ -1,227 +1,177 @@
-<html class="dark" lang="en"><head></head><body class="bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">```html
-
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     "colors": {
-                        "inverse-primary": "#904d00",
-                        "on-background": "#e2e2e2",
                         "background": "#131313",
-                        "surface-dim": "#131313",
+                        "on-background": "#e2e2e2",
                         "surface-container-low": "#1b1b1b",
-                        "outline": "#a48c7a",
-                        "on-secondary-container": "#e9a771",
-                        "secondary": "#fdb881",
-                        "on-primary-fixed-variant": "#6e3900",
-                        "on-error-container": "#ffdad6",
-                        "tertiary-container": "#00b5fc",
-                        "on-surface-variant": "#ddc1ae",
-                        "surface": "#131313",
-                        "secondary-container": "#6a3b0f",
-                        "on-tertiary-container": "#004360",
-                        "on-secondary-fixed": "#2f1500",
-                        "surface-variant": "#353535",
-                        "surface-container-highest": "#353535",
-                        "tertiary-fixed": "#c7e7ff",
-                        "surface-container": "#1f1f1f",
-                        "on-primary-fixed": "#2f1500",
-                        "on-tertiary": "#00344c",
-                        "inverse-on-surface": "#303030",
-                        "outline-variant": "#564334",
-                        "surface-container-lowest": "#0e0e0e",
-                        "on-secondary": "#4d2600",
-                        "inverse-surface": "#e2e2e2",
-                        "on-secondary-fixed-variant": "#6a3b0f",
-                        "error-container": "#93000a",
-                        "secondary-fixed": "#ffdcc3",
-                        "primary-fixed-dim": "#ffb77d",
-                        "surface-tint": "#ffb77d",
-                        "on-primary": "#4d2600",
-                        "on-error": "#690005",
                         "surface-container-high": "#2a2a2a",
-                        "on-tertiary-fixed-variant": "#004c6c",
-                        "tertiary": "#85cfff",
-                        "primary-fixed": "#ffdcc3",
-                        "on-tertiary-fixed": "#001e2e",
-                        "tertiary-fixed-dim": "#85cfff",
+                        "surface-container-lowest": "#0e0e0e",
                         "primary": "#ffb77d",
-                        "surface-bright": "#393939",
                         "primary-container": "#ff8c00",
-                        "error": "#ffb4ab",
-                        "on-surface": "#e2e2e2",
-                        "secondary-fixed-dim": "#fdb881",
-                        "on-primary-container": "#623200"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "fontFamily": {
-                        "headline": ["Public Sans"],
-                        "body": ["Public Sans"],
-                        "label": ["Public Sans"]
+                        "on-surface-variant": "#ddc1ae",
+                        "outline-variant": "#564334"
                     }
-                },
-            },
+                }
+            }
         }
     </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         body { font-family: 'Public Sans', sans-serif; background-color: #131313; color: #e2e2e2; }
     </style>
-<header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full max-w-none">
-<section class="flex items-center">
-<span class="text-2xl font-black tracking-tighter text-[#E2E2E2] uppercase">GROUNDWORK</span>
-</section>
-<nav class="hidden md:flex gap-8"></nav>
-<section class="flex items-center gap-6">
-<button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-<button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
-<span class="material-symbols-outlined">account_circle</span>
-</button>
-</section>
-</header>
-<main class="pt-28 px-8 pb-12 grid grid-cols-12 gap-8 min-h-screen max-w-7xl mx-auto">
-<section class="col-span-12 lg:col-span-8 space-y-12">
-<header>
-<h2 class="text-[3.5rem] font-black tracking-tighter leading-none mb-2">Tracked Wards</h2>
-<p class="text-on-surface-variant max-w-xl font-body leading-relaxed">Active monitoring of municipal performance and infrastructure resolution across your high-priority zones.</p>
-</header>
-<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
-<button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-<span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">DISTRICT ALPHA</span>
-<h3 class="text-4xl font-black mb-8">WARD 07</h3>
-<section class="flex items-end justify-between">
-<header>
-<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
-<p class="text-3xl font-black text-primary">12</p>
-</header>
-<span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">location_city</span>
-</section>
-<footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
-</article>
-<article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
-<button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-<span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">MUNICIPAL HUB</span>
-<h3 class="text-4xl font-black mb-8">WARD 14</h3>
-<section class="flex items-end justify-between">
-<header>
-<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
-<p class="text-3xl font-black text-primary">04</p>
-</header>
-<span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">domain</span>
-</section>
-<footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
-</article>
-<article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
-<button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
-<span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">SOUTHERN CORRIDOR</span>
-<h3 class="text-4xl font-black mb-8">WARD 22</h3>
-<section class="flex items-end justify-between">
-<header>
-<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
-<p class="text-3xl font-black text-primary">28</p>
-</header>
-<span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">holiday_village</span>
-</section>
-<footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
-</article>
-<button class="group border-2 border-dashed border-outline-variant p-8 flex flex-col items-center justify-center gap-4 transition-all hover:bg-primary-container/5 hover:border-primary-container min-h-[220px]">
-<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary">add_circle</span>
-<span class="font-black uppercase tracking-widest text-sm text-on-surface-variant group-hover:text-on-surface">Track New Ward</span>
-</button>
-</section>
-<section class="mt-16">
-<a class="block group bg-surface-container-lowest p-1 border-l-4 border-orange-600" href="#">
-<article class="flex items-center justify-between bg-surface-container-low p-8 transition-all group-hover:bg-surface-container-high">
-<section class="flex gap-12 items-center">
-<span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
-<header>
-<h4 class="text-2xl font-black uppercase italic">VIEW LOCAL ANALYTICS</h4>
-<p class="text-on-surface-variant text-sm uppercase tracking-tighter">View real-time resolution metrics and municipal response times</p>
-</header>
-</section>
-<section class="flex items-center gap-4">
-<footer class="text-right">
-<p class="text-3xl font-black">94.2%</p>
-<p class="text-[10px] uppercase tracking-widest text-orange-500">Service Uptime</p>
-</footer>
-<span class="material-symbols-outlined text-4xl group-hover:translate-x-2 transition-transform">arrow_right_alt</span>
-</section>
-</article>
-</a>
-</section>
-</section>
-<aside class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-l border-white/5 h-fit lg:sticky lg:top-28">
-<header class="mb-10 flex items-center justify-between">
-<h2 class="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-<span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
+</head>
+
+<body class="bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+
+    <header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20">
+        <section class="flex items-center">
+            <span class="text-2xl font-black tracking-tighter text-[#E2E2E2] uppercase">GROUNDWORK</span>
+        </section>
+        <section class="flex items-center gap-6">
+            <button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+        </section>
+    </header>
+
+    <main class="pt-28 px-8 pb-12 grid grid-cols-12 gap-8 min-h-screen max-w-7xl mx-auto">
+        
+        <section class="col-span-12 lg:col-span-8 space-y-12">
+            
+            <section aria-labelledby="stats-heading">
+                <header class="mb-6">
+                    <h2 id="stats-heading" class="text-xs font-black uppercase tracking-[0.3em] text-orange-500 mb-2">Performance Overview</h2>
+                </header>
+                <a class="block group bg-surface-container-lowest p-1 border-l-4 border-orange-600" href="#">
+                    <article class="flex flex-col md:flex-row items-center justify-between bg-surface-container-low p-8 transition-all group-hover:bg-surface-container-high gap-6">
+                        <section class="flex gap-8 items-center">
+                            <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+                            <header>
+                                <h4 class="text-2xl font-black uppercase italic">VIEW LOCAL ANALYTICS</h4>
+                                <p class="text-on-surface-variant text-sm uppercase tracking-tighter">Real-time resolution metrics and municipal response times</p>
+                            </header>
+                        </section>
+                        <section class="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
+                            <aside class="text-right">
+                                <p class="text-4xl font-black">94.2%</p>
+                                <p class="text-[10px] uppercase tracking-widest text-orange-500">Service Uptime</p>
+                            </aside>
+                            <span class="material-symbols-outlined text-4xl group-hover:translate-x-2 transition-transform">arrow_right_alt</span>
+                        </section>
+                    </article>
+                </a>
+            </section>
+
+            <hr class="border-white/5">
+
+            <section aria-labelledby="wards-heading">
+                <header class="mb-8">
+                    <h2 id="wards-heading" class="text-[3.5rem] font-black tracking-tighter leading-none mb-2">Tracked Wards</h2>
+                    <p class="text-on-surface-variant max-w-xl font-body leading-relaxed">Active monitoring of municipal performance and infrastructure resolution across your high-priority zones.</p>
+                </header>
+
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+                        <button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">DISTRICT ALPHA</span>
+                        <h3 class="text-4xl font-black mb-8">WARD 07</h3>
+                        <section class="flex items-end justify-between">
+                            <header>
+                                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
+                                <p class="text-3xl font-black text-primary">12</p>
+                            </header>
+                            <span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">location_city</span>
+                        </section>
+                        <footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
+                    </article>
+
+                    <article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+                        <button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">MUNICIPAL HUB</span>
+                        <h3 class="text-4xl font-black mb-8">WARD 14</h3>
+                        <section class="flex items-end justify-between">
+                            <header>
+                                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
+                                <p class="text-3xl font-black text-primary">04</p>
+                            </header>
+                            <span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">domain</span>
+                        </section>
+                        <footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
+                    </article>
+
+                    <article class="group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+                        <button class="absolute top-6 right-6 text-on-surface-variant hover:text-primary">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <span class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">SOUTHERN CORRIDOR</span>
+                        <h3 class="text-4xl font-black mb-8">WARD 22</h3>
+                        <section class="flex items-end justify-between">
+                            <header>
+                                <p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Issues</p>
+                                <p class="text-3xl font-black text-primary">28</p>
+                            </header>
+                            <span class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">holiday_village</span>
+                        </section>
+                        <footer class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
+                    </article>
+
+                    <button class="group border-2 border-dashed border-outline-variant p-8 flex flex-col items-center justify-center gap-4 transition-all hover:bg-primary-container/5 hover:border-primary-container min-h-[220px]">
+                        <span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary">add_circle</span>
+                        <span class="font-black uppercase tracking-widest text-sm text-on-surface-variant group-hover:text-on-surface">Track New Ward</span>
+                    </button>
+                </section>
+            </section>
+        </section>
+
+        <aside class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-l border-white/5 h-fit lg:sticky lg:top-28">
+            <header class="mb-10 flex items-center justify-between">
+                <h2 class="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+                    <span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
                     Recent Alerts
                 </h2>
-<button class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
-</header>
-<ul class="space-y-6">
-<li class="group">
-<article class="space-y-2">
-<header class="flex justify-between items-start">
-<span class="label-md text-orange-500 font-black tracking-widest text-[10px]">SANITATION ALERT</span>
-<span class="text-[9px] opacity-40">2M AGO</span>
-</header>
-<p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Sanitation alert for Ward 07: Unscheduled maintenance scheduled for midnight.</p>
-<footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-</article>
-</li>
-<li class="group">
-<article class="space-y-2">
-<header class="flex justify-between items-start">
-<span class="label-md text-orange-500 font-black tracking-widest text-[10px]">STATUS RESOLVED</span>
-<span class="text-[9px] opacity-40">14M AGO</span>
-</header>
-<p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Issue resolved in Ward 14: Streetlight outage at 5th and Main cleared.</p>
-<footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-</article>
-</li>
-<li class="group">
-<article class="space-y-2">
-<header class="flex justify-between items-start">
-<span class="label-md text-orange-500 font-black tracking-widest text-[10px]">PUBLIC SAFETY</span>
-<span class="text-[9px] opacity-40">1H AGO</span>
-</header>
-<p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Patrol frequency increased in Ward 22 following recent reported activity.</p>
-<footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-</article>
-</li>
-<li class="group">
-<article class="space-y-2">
-<header class="flex justify-between items-start">
-<span class="label-md text-orange-500 font-black tracking-widest text-[10px]">PERMIT APPROVAL</span>
-<span class="text-[9px] opacity-40">4H AGO</span>
-</header>
-<p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Ref #8821: Renovation permit for Ward 07 successfully archived.</p>
-<footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-</article>
-</li>
-</ul>
-</aside>
-</main>
-```</body></html>
+                <button class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
+            </header>
+            <ul class="space-y-6">
+                <li class="group">
+                    <article class="space-y-2">
+                        <header class="flex justify-between items-start">
+                            <span class="text-orange-500 font-black tracking-widest text-[10px]">SANITATION ALERT</span>
+                            <span class="text-[9px] opacity-40">2M AGO</span>
+                        </header>
+                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Sanitation alert for Ward 07: Unscheduled maintenance scheduled for midnight.</p>
+                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
+                    </article>
+                </li>
+                <li class="group">
+                    <article class="space-y-2">
+                        <header class="flex justify-between items-start">
+                            <span class="text-orange-500 font-black tracking-widest text-[10px]">STATUS RESOLVED</span>
+                            <span class="text-[9px] opacity-40">14M AGO</span>
+                        </header>
+                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Issue resolved in Ward 14: Streetlight outage at 5th and Main cleared.</p>
+                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
+                    </article>
+                </li>
+            </ul>
+        </aside>
+    </main>
+</body>
+</html>
