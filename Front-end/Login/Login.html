@@ -87,6 +87,7 @@
     </style>
 </head>
 <script src="Login.js" defer></script>
+
 <body class="bg-surface text-on-surface min-h-screen flex flex-col">
 <!-- Top Orange Banner -->
 <header class="w-full bg-primary-container h-16 flex items-center px-8 z-50">
@@ -147,7 +148,10 @@
                         </button>
 </section>
 <footer class="mt-10 text-center"><nav class="flex justify-center items-center gap-6">
-<a class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="#">Municipal worker login</a>
+<!--Adding id so we can have a transtion button work-->
+<a id="worker-link" class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="Worker_Login.html">
+  Municipal worker login
+</a>
 <span class="w-1 h-1 bg-on-surface/20 rounded-full"></span>
 <a class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="#">Sign Up</a>
 </nav></footer>
@@ -164,4 +168,21 @@
 <a class="font-['Public_Sans'] text-xs font-medium uppercase tracking-widest text-on-surface opacity-40 hover:opacity-100 hover:text-[#FFB77D] transition-opacity duration-300" href="#">Data Policy</a>
 </nav>
 </footer>
+<script>
+  const workerLink = document.getElementById('worker-link');
+  const mainCard = document.querySelector('article'); // Selects your login card
+
+  workerLink.addEventListener('click', function(e) {
+    e.preventDefault(); // Stop the instant jump
+    const targetUrl = this.getAttribute('href');
+
+    // Add Tailwind classes for the exit animation
+    mainCard.classList.add('transition-all', 'duration-500', 'ease-in', 'opacity-0', '-translate-x-12');
+
+    // Redirect after the animation finishes
+    setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 500);
+  });
+</script>
 </body></html>
