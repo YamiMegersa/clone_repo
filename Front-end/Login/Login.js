@@ -11,7 +11,7 @@ loginForm.addEventListener('submit', async function(event) {
     const username = usernameInput.value.trim();//trim removes spaces from end
     const password = passwordInput.value;
     if((!username||!password)){
-        errorMessage.textContent="Please enter username and password";
+        errorMessage.textContent="Please your enter username and password";
         errorMessage.classList.remove('hidden');
         return;
     }
