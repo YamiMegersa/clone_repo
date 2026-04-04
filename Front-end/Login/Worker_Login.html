@@ -1,86 +1,33 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Groundwork | Municipal Login</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Groundwork | Municipal Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     "colors": {
-                        "surface-container-highest": "#353535",
-                        "on-primary-fixed": "#2f1500",
-                        "on-tertiary": "#00344c",
-                        "inverse-on-surface": "#303030",
-                        "tertiary-fixed": "#c7e7ff",
-                        "surface-container": "#1f1f1f",
-                        "outline-variant": "#564334",
-                        "on-secondary-fixed-variant": "#6a3b0f",
-                        "surface-container-lowest": "#0e0e0e",
-                        "on-secondary": "#4d2600",
-                        "inverse-surface": "#e2e2e2",
-                        "surface-tint": "#ffb77d",
-                        "on-primary": "#4d2600",
-                        "on-error": "#690005",
-                        "error-container": "#93000a",
-                        "secondary-fixed": "#ffdcc3",
-                        "primary-fixed-dim": "#ffb77d",
-                        "tertiary": "#85cfff",
-                        "primary-fixed": "#ffdcc3",
-                        "on-tertiary-fixed": "#001e2e",
-                        "tertiary-fixed-dim": "#85cfff",
-                        "primary": "#ffb77d",
-                        "surface-container-high": "#2a2a2a",
-                        "on-tertiary-fixed-variant": "#004c6c",
-                        "primary-container": "#ff8c00",
-                        "error": "#ffb4ab",
-                        "surface-bright": "#393939",
-                        "secondary-fixed-dim": "#fdb881",
-                        "on-primary-container": "#623200",
-                        "on-surface": "#e2e2e2",
-                        "on-background": "#e2e2e2",
-                        "background": "#131313",
-                        "inverse-primary": "#904d00",
-                        "surface-dim": "#131313",
-                        "outline": "#a48c7a",
                         "surface-container-low": "#1b1b1b",
-                        "on-primary-fixed-variant": "#6e3900",
-                        "on-error-container": "#ffdad6",
-                        "on-secondary-container": "#e9a771",
-                        "secondary": "#fdb881",
-                        "tertiary-container": "#00b5fc",
-                        "on-surface-variant": "#ddc1ae",
-                        "surface": "#131313",
-                        "secondary-container": "#6a3b0f",
-                        "on-tertiary-container": "#004360",
-                        "on-secondary-fixed": "#2f1500",
+                        "primary-container": "#ff8c00",
+                        "primary": "#ffb77d",
+                        "background": "#131313",
+                        "on-surface": "#e2e2e2",
+                        "surface-container-lowest": "#0e0e0e",
                         "surface-variant": "#353535"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "fontFamily": {
-                        "headline": ["Public Sans"],
-                        "body": ["Public Sans"],
-                        "label": ["Public Sans"]
                     }
-                },
-            },
+                }
+            }
         }
     </script>
-<style>
-        body { font-family: 'Public Sans', sans-serif; }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
+    <style>
+        body { font-family: 'Public Sans', sans-serif; overflow-x: hidden; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .monolith-bg {
             background-color: #131313;
             background-image: radial-gradient(circle at 2px 2px, #1b1b1b 1px, transparent 0);
@@ -89,76 +36,65 @@
     </style>
 </head>
 <body class="bg-background text-on-surface min-h-screen flex flex-col monolith-bg">
-<header class="bg-primary-container w-full h-20 flex items-center px-8 z-50">
-<h1 class="text-white text-3xl font-black tracking-tighter uppercase font-headline">
-            groundwork.
-        </h1>
+
+<header class="bg-primary-container w-full h-20 flex items-center justify-between px-8 z-50">
+    <h1 class="text-white text-3xl font-black tracking-tighter uppercase">groundwork.</h1>
+    
+    <a id="back-to-login" href="login.html" class="flex items-center gap-2 text-white/80 hover:text-white transition-colors group">
+        <span class="material-symbols-outlined transition-transform group-hover:-translate-x-1">arrow_back</span>
+        <span class="text-xs font-bold uppercase tracking-widest">Back to Login</span>
+    </a>
 </header>
+
 <main class="flex-grow flex items-center justify-center px-4 py-12 relative overflow-hidden">
-<aside class="absolute top-1/4 -right-20 w-96 h-96 bg-primary-container opacity-5 blur-[120px] rounded-full"></aside>
-<aside class="absolute bottom-1/4 -left-20 w-96 h-96 bg-primary opacity-5 blur-[120px] rounded-full"></aside>
-<section class="w-full max-w-md z-10">
-<article class="bg-surface-container-low p-10 rounded-lg shadow-2xl border-l-4 border-primary-container">
-<header class="mb-10">
-<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 font-headline uppercase">
-                        Portal Access
-                    </h2>
-<p class="text-on-surface-variant text-sm font-label tracking-widest uppercase opacity-70">
-                        Municipal Worker Authentication
-                    </p>
-</header>
-<form action="#" class="space-y-8" method="POST">
-<section class="space-y-2">
-<label class="block text-xs font-bold tracking-widest text-primary uppercase" for="municipal-id">
-                            Municipal ID
-                        </label>
-<section class="relative group">
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="municipal-id" name="municipal-id" placeholder="Enter Badge or ID Number" required="" type="text"/>
-<span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
-</section>
-</section>
-<section class="space-y-2">
-<label class="block text-xs font-bold tracking-widest text-primary uppercase" for="password">
-                            Password
-                        </label>
-<section class="relative group">
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all placeholder:text-surface-variant" id="password" name="password" placeholder="••••••••" required="" type="password"/>
-<span class="absolute bottom-0 left-0 h-0.5 w-0 bg-primary-container transition-all duration-300 group-focus-within:w-full"></span>
-</section>
-</section>
-<footer class="pt-4">
-<button class="w-full bg-primary-container hover:bg-primary text-on-primary font-black py-5 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg shadow-primary-container/20" type="submit">
-                            LOGIN
-                        </button>
-</footer>
-</form>
-<nav class="mt-12 text-center">
-<a class="inline-block text-xs font-bold tracking-widest text-primary hover:text-primary-container transition-colors uppercase border-b border-primary/20 pb-1" href="#">
-                        SIGN UP AS A MUNICIPAL WORKER
-                    </a>
-</nav>
-</article>
-<section class="mt-8 flex justify-center gap-8 opacity-40">
-<article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
-<span class="material-symbols-outlined text-sm">security</span>
-                    Encrypted Ledger
-                </article>
-<article class="flex items-center gap-2 text-[10px] font-label uppercase tracking-tighter">
-<span class="material-symbols-outlined text-sm">verified_user</span>
-                    Verified Access
-                </article>
-</section>
-</section>
+    <section id="worker-section" class="w-full max-w-md z-10 transform transition-all duration-700 ease-out opacity-0 translate-x-12">
+        <article class="bg-surface-container-low p-10 rounded-lg shadow-2xl border-l-4 border-primary-container">
+            <header class="mb-10">
+                <h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 uppercase">Portal Access</h2>
+                <p class="text-on-surface-variant text-sm tracking-widest uppercase opacity-70">Municipal Worker Authentication</p>
+            </header>
+
+            <form action="#" class="space-y-8" method="POST">
+                <section class="space-y-2">
+                    <label class="block text-xs font-bold tracking-widest text-primary uppercase">Municipal ID</label>
+                    <input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all" placeholder="Enter Badge or ID Number" required type="text"/>
+                </section>
+                <section class="space-y-2">
+                    <label class="block text-xs font-bold tracking-widest text-primary uppercase">Password</label>
+                    <input class="w-full bg-surface-container-lowest border-none border-b-2 border-surface-variant focus:border-primary-container focus:ring-0 text-on-surface py-4 px-0 transition-all" placeholder="••••••••" required type="password"/>
+                </section>
+                <button class="w-full bg-primary-container hover:bg-primary text-white font-black py-5 rounded-lg tracking-widest uppercase transition-all shadow-lg shadow-primary-container/20" type="submit">LOGIN</button>
+            </form>
+        </article>
+    </section>
 </main>
-<footer class="w-full py-12 px-12 bg-surface-container-lowest flex flex-col md:flex-row justify-between items-center gap-6">
-<p class="font-label text-[10px] uppercase tracking-widest text-on-surface opacity-50">
-            © 2024 Groundwork Municipal Ledger. All civic actions recorded.
-        </p>
-<nav class="flex gap-8">
-<a class="font-label text-[10px] uppercase tracking-widest text-on-surface opacity-50 hover:text-primary hover:opacity-100 transition-opacity" href="#">Accessibility</a>
-<a class="font-label text-[10px] uppercase tracking-widest text-on-surface opacity-50 hover:text-primary hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
-<a class="font-label text-[10px] uppercase tracking-widest text-on-surface opacity-50 hover:text-primary hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
-<a class="font-label text-[10px] uppercase tracking-widest text-on-surface opacity-50 hover:text-primary hover:opacity-100 transition-opacity" href="#">Contact Support</a>
-</nav>
-</footer>
-</body></html>
+
+<script>
+    // 1. Entrance Animation (Slides in from RIGHT)
+    window.addEventListener('DOMContentLoaded', () => {
+        const workerSection = document.getElementById('worker-section');
+        setTimeout(() => {
+            workerSection.classList.remove('opacity-0', 'translate-x-12');
+            workerSection.classList.add('opacity-100', 'translate-x-0');
+        }, 100);
+    });
+
+    // 2. Back Button Logic (Slides out to RIGHT to go back)
+    const backBtn = document.getElementById('back-to-login');
+    const workerSection = document.getElementById('worker-section');
+
+    backBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetUrl = this.getAttribute('href');
+
+        // Animation: Slide right and fade out
+        workerSection.classList.add('opacity-0', 'translate-x-12');
+
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 500);
+    });
+</script>
+
+</body>
+</html>
