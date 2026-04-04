@@ -35,6 +35,7 @@ loginForm.addEventListener('submit', async function(event) {
             errorMessage.classList.remove('hidden');
         }
     } catch (err) {
-        displayMessage("Something has gone terribly wrong.", "error");
+        errorMessage.textContent = "Something has gone terribly wrong.";
+        errorMessage.classList.remove('hidden');
     }   
 });
