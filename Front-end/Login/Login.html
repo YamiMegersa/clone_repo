@@ -104,7 +104,7 @@
 <h2 class="text-3xl font-black text-on-surface tracking-tight mb-2">Secure Access</h2>
 <p class="text-on-surface-variant text-sm tracking-wide font-medium uppercase opacity-70">Enter your credentials to continue</p>
 </header>
-<form class="space-y-6">
+<form id="ResidentLoginForm" class="space-y-6">
 <!-- Username Field -->
 <fieldset class="space-y-2 border-none p-0 m-0">
 <label class="block text-xs font-bold text-on-surface uppercase tracking-widest ml-1" for="username">Username</label>
@@ -124,6 +124,9 @@
 <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
 </button>
 </form>
+<p id="error" class="hidden text-red-500 text-[10px] font-bold mt-1 uppercase tracking-tighter">
+                ID is required to continue.
+</p>
 <!-- Divider -->
 <section class="relative flex items-center my-10">
 <hr class="flex-grow border-t border-on-surface/5"/>
