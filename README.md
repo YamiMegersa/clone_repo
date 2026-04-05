@@ -1,2 +1,0 @@
-# Luc-sProject
-Repository documenting 
