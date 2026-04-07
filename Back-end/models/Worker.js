@@ -12,3 +12,4 @@ const MunicipalWorker = sequelize.define('MunicipalWorker', {
     Validated: { type: DataTypes.BOOLEAN, defaultValue: false },
     ProfilePicture: { type: DataTypes.BLOB } // Assuming URL or Path
 }, { tableName: 'MunicipalWorkers', timestamps: false });
+module.exports=MunicipalWorker;

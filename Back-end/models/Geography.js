@@ -10,13 +10,15 @@ const Province = sequelize.define('Province', {
 // Municipality Model [cite: 1, 6]
 const Municipality = sequelize.define('Municipality', {
     MunicipalityID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    ProvinceID: { type: DataTypes.INTEGER, references: { model: Province, key: 'ProvinceID' } }, // [cite: 9]
+    ProvinceID: { type: DataTypes.INTEGER}, // [cite: 9]
     MunicipalityName: { type: DataTypes.STRING, allowNull: false }
 }, { tableName: 'Municipality', timestamps: false });
 
 // Ward Model [cite: 1, 4]
 const Ward = sequelize.define('Ward', {
-    WardID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    MunicipalityID: { type: DataTypes.INTEGER, references: { model: Municipality, key: 'MunicipalityID' } }, // [cite: 5]
+    WardID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: false },
+    MunicipalityID: { type: DataTypes.INTEGER }, // [cite: 5]
     WardCouncillor: { type: DataTypes.STRING }
 }, { tableName: 'Ward', timestamps: false });
+
+module.exports={Province,Municipality,Ward};

@@ -32,8 +32,8 @@ const Resident = sequelize.define('Resident', {
 
 const Subscription = sequelize.define('Subscription', {
     SubscriptionID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    WardID: { type: DataTypes.INTEGER, references: { model: Ward, key: 'WardID' } }, // [cite: 14]
-    ResidentID: { type: DataTypes.INTEGER, references: { model: Resident, key: 'ResidentID' } } // [cite: 13]
+    WardID: { type: DataTypes.INTEGER }, // [cite: 14]
+    ResidentID: { type: DataTypes.INTEGER} // [cite: 13]
 }, { tableName: 'Subscription', timestamps: false });
 
-module.exports = Resident;
+module.exports = {Resident,Subscription};
