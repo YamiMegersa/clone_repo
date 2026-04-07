@@ -1,0 +1,14 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
+
+// Municipal Workers Model [cite: 1, 7]
+const MunicipalWorker = sequelize.define('MunicipalWorker', {
+    EmployeeID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    Cell: { type: DataTypes.STRING },
+    email: { type: DataTypes.STRING },
+    firstName: { type: DataTypes.STRING },
+    LastName: { type: DataTypes.STRING },
+    Blacklisted: { type: DataTypes.BOOLEAN, defaultValue: false },
+    Validated: { type: DataTypes.BOOLEAN, defaultValue: false },
+    ProfilePicture: { type: DataTypes.BLOB } // Assuming URL or Path
+}, { tableName: 'MunicipalWorkers', timestamps: false });
