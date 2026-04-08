@@ -42,7 +42,7 @@ loginForm.addEventListener('submit', async function(event) {
 
 window.onload = function () {
   google.accounts.id.initialize({
-    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    client_id: "807391346984-tnskuijp45bnadk8ki9b87j7q4hd3dq4.apps.googleusercontent.com",
     callback: handleCredentialResponse,
     context: "signin",
     ux_mode: "popup" // Or "redirect"
