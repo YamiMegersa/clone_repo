@@ -29,7 +29,8 @@ loginForm.addEventListener('submit', async function(event) {
 
         if (response.ok) {
             //displayMessage("Success! Redirecting...", "success");
-            window.location.href = "/<ResidentPage>";
+            localStorage.setItem('residentId', result.residentId);
+            window.location.href = "../Homes/Resident.html";
         } else {
             errorMessage.textContent="Incorrect username or password";
             errorMessage.classList.remove('hidden');
@@ -73,7 +74,10 @@ async function handleCredentialResponse(response) {
         const result = await backendRes.json();
 
         if (backendRes.ok) {
-            window.location.href = "/ResidentPage";
+            // --- ADD THESE TWO LINES ---
+            localStorage.setItem('residentId', result.residentID);
+            window.location.href = "../Homes/Resident.html"; 
+            // ---------------------------
         } else {
             errorMessage.textContent = "Google Sign-In failed.";
             errorMessage.classList.remove('hidden');
