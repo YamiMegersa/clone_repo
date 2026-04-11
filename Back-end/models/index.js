@@ -61,6 +61,5 @@ module.exports = {
     ReportImage,
     Allocation,
     Subscription,
-    Grievance,
-    app
+    Grievance
 };
