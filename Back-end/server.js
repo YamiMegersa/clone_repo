@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const cors=require('cors');
 const sequelize = require('./config/db');
+const models=require('./models'); // Import models and associations
 
 // Google auth stuff
 const { OAuth2Client } = require('google-auth-library');
@@ -64,53 +65,16 @@ app.use('/api/grievances', grievanceRoutes);
 app.use('/api/residents', residentRoutes);
 
 // Database Connection
-sequelize.authenticate()
-    .then(() => console.log('Connected to Azure MySQL!'))
-    .catch(err => console.error('Unable to connect:', err));
-
-const PORT = process.env.PORT || 8080;
-
-//Google auth stuff
-app.post('/api/auth/google', async (req, res) => {
-    const { idToken } = req.body;
-
-    try {
-        const ticket = await client.verifyIdToken({
-            idToken: idToken,
-            audience: process.env.GOOGLE_CLIENT_ID, 
+sequelize.sync({ alter: true }) // <--- This forces Azure to apply autoIncrement rule
+    .then(() => {
+        console.log('✅ Connected to Azure MySQL and Tables Updated!');
+        const PORT = process.env.PORT || 8080;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
         });
-        
-        const payload = ticket.getPayload();
-        const { email, name } = payload;
+    })
+    .catch(err => {
+        console.error('❌ Unable to connect or sync:', err);
+    });
 
-        // Using findOrCreate with your Resident model
-        const [resident, created] = await Resident.findOrCreate({
-            where: { Email: email }, 
-            defaults: {
-                Username: name || email,
-                Email: email,
-                // CellphoneNumber cannot be null, we provide a placeholder for new Google sign-ups
-                CellphoneNumber: `G-${Date.now().toString().slice(-8)}`, //Ensures the placeholder isn't longer than the one in the DB column 
-                BlackListed: false
-            }
-        });
 
-        if (resident.BlackListed) {
-            return res.status(403).json({ success: false, message: "Account is restricted." });
-        }
-
-        res.status(200).json({ 
-            success: true, 
-            message: created ? "Resident registered" : "Resident logged in",
-            residentId: resident.ResidentID
-        });
-
-    } catch (error) {
-        console.error("Google Auth Error:", error);
-        res.status(401).json({ success: false, message: "Invalid Token" });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on ${PORT}`);
-});

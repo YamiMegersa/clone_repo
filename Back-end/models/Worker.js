@@ -5,8 +5,8 @@ const sequelize = require('../config/db');
 const MunicipalWorker = sequelize.define('MunicipalWorker', {
     EmployeeID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     Cell: { type: DataTypes.STRING },
-    email: { type: DataTypes.STRING },
-    firstName: { type: DataTypes.STRING },
+    Email: { type: DataTypes.STRING },
+    FirstName: { type: DataTypes.STRING },
     LastName: { type: DataTypes.STRING },
     Blacklisted: { type: DataTypes.BOOLEAN, defaultValue: false },
     Validated: { type: DataTypes.BOOLEAN, defaultValue: false },
