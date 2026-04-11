@@ -7,6 +7,7 @@ const models = require('./models');
 
 const { OAuth2Client } = require('google-auth-library');
 const { Resident } = require('./models/Resident');
+const MunicipalWorker = require('./models/Worker');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const app = express();
@@ -15,8 +16,8 @@ const app = express();
 app.use(cors()); 
 app.use(express.json()); 
 
-// --- 2. GOOGLE AUTH API ROUTE ---
-// Must be ABOVE static files to avoid 404/HTML redirect errors
+// --- 2. Resident GOOGLE AUTH API ROUTE ---
+
 app.post('/api/auth/google', async (req, res) => {
     const { idToken } = req.body;
     try {
@@ -50,6 +51,58 @@ app.post('/api/auth/google', async (req, res) => {
     } catch (error) {
         console.error("Google Auth Error:", error);
         res.status(401).json({ success: false, message: "Invalid Token" });
+    }
+});
+
+// --- WORKER GOOGLE AUTH ROUTE ---
+app.post('/api/auth/worker/google', async (req, res) => {
+    const { idToken } = req.body;
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        
+        const payload = ticket.getPayload();
+        const { email } = payload;
+
+        // 1. Check if the worker exists by email (matching your model's 'email' field)
+        const worker = await MunicipalWorker.findOne({ where: { email: email } });
+
+        if (!worker) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Access Denied. Your email is not registered in the municipal system." 
+            });
+        }
+
+        // 2. Check the 'Validated' column from your model
+        if (!worker.Validated) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Account pending. An administrator must validate your profile before you can log in." 
+            });
+        }
+
+        // 3. Check 'Blacklisted' (matching your model's 'Blacklisted' field)
+        if (worker.Blacklisted) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "This account has been blacklisted. Access revoked." 
+            });
+        }
+
+        // 4. If all checks pass
+        res.status(200).json({ 
+            success: true, 
+            workerId: worker.EmployeeID,
+            name: worker.firstName // Using camelCase as per your model
+        });
+
+    } catch (error) {
+        console.error("Worker Google Auth Error:", error);
+        res.status(401).json({ success: false, message: "Invalid Security Token" });
     }
 });
 
