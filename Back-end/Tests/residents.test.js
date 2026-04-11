@@ -1,78 +1,129 @@
 const request = require('supertest');
-const app = require('../index'); // Path to your main app file
-const { sequelize, Resident, Ward, Subscription } = require('../models');
+const express = require('express');
+const residentRouter = require('../routes/residents'); 
+const { Resident, Ward, Subscription } = require('../models');
 
-// Setup and Teardown
-beforeAll(async () => {
-    // Sync the database before tests (use a test DB in .env if possible!)
-    await sequelize.sync({ force: true });
+// Mocking the Sequelize function calls
+jest.mock('../models', () => ({
+    Resident: {
+        findAll: jest.fn(), //jest.fn allows us to simulate db, with mock responses
+        create: jest.fn(),
+        findByPk: jest.fn(),
+    },
+    Ward: {
+        findByPk: jest.fn(),
+    },
+    Subscription: {
+        findOne: jest.fn(),
+        create: jest.fn(),
+        destroy: jest.fn(),
+    }
+})); //creates a mock object that implements relevant functions locally
+
+const app = express();
+app.use(express.json());
+app.use('/residents', residentRouter);
+
+describe('Resident API Endpoints test', () => {
     
-    // Create a dummy Ward so we have something to subscribe to
-    await Ward.create({ WardID: 1, WardCouncillor: 'Test Councillor' });
-});
+    afterEach(() => {
+        jest.clearAllMocks();
+    }); // clears the mock memory of the functions, resets call counts and arguements
 
-afterAll(async () => {
-    await sequelize.close(); // Close DB connection so Jest can exit
-});
+    describe('GET /residents', () => { //we use AAA, aarrange, act, assert
+        it('should return all residents', async () => {
+            const mockResidents = [{ id: 1, Name: 'John Doe' }];
+            Resident.findAll.mockResolvedValue(mockResidents); //sets up a mock entity in our mocktable, if you call finall, return this
 
-describe('Resident API Routes', () => {
-    let testResidentId;
+            const res = await request(app).get('/residents');
 
-    // 1. Test POST: Create Resident
-    test('POST /api/residents - Should create a new resident', async () => {
-        const res = await request(app)
-            .post('/api/residents')
-            .send({
-                Username: 'JestUser',
-                Email: 'jest@test.com',
-                CellphoneNumber: '0999999999'
-            });
-        
-        expect(res.statusCode).toBe(201);
-        expect(res.body).toHaveProperty('ResidentID');
-        testResidentId = res.body.ResidentID;
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual(mockResidents);
+        });
     });
 
-    // 2. Test GET: All Residents
-    test('GET /api/residents - Should return all residents', async () => {
-        const res = await request(app).get('/api/residents');
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toBeGreaterThan(0);
+    describe('GET /residents/:id/subscriptions', () => {
+        it('should return wards for valid resident', async () => {
+            const mockData = {
+                id: 1,
+                Wards: [{ id: 10, name: 'Ward 10' }]
+            };
+            Resident.findByPk.mockResolvedValue(mockData);
+
+            const res = await request(app).get('/residents/1/subscriptions');
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toEqual(mockData.Wards);
+        });
+
+        it('should return 404 if resident does not exist', async () => {
+            Resident.findByPk.mockResolvedValue(null);
+            const res = await request(app).get('/residents/99/subscriptions');
+            expect(res.statusCode).toBe(404);
+        });
     });
 
-    // 3. Test POST: Subscribe
-    test('POST /api/residents/subscribe - Should link resident to ward', async () => {
-        const res = await request(app)
-            .post('/api/residents/subscribe')
-            .send({
-                ResidentID: testResidentId,
-                WardID: 1
-            });
-        
-        expect(res.statusCode).toBe(201);
-        expect(res.body.message).toBe('Subscription successful!');
+    describe('POST /residents/subscribe', () => {
+        it('should create a subscription successfully', async () => {
+            // Mock resident and ward exist
+            Resident.findByPk.mockResolvedValue({ id: 1 });
+            Ward.findByPk.mockResolvedValue({ id: 10 });
+            // Mock no existing subscription
+            Subscription.findOne.mockResolvedValue(null);//not existing
+            // Mock creation
+            Subscription.create.mockResolvedValue({ ResidentID: 1, WardID: 10 });
+
+            const res = await request(app)
+                .post('/residents/subscribe')
+                .send({ ResidentID: 1, WardID: 10 });
+
+            expect(res.statusCode).toBe(201);
+            expect(res.body.message).toBe('Subscription successful!');
+        });
+
+        it('should return 400 if already subscribed', async () => {
+            Resident.findByPk.mockResolvedValue({ id: 1 });
+            Ward.findByPk.mockResolvedValue({ id: 10 });
+            Subscription.findOne.mockResolvedValue({ id: 500 }); // Existing found
+
+            const res = await request(app)
+                .post('/residents/subscribe')
+                .send({ ResidentID: 1, WardID: 10 });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.message).toContain('already subscribed');
+        });
+
+        it('should return 404 if Resident or Ward is missing', async () => {
+            Resident.findByPk.mockResolvedValue(null);
+            const res = await request(app)
+                .post('/residents/subscribe')
+                .send({ ResidentID: 1, WardID: 10 });
+
+            expect(res.statusCode).toBe(404);
+        });
     });
 
-    // 4. Test GET: Subscriptions (The JOIN test)
-    test('GET /api/residents/:id/subscriptions - Should return ward array', async () => {
-        const res = await request(app).get(`/api/residents/${testResidentId}/subscriptions`);
-        
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body[0]).toHaveProperty('WardID', 1);
-    });
+    describe('DELETE /residents/unsubscribe', () => {
+        it('should unsubscribe successfully', async () => {
+            Subscription.destroy.mockResolvedValue(1); // 1 row deleted
 
-    // 5. Test DELETE: Unsubscribe
-    test('DELETE /api/residents/unsubscribe - Should remove the link', async () => {
-        const res = await request(app)
-            .delete('/api/residents/unsubscribe')
-            .send({
-                ResidentID: testResidentId,
-                WardID: 1
-            });
-        
-        expect(res.statusCode).toBe(200);
-        expect(res.body.message).toBe('Unsubscribed successfully!');
+            const res = await request(app)
+                .delete('/residents/unsubscribe')
+                .send({ ResidentID: 1, WardID: 10 });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.message).toBe('Unsubscribed successfully!');
+        });
+
+        it('should return 404 if no subscription found to delete', async () => {
+            Subscription.destroy.mockResolvedValue(0); // 0 rows deleted
+
+            const res = await request(app)
+                .delete('/residents/unsubscribe')
+                .send({ ResidentID: 1, WardID: 10 });
+
+            expect(res.statusCode).toBe(404);
+        });
     });
 });

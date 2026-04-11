@@ -20,7 +20,7 @@ router.get('/provinces', async(req,res)=>{
 // Helpful so that only the relevant municipalities are displayed when a user selects a province in a dropdown
 router.get('/provinces/:id/municipalities', async(req,res)=>{
     try{
-        const municipalities=await Municipalities.findAll({
+        const municipalities=await Municipality.findAll({
             where:{ProvinceID: req.params.id}
         });
         res.json(municipalities);
