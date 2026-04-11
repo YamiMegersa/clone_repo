@@ -34,7 +34,7 @@ router.get('/resident/:residentId', async (req, res) => {
 router.get('/municipality/:municipalId', async (req, res) => {
     try {
         const grievances = await Grievance.findAll({
-            where: { MunicipalID: req.params.municipalId }
+            where: { MunicipalityID: req.params.municipalId }
         });
         res.json(grievances);
     } catch (err) {

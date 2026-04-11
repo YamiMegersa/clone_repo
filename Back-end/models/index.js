@@ -46,8 +46,8 @@ MunicipalWorker.belongsToMany(Report, { through: Allocation, foreignKey: 'Employ
 Resident.hasMany(Grievance, { foreignKey: 'ResidentID' }); // [cite: 8, 20, 18]
 Grievance.belongsTo(Resident, { foreignKey: 'ResidentID' });
 
-MunicipalWorker.hasMany(Grievance, { foreignKey: 'MunicipalID' }); // [cite: 7, 20, 21]
-Grievance.belongsTo(MunicipalWorker, { foreignKey: 'MunicipalID' });
+MunicipalWorker.hasMany(Grievance, { foreignKey: 'MunicipalityID' }); // [cite: 7, 20, 21]
+Grievance.belongsTo(MunicipalWorker, { foreignKey: 'MunicipalityID' });
 
 // 3. Export everything
 module.exports = {
@@ -62,5 +62,5 @@ module.exports = {
     Allocation,
     Subscription,
     Grievance,
-    app
+    
 };
