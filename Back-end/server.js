@@ -6,9 +6,7 @@ const sequelize = require('./config/db');
 
 // Google auth stuff
 const { OAuth2Client } = require('google-auth-library');
-const Resident = require('./models/Resident'); 
-// The Traffic Cop: Used for your /api/residents endpoints
-const residentRoutes = require('./routes/residents');
+const { Resident } = require('./models/Resident');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const app = express();
@@ -18,8 +16,7 @@ app.use(express.json());
 app.use(cors());  //Allows our local front-end to talk to Azure
 app.use(express.json());  //Allows the API to understand JSON Data
 
-// Link your routes folder to a specific URL path
-app.use('/api/residents', residentRoutes);
+
 
 // Use 'path.resolve' to create an absolute path from your computer's root
 const frontendPath = path.resolve(__dirname, '..', 'Front-end');
@@ -62,6 +59,9 @@ app.use('/api/grievances', grievanceRoutes);
 //app.get('/', (req, res) => {
 //    res.send('Welcome to LUCS API!');
 //});
+
+// Link your routes folder to a specific URL path
+app.use('/api/residents', residentRoutes);
 
 // Database Connection
 sequelize.authenticate()
