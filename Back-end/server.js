@@ -1,52 +1,67 @@
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
-const cors=require('cors');
+const cors = require('cors');
 const sequelize = require('./config/db');
-const models=require('./models'); // Import models and associations
+const models = require('./models'); 
 
-// Google auth stuff
 const { OAuth2Client } = require('google-auth-library');
 const { Resident } = require('./models/Resident');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const app = express();
-app.use(express.json());
 
-//Middleware
-app.use(cors());  //Allows our local front-end to talk to Azure
-app.use(express.json());  //Allows the API to understand JSON Data
+// --- 1. MIDDLEWARE ---
+app.use(cors()); 
+app.use(express.json()); 
 
+// --- 2. GOOGLE AUTH API ROUTE ---
+// Must be ABOVE static files to avoid 404/HTML redirect errors
+app.post('/api/auth/google', async (req, res) => {
+    const { idToken } = req.body;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID, 
+        });
+        
+        const payload = ticket.getPayload();
+        const { email, name } = payload;
 
+        const [resident, created] = await Resident.findOrCreate({
+            where: { Email: email }, 
+            defaults: {
+                Username: name || email,
+                Email: email,
+                CellphoneNumber: `G-${Date.now().toString().slice(-8)}`,
+                BlackListed: false
+            }
+        });
 
-// Use 'path.resolve' to create an absolute path from your computer's root
-const frontendPath = path.resolve(__dirname, '..', 'Front-end');
+        if (resident.BlackListed) {
+            return res.status(403).json({ success: false, message: "Account restricted." });
+        }
 
-// Standard middleware for CSS/JS files
-app.use(express.static(frontendPath));
+        res.status(200).json({ 
+            success: true, 
+            residentId: resident.ResidentID 
+        });
 
-// The "Home" route
-app.get('/', (req, res) => {
-    // CHANGE THESE to match your sidebar exactly (Case Sensitive!)
-    // If your folder is 'login', change 'Login' to 'login'
-    res.sendFile(path.join(frontendPath, 'Login', 'Login.html'));
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        res.status(401).json({ success: false, message: "Invalid Token" });
+    }
 });
 
-// This handles the main entry point
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Front-end/Login/Login.html'));
-});
-
-//Import Routes
+// --- 3. API ROUTES ---
 const residentRoutes = require('./routes/residents');
-const workerRoutes=require('./routes/workers');
-const reportRoutes=require('./routes/reports');
-const geographyRoutes=require('./routes/geography');
-const allocationRoutes=require('./routes/allocations');
-const reportImageRoutes=require('./routes/reportImages');
-const grievanceRoutes=require('./routes/grievances');
+const workerRoutes = require('./routes/workers');
+const reportRoutes = require('./routes/reports');
+const geographyRoutes = require('./routes/geography');
+const allocationRoutes = require('./routes/allocations');
+const reportImageRoutes = require('./routes/reportImages');
+const grievanceRoutes = require('./routes/grievances');
 
-//Use Routes
 app.use('/api/workers', workerRoutes);
 app.use('/api/residents', residentRoutes);
 app.use('/api/reports', reportRoutes);
@@ -55,17 +70,17 @@ app.use('/api/allocations', allocationRoutes);
 app.use('/api/report-images', reportImageRoutes);
 app.use('/api/grievances', grievanceRoutes);
 
+// --- 4. STATIC FILES & FRONTEND ---
+const frontendPath = path.resolve(__dirname, '..', 'Front-end');
+app.use(express.static(frontendPath));
 
-//Test Route
-//app.get('/', (req, res) => {
-//    res.send('Welcome to LUCS API!');
-//});
+// Default route to serve Login.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'Login', 'Login.html'));
+});
 
-// Link your routes folder to a specific URL path
-app.use('/api/residents', residentRoutes);
-
-// Database Connection
-sequelize.sync({ alter: true }) // <--- This forces Azure to apply autoIncrement rule
+// --- 5. DATABASE & START ---
+sequelize.sync({ alter: true })
     .then(() => {
         console.log('✅ Connected to Azure MySQL and Tables Updated!');
         const PORT = process.env.PORT || 8080;
@@ -76,5 +91,3 @@ sequelize.sync({ alter: true }) // <--- This forces Azure to apply autoIncrement
     .catch(err => {
         console.error('❌ Unable to connect or sync:', err);
     });
-
-
