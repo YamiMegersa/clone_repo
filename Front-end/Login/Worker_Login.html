@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="Worker_login.js" defer></script>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -79,6 +80,18 @@
                     <button class="w-full bg-primary-container hover:bg-primary text-on-primary font-black py-5 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg shadow-primary-container/20" type="submit">LOGIN</button>
                 </footer>
             </form>
+
+            <section class="mt-8">
+    <aside class="flex items-center gap-4 mb-6">
+        <hr class="flex-grow border-surface-variant" aria-hidden="true">
+        <span class="text-[10px] font-bold tracking-widest text-surface-variant uppercase">Or Identity Access</span>
+        <hr class="flex-grow border-surface-variant" aria-hidden="true">
+    </aside>
+    
+    <section class="flex justify-center">
+        <address id="google-worker-btn" class="not-italic"></address>
+    </section>
+</section>
 
             <p id="error" class="hidden text-red-500 text-[10px] font-bold mt-1 uppercase tracking-tighter">ID is required to continue.</p>
 
