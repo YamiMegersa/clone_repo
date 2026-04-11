@@ -1,6 +1,7 @@
 const express = require('express');
 const cors=require('cors');
 const sequelize = require('./config/db');
+const models=require('./models'); // Import models and associations
 require('dotenv').config();
 
 const app = express();
@@ -34,11 +35,16 @@ app.get('/', (req, res) => {
 });
 
 // Database Connection
-sequelize.authenticate()
-    .then(() => console.log('Connected to Azure MySQL!'))
-    .catch(err => console.error('Unable to connect:', err));
+sequelize.sync({ alter: true }) // <--- This forces Azure to apply autoIncrement rule
+    .then(() => {
+        console.log('✅ Connected to Azure MySQL and Tables Updated!');
+        const PORT = process.env.PORT || 8080;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('❌ Unable to connect or sync:', err);
+    });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log('Server running on ${PORT}');
-});
+
