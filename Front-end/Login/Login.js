@@ -29,7 +29,8 @@ loginForm.addEventListener('submit', async function(event) {
 
         if (response.ok) {
             //displayMessage("Success! Redirecting...", "success");
-            window.location.href = "/<ResidentPage>";
+            localStorage.setItem('residentId', result.residentId);
+            window.location.href = "../Homes/Resident.html";
         } else {
             errorMessage.textContent="Incorrect username or password";
             errorMessage.classList.remove('hidden');
@@ -39,3 +40,49 @@ loginForm.addEventListener('submit', async function(event) {
         errorMessage.classList.remove('hidden');
     }   
 });
+
+window.onload = function () {
+  google.accounts.id.initialize({
+    client_id: "807391346984-tnskuijp45bnadk8ki9b87j7q4hd3dq4.apps.googleusercontent.com",
+    callback: handleCredentialResponse,
+    context: "signin",
+    ux_mode: "popup" // Or "redirect"
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById("google-login-btn"),
+    { 
+        theme: "filled_black", 
+        size: "large", 
+        width: 400, // Matches your card width
+        shape: "rectangular" 
+    }
+  );
+};
+
+async function handleCredentialResponse(response) {
+    // response.credential is a JWT token
+    const token = response.credential;
+
+    try {
+        const backendRes = await fetch('/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: token })
+        });
+
+        const result = await backendRes.json();
+
+        if (backendRes.ok) {
+            // --- ADD THESE TWO LINES ---
+            localStorage.setItem('residentId', result.residentID);
+            window.location.href = "../Homes/Resident.html"; 
+            // ---------------------------
+        } else {
+            errorMessage.textContent = "Google Sign-In failed.";
+            errorMessage.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error("Auth Error:", err);
+    }
+}
