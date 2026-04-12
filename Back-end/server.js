@@ -29,6 +29,15 @@ app.post('/api/auth/google', async (req, res) => {
         const payload = ticket.getPayload();
         const { email, name } = payload;
 
+        // --- SPECIAL ADMIN CASE ---
+        if (email === "2820314@students.wits.ac.za") {
+            return res.status(200).json({ 
+                success: true, 
+                role: 'admin', 
+                message: "Admin recognized" 
+            });
+        }
+
         const [resident, created] = await Resident.findOrCreate({
             where: { Email: email }, 
             defaults: {
@@ -67,7 +76,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
         const payload = ticket.getPayload();
         const { email } = payload;
 
-        // 1. Check if the worker exists by email (matching your model's 'email' field)
+        // 1. Check if the worker exists by email 
         const worker = await MunicipalWorker.findOne({ where: { email: email } });
 
         if (!worker) {
@@ -77,7 +86,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             });
         }
 
-        // 2. Check the 'Validated' column from your model
+        // 2. Check the 'Validated' column from the model
         if (!worker.Validated) {
             return res.status(403).json({ 
                 success: false, 
@@ -85,7 +94,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             });
         }
 
-        // 3. Check 'Blacklisted' (matching your model's 'Blacklisted' field)
+        // 3. Check 'Blacklisted' 
         if (worker.Blacklisted) {
             return res.status(403).json({ 
                 success: false, 
@@ -97,7 +106,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
         res.status(200).json({ 
             success: true, 
             workerId: worker.EmployeeID,
-            name: worker.firstName // Using camelCase as per your model
+            name: worker.firstName 
         });
 
     } catch (error) {
