@@ -63,7 +63,7 @@ async function handleWorkerGoogleResponse(response) {
             errorElement.textContent = result.message;
             errorElement.classList.remove('hidden');
             
-            // Log it for your own debugging
+            // Log it for debugging
             console.warn("Login Blocked:", result.message);
         }
     } catch (err) {
@@ -83,13 +83,13 @@ window.onload = function () {
         ux_mode: "popup" 
     });
 
-    // 2. Render the button into your semantic <address> tag
+    // 2. Render the button 
     google.accounts.id.renderButton(
         document.getElementById("google-worker-btn"), 
         { 
             theme: "filled_black", 
             size: "large", 
-            width: 350, // Matches your card's visual weight
+            width: 350, 
             shape: "rectangular" 
         }
     );

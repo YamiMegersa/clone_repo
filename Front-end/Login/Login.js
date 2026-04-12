@@ -54,7 +54,7 @@ window.onload = function () {
     { 
         theme: "filled_black", 
         size: "large", 
-        width: 400, // Matches your card width
+        width: 400, 
         shape: "rectangular" 
     }
   );
@@ -74,10 +74,14 @@ async function handleCredentialResponse(response) {
         const result = await backendRes.json();
 
         if (backendRes.ok) {
-            // --- ADD THESE TWO LINES ---
-            localStorage.setItem('residentId', result.residentID);
-            window.location.href = "../Homes/Resident.html"; 
-            // ---------------------------
+            
+            //check if admin first
+            if (result.role === 'admin') {
+                window.location.href = "../Homes/Admin.html";
+            } else { //if not admin, normal resident
+                localStorage.setItem('residentId', result.residentId);
+                window.location.href = "../Homes/Resident.html"; 
+            }
         } else {
             errorMessage.textContent = "Google Sign-In failed.";
             errorMessage.classList.remove('hidden');
