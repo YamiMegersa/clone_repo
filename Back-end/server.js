@@ -153,3 +153,5 @@ sequelize.sync({ alter: true })
     .catch(err => {
         console.error('❌ Unable to connect or sync:', err);
     });
+
+    //this file is the main entry point for the back-end server. It sets up the Express app, connects to the database, defines API routes, and handles Google authentication for both residents and municipal workers. The server serves static files for the front-end and listens on a specified port.
