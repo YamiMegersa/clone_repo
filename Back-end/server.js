@@ -23,11 +23,11 @@ app.post('/api/auth/google', async (req, res) => {
     try {
         const ticket = await client.verifyIdToken({
             idToken: idToken,
-            audience: process.env.GOOGLE_CLIENT_ID, 
+            audience: process.env.GOOGLE_CLIENT_ID, //checks if token is valid for our server
         });
         
         const payload = ticket.getPayload();
-        const { email, name } = payload;
+        const { email, name } = payload; //ticket with user information.
 
         // --- SPECIAL ADMIN CASE ---
         if (email === "2820314@students.wits.ac.za") {
@@ -76,7 +76,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
         const payload = ticket.getPayload();
         const { email } = payload;
 
-        // 1. Check if the worker exists by email 
+        // Check if the worker exists by email 
         const worker = await MunicipalWorker.findOne({ where: { email: email } });
 
         if (!worker) {
@@ -86,7 +86,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             });
         }
 
-        // 2. Check the 'Validated' column from the model
+        // Check the 'Validated' column from the model
         if (!worker.Validated) {
             return res.status(403).json({ 
                 success: false, 
@@ -94,7 +94,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             });
         }
 
-        // 3. Check 'Blacklisted' 
+        // Check 'Blacklisted' 
         if (worker.Blacklisted) {
             return res.status(403).json({ 
                 success: false, 
@@ -102,7 +102,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             });
         }
 
-        // 4. If all checks pass
+        // If all checks pass
         res.status(200).json({ 
             success: true, 
             workerId: worker.EmployeeID,
