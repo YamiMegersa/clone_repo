@@ -167,6 +167,57 @@
 <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1" for="description">Situation Briefing</label>
 <textarea class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3 placeholder:text-on-surface-variant/30" id="description" placeholder="Describe the depth, surrounding hazards, and urgency..." rows="3"></textarea>
 </section>
+
+<!-- ─────────────────────────────────────────────────────────────────
+     WARD SELECTOR
+     ───────────────────────────────────────────────────────────────── -->
+ 
+<!-- Province -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="province-select">Province</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3"
+    id="province-select"
+    name="province"
+  >
+    <option value="" disabled selected>Loading wards…</option>
+  </select>
+</section>
+ 
+<!-- Municipality -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="municipality-select">Municipality</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3
+           disabled:opacity-40 disabled:cursor-not-allowed"
+    id="municipality-select"
+    name="municipality"
+    disabled
+  >
+    <option value="" disabled selected>Select a municipality…</option>
+  </select>
+</section>
+ 
+<!-- Ward -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="ward-select">Ward</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3
+           disabled:opacity-40 disabled:cursor-not-allowed"
+    id="ward-select"
+    name="wardId"
+    disabled
+  >
+    <option value="" disabled selected>Select a ward…</option>
+  </select>
+</section>
+<!--  ============================================================= -->
 </fieldset>
 <section class="p-4 bg-surface-container-low rounded-xl space-y-3">
 <aside class="flex justify-between items-center">
@@ -185,6 +236,19 @@
 </main>
 <footer class="h-12"></footer>
 
-<script src="js/MapComponent.js" defer></script>
+<!-- <script src="js/MapComponent.js" defer></script> -->
+<script type="module">
+  import { initWardSelector } from './js/wardSelector.js';
+ 
+  // Boot the dropdowns as soon as the page loads
+  initWardSelector();
+ 
+  // Optional: listen for when a ward is fully selected
+  document.addEventListener('ward:selected', (e) => {
+    console.log('Ward chosen:', e.detail);
+    // e.detail contains:
+    //   wardId, wardNo, wardLabel, municipality, province, catB, district
+  });
+</script> 
 
 </body></html>
