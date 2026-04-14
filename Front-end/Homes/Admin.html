@@ -1,0 +1,326 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Groundwork Admin | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#353535",
+                        "on-primary-fixed-variant": "#6e3900",
+                        "on-primary-container": "#623200",
+                        "on-secondary-fixed-variant": "#6a3b0f",
+                        "on-error-container": "#ffdad6",
+                        "on-surface-variant": "#ddc1ae",
+                        "on-tertiary-fixed": "#001e2e",
+                        "inverse-surface": "#e2e2e2",
+                        "secondary-container": "#6a3b0f",
+                        "surface": "#131313",
+                        "primary-container": "#ff8c00",
+                        "surface-dim": "#131313",
+                        "surface-container": "#1f1f1f",
+                        "on-tertiary-fixed-variant": "#004c6c",
+                        "on-tertiary": "#00344c",
+                        "inverse-primary": "#904d00",
+                        "primary-fixed": "#ffdcc3",
+                        "on-surface": "#e2e2e2",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#393939",
+                        "on-error": "#690005",
+                        "tertiary": "#85cfff",
+                        "primary": "#ffb77d",
+                        "secondary-fixed-dim": "#fdb881",
+                        "outline-variant": "#564334",
+                        "on-primary": "#4d2600",
+                        "background": "#131313",
+                        "surface-container-high": "#2a2a2a",
+                        "secondary-fixed": "#ffdcc3",
+                        "primary-fixed-dim": "#ffb77d",
+                        "on-secondary-container": "#e9a771",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#353535",
+                        "surface-container-low": "#1b1b1b",
+                        "outline": "#a48c7a",
+                        "surface-tint": "#ffb77d",
+                        "secondary": "#fdb881",
+                        "on-background": "#e2e2e2",
+                        "on-tertiary-container": "#004360",
+                        "tertiary-container": "#00b5fc",
+                        "on-secondary": "#4d2600",
+                        "tertiary-fixed": "#c7e7ff",
+                        "tertiary-fixed-dim": "#85cfff",
+                        "on-secondary-fixed": "#2f1500",
+                        "on-primary-fixed": "#2f1500",
+                        "inverse-on-surface": "#303030",
+                        "surface-container-lowest": "#0e0e0e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Public Sans"],
+                        "body": ["Public Sans"],
+                        "label": ["Public Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #131313;
+            color: #E2E2E2;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-neutral-900/60 backdrop-blur-xl shadow-2xl shadow-black/40 h-16 flex justify-between items-center px-8">
+<section class="flex items-center gap-8">
+<h1 class="text-2xl font-black uppercase tracking-tighter text-orange-500" style="">Civic Ledger Admin</h1>
+<nav class="hidden md:flex gap-6">
+<a class="text-orange-400 border-b-2 border-orange-500 pb-1 font-bold transition-colors duration-200 uppercase text-xs tracking-widest" href="#" style="">Analytics</a>
+<a class="text-neutral-400 font-medium hover:text-orange-300 transition-colors duration-200 uppercase text-xs tracking-widest" href="#" style="">Personnel</a>
+<a class="text-neutral-400 font-medium hover:text-orange-300 transition-colors duration-200 uppercase text-xs tracking-widest" href="#" style="">Statistics</a>
+<a class="text-neutral-400 font-medium hover:text-orange-300 transition-colors duration-200 uppercase text-xs tracking-widest" href="#" style=""><br></a>
+</nav>
+</section>
+<section class="flex items-center gap-4">
+<button class="material-symbols-outlined text-neutral-400 hover:text-orange-500 transition-transform active:scale-95" style="">notifications</button>
+<button class="material-symbols-outlined text-neutral-400 hover:text-orange-500 transition-transform active:scale-95" style="">settings</button>
+<figure class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
+<img alt="Admin Profile Avatar" data-alt="Close up portrait of a professional administrative officer with a neutral background in high-contrast lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgc3M10u8mWqC-KcCYU3S-gy1pevh0zteIiTqeR9mLPZSfgNksMiu4wbb7OEyoCQLQ6qw6xbWUQAsaFSjk1jQcUdbn74p5kaUTy4BAIy-Qjmi46qsP4ohclkIiC3jy1pLRZtJvYLUj3fdTmnq7S-xPYVOHqNBR5xmFuZeI4zpYdCfoTovBq-jXg-7UPp3hdcjgmzjUhFPx_9kfHalx9iLwUIQa31BUugvoP6lD701jG1CnoZZ-IfYGrd8a3nv6aJpLQrn0GJZe0Iu2" class="" style="">
+</figure>
+</section>
+</header>
+<main class="pt-24 pb-12 px-8 max-w-[1600px] mx-auto min-h-screen">
+<!-- Dashboard Header -->
+<header class="mb-12 flex flex-col md:flex-row justify-between items-baseline gap-4">
+<section>
+<h2 class="text-5xl font-black tracking-tighter text-on-surface mb-2" style="">Central Oversight</h2>
+<p class="text-neutral-500 uppercase tracking-widest text-xs font-medium" style="">Real-time ledger of municipal operation and resolution efficiency.</p>
+</section>
+<section class="bg-surface-container-highest/30 border-l-4 border-primary-container p-4">
+<p class="text-[10px] uppercase tracking-widest text-neutral-400 font-bold mb-1" style="">TOTAL REMAINING ISSUES</p>
+<p class="text-4xl font-black text-primary-container tabular-nums" style="">1,428</p>
+</section>
+</header>
+<!-- Bento Grid Layout -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<!-- Analytics Panel -->
+<article class="md:col-span-8 bg-surface-container-low p-8 relative overflow-hidden group">
+<header class="flex justify-between items-end mb-8">
+<section>
+<h3 class="text-2xl font-bold tracking-tight mb-1" style="">Ward Resolution Analytics</h3>
+<p class="text-xs uppercase tracking-widest text-neutral-400" style="">Problems Posted vs. Solved by District Ward</p>
+</section>
+<section class="flex gap-4">
+<section class="flex items-center gap-2">
+<span class="w-3 h-3 bg-neutral-700"></span>
+<span class="text-[10px] uppercase font-bold text-neutral-500" style="">Posted</span>
+</section>
+<section class="flex items-center gap-2">
+<span class="w-3 h-3 bg-primary-container"></span>
+<span class="text-[10px] uppercase font-bold text-neutral-500" style="">Solved</span>
+</section>
+</section>
+</header>
+<section class="flex items-end justify-between h-64 gap-8 pt-4 border-b border-surface-variant">
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[60%]"></section>
+<section class="w-1/2 bg-primary-container h-[45%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 01</footer>
+</section>
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[85%]"></section>
+<section class="w-1/2 bg-primary-container h-[82%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 02</footer>
+</section>
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[40%]"></section>
+<section class="w-1/2 bg-primary-container h-[55%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 03</footer>
+</section>
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[75%]"></section>
+<section class="w-1/2 bg-primary-container h-[68%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 04</footer>
+</section>
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[95%]"></section>
+<section class="w-1/2 bg-primary-container h-[92%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 05</footer>
+</section>
+<section class="flex-1 flex flex-col items-center gap-1 group/ward relative">
+<section class="w-full flex items-end justify-center gap-1 h-full">
+<section class="w-1/2 bg-neutral-700 h-[50%]"></section>
+<section class="w-1/2 bg-primary-container h-[48%]"></section>
+</section>
+<footer class="absolute -bottom-8 text-[10px] uppercase font-bold text-neutral-600">Ward 06</footer>
+</section>
+</section>
+</article>
+<!-- Efficiency Gauge Panel -->
+<article class="md:col-span-4 bg-surface-container-low p-8 flex flex-col justify-between h-full min-h-[400px]">
+<header>
+<h3 class="text-xl font-bold tracking-tight mb-1" style="">Completion Velocity</h3>
+<p class="text-xs uppercase tracking-widest text-neutral-400" style="">System-wide efficiency</p>
+</header>
+<section class="flex flex-col items-center justify-center py-8">
+<section class="relative w-48 h-48 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-high" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary-container" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="138.23" stroke-width="12"></circle>
+</svg>
+<section class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-5xl font-black text-on-surface" style="">75%</span>
+<span class="text-[10px] uppercase font-bold text-neutral-500" style="">Optimization</span>
+</section>
+</section>
+</section>
+<footer class="space-y-4">
+<section class="flex justify-between items-center text-xs">
+<span class="text-neutral-400 uppercase font-bold" style="">Target Resolution</span>
+<span class="text-on-surface font-black" style="">92.00%</span>
+</section>
+<section class="flex justify-between items-center text-xs">
+<span class="text-neutral-400 uppercase font-bold" style="">Deviation</span>
+<span class="text-error font-black" style="">-17.00%</span>
+</section>
+</footer>
+</article>
+<!-- Municipal Personnel Panel -->
+<article class="md:col-span-7 bg-surface-container-low p-8">
+<header class="flex justify-between items-center mb-10">
+<section>
+<h3 class="text-2xl font-bold tracking-tight mb-1" style="">Municipal Personnel</h3>
+<p class="text-xs uppercase tracking-widest text-neutral-400" style="">Active Duty Roster</p>
+</section>
+<button class="text-xs font-black uppercase text-primary-container tracking-widest hover:underline transition-all" style="">View Full Archive</button>
+</header>
+<section class="space-y-1">
+<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
+<section class="flex items-center gap-4">
+<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
+<img alt="Staff Member 1" data-alt="Professional man in a suit for a corporate profile, dramatic shadows, black and white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQTElwCMxRMd2lWPsBYYek_91vm-Ek_6qGptrr6EAaYcVteVaJ87UA9Ix-NxjerFLNttwa_ef2yOKhvwcvjyhANwAiKlrNr8LCnuP8DUgOetMhNPVOQAKBDZTrOWSz0EiDBd9vfkOUt2LMHLo7GwPbw2wR9LBcXIhpa4PADwpDtTODolXbRgXkn4CCl24l4MbS2jVS03q6edchmKRWqyisuKGEPKo8eqch48uU4Um9uLq4VvMpTr4_LmAQz2A0cIiD7eaMfuf4YtG5" class="" style="">
+</figure>
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Harlan Vance</h4>
+<p class="text-[10px] uppercase text-neutral-500" style="">Systems Architect</p>
+</section>
+</section>
+<section class="flex items-center gap-8">
+<span class="px-2 py-1 bg-primary-container/10 text-primary-container text-[10px] font-black uppercase tracking-widest" style="">Active</span>
+</section>
+</article>
+<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
+<section class="flex items-center gap-4">
+<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
+<img alt="Staff Member 2" data-alt="Professional woman portrait, sharp business attire, minimalist dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyWNBBIR4POynQxQqtQsSU2ABIHaeZgH59GxWyQ5KxNH0dCaWJb8jKkmYzrLVgUtuNVpC2ZwfvNSKWf9_wTLl_dNVydwhrrRTohdYtDZj1W6jx1NrpmTubNbPvsQNuofjSuIrKmoY7mTzVRq0R6TzuyCGCnZDVEQIq95JEs8gvmhoMZNaK5ezgh7czx-y3RQuboSLXFJPoB16ce8AHAl86mg-kPjVMaQ_sSS8K5RR8u0SWQG5Kd4OloDWS3xYAKpZ18w8IiBlfv17P" class="" style="">
+</figure>
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Elena Moretti</h4>
+<p class="text-[10px] uppercase text-neutral-500" style="">Civil Liaison</p>
+</section>
+</section>
+<section class="flex items-center gap-8">
+<span class="px-2 py-1 bg-surface-container-highest text-neutral-500 text-[10px] font-black uppercase tracking-widest" style="">On Leave</span>
+</section>
+</article>
+<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
+<section class="flex items-center gap-4">
+<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
+<img alt="Staff Member 3" data-alt="Male executive profile, serious expression, high-end editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBm7sRbL0Kr4gOo19_gCurh4480tmBorGIzRSSix3F0GVP8rJeBi3ggn9ojFX_rstafC7nQBhUKjZwivGFyumc1rjn4oPkKWRNqnwyTK0DwAlrzg4QSEJUx-tQ10qlS2nxikv0H0mxPGu7BGPr-xuJg53c9CE-vPnrU9nNqEpC9zz4ni-J80Z8HLH1iNRS1UJwinVt1ObUKZ5R2AmXfzI03g6UAAuIjISn4_tjygRIRBJEi77FoGtp4ssYwC7_ZmYBlkrmcBF1POZz-" class="" style="">
+</figure>
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Marcus Thorne</h4>
+<p class="text-[10px] uppercase text-neutral-500" style="">Compliance Officer</p>
+</section>
+</section>
+<section class="flex items-center gap-8">
+<span class="px-2 py-1 bg-primary-container/10 text-primary-container text-[10px] font-black uppercase tracking-widest" style="">Active</span>
+</section>
+</article>
+</section>
+</article>
+<!-- Registered Users Panel -->
+<article class="md:col-span-5 bg-surface-container-low p-8">
+<header class="flex justify-between items-center mb-10">
+<section>
+<h3 class="text-2xl font-bold tracking-tight mb-1" style="">Registered Users</h3>
+<p class="text-xs uppercase tracking-widest text-neutral-400" style="">Database Entry Log</p>
+</section>
+<button class="material-symbols-outlined text-neutral-500 hover:text-primary-container transition-colors" style="">filter_list</button>
+</header>
+<section class="space-y-4">
+<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Julian Stark</h4>
+<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
+</section>
+</article>
+<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Cassandra Vale</h4>
+<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
+</section>
+</article>
+<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Harlan Vance</h4>
+<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
+</section>
+</article>
+<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
+<section>
+<h4 class="text-sm font-bold tracking-tight" style="">Elena Moretti</h4>
+<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
+</section>
+</article>
+</section>
+</article>
+<!-- Add New Widget Panel -->
+<article class="md:col-span-12">
+<button class="w-full h-32 bg-surface-container-low hover:bg-surface-container-high border-2 border-dashed border-outline-variant hover:border-primary-container transition-all flex flex-col items-center justify-center group" style="">
+<span class="material-symbols-outlined text-neutral-600 group-hover:text-primary-container transition-colors text-3xl mb-2" style="">add_circle</span>
+<p class="text-xs uppercase tracking-[0.2em] font-black text-neutral-500 group-hover:text-on-surface transition-colors" style="">Expand Control Interface</p>
+</button>
+</article>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="bg-neutral-950 w-full py-12 px-8 border-t border-neutral-900 mt-20">
+<section class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<p class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 text-center md:text-left" style="">
+                © 2024 The Civic Ledger. <span class="text-neutral-400" style="">Digital Monolith Architecture.</span>
+</p>
+<nav class="flex gap-8">
+<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">Terms and Conditions</a>
+<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">Contact Us</a>
+<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">About Us</a>
+</nav>
+</section>
+</footer>
+</body></html>

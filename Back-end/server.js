@@ -1,24 +1,129 @@
-const express = require('express');
-const cors=require('cors');
-const sequelize = require('./config/db');
 require('dotenv').config();
+const path = require('path');
+const express = require('express');
+const cors = require('cors');
+const sequelize = require('./config/db');
+const models = require('./models'); 
 
+const { OAuth2Client } = require('google-auth-library');
+const { Resident } = require('./models/Resident');
+const MunicipalWorker = require('./models/Worker');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const app = express();
 
-//Middleware
-app.use(cors());  //Allows our local front-end to talk to Azure
-app.use(express.json());  //Allows the API to understand JSON Data
+// --- 1. MIDDLEWARE ---
+app.use(cors()); 
+app.use(express.json()); 
 
-//Import Routes
+// --- 2. Resident GOOGLE AUTH API ROUTE ---
+
+app.post('/api/auth/google', async (req, res) => {
+    const { idToken } = req.body;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID, 
+        });
+        
+        const payload = ticket.getPayload();
+        const { email, name } = payload;
+
+        // --- SPECIAL ADMIN CASE ---
+        if (email === "2820314@students.wits.ac.za") {
+            return res.status(200).json({ 
+                success: true, 
+                role: 'admin', 
+                message: "Admin recognized" 
+            });
+        }
+
+        const [resident, created] = await Resident.findOrCreate({
+            where: { Email: email }, 
+            defaults: {
+                Username: name || email,
+                Email: email,
+                CellphoneNumber: `G-${Date.now().toString().slice(-8)}`,
+                BlackListed: false
+            }
+        });
+
+        if (resident.BlackListed) {
+            return res.status(403).json({ success: false, message: "Account restricted." });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            residentId: resident.ResidentID 
+        });
+
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        res.status(401).json({ success: false, message: "Invalid Token" });
+    }
+});
+
+// --- WORKER GOOGLE AUTH ROUTE ---
+app.post('/api/auth/worker/google', async (req, res) => {
+    const { idToken } = req.body;
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        
+        const payload = ticket.getPayload();
+        const { email } = payload;
+
+        // 1. Check if the worker exists by email 
+        const worker = await MunicipalWorker.findOne({ where: { email: email } });
+
+        if (!worker) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Access Denied. Your email is not registered in the municipal system." 
+            });
+        }
+
+        // 2. Check the 'Validated' column from the model
+        if (!worker.Validated) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Account pending. An administrator must validate your profile before you can log in." 
+            });
+        }
+
+        // 3. Check 'Blacklisted' 
+        if (worker.Blacklisted) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "This account has been blacklisted. Access revoked." 
+            });
+        }
+
+        // 4. If all checks pass
+        res.status(200).json({ 
+            success: true, 
+            workerId: worker.EmployeeID,
+            name: worker.firstName 
+        });
+
+    } catch (error) {
+        console.error("Worker Google Auth Error:", error);
+        res.status(401).json({ success: false, message: "Invalid Security Token" });
+    }
+});
+
+// --- 3. API ROUTES ---
 const residentRoutes = require('./routes/residents');
-const workerRoutes=require('./routes/workers');
-const reportRoutes=require('./routes/reports');
-const geographyRoutes=require('./routes/geography');
-const allocationRoutes=require('./routes/allocations');
-const reportImageRoutes=require('./routes/reportImages');
-const grievanceRoutes=require('./routes/grievances');
+const workerRoutes = require('./routes/workers');
+const reportRoutes = require('./routes/reports');
+const geographyRoutes = require('./routes/geography');
+const allocationRoutes = require('./routes/allocations');
+const reportImageRoutes = require('./routes/reportImages');
+const grievanceRoutes = require('./routes/grievances');
 
-//Use Routes
 app.use('/api/workers', workerRoutes);
 app.use('/api/residents', residentRoutes);
 app.use('/api/reports', reportRoutes);
@@ -27,18 +132,26 @@ app.use('/api/allocations', allocationRoutes);
 app.use('/api/report-images', reportImageRoutes);
 app.use('/api/grievances', grievanceRoutes);
 
+// --- 4. STATIC FILES & FRONTEND ---
+const frontendPath = path.resolve(__dirname, '..', 'Front-end');
+app.use(express.static(frontendPath));
 
-//Test Route
+// Default route to serve Login.html
 app.get('/', (req, res) => {
-    res.send('Welcome to LUCS API!');
+    res.sendFile(path.join(frontendPath, 'Login', 'Login.html'));
 });
 
-// Database Connection
-sequelize.authenticate()
-    .then(() => console.log('Connected to Azure MySQL!'))
-    .catch(err => console.error('Unable to connect:', err));
+// --- 5. DATABASE & START ---
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log('✅ Connected to Azure MySQL and Tables Updated!');
+        const PORT = process.env.PORT || 8080;
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('❌ Unable to connect or sync:', err);
+    });
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log('Server running on ${PORT}');
-});
+    //this file is the main entry point for the back-end server. It sets up the Express app, connects to the database, defines API routes, and handles Google authentication for both residents and municipal workers. The server serves static files for the front-end and listens on a specified port.

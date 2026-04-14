@@ -39,3 +39,58 @@ loginForm.addEventListener('submit', async function(event) {
         errorMessage.classList.remove('hidden');
     }   
 });
+
+async function handleWorkerGoogleResponse(response) {
+    try {
+        const backendRes = await fetch('/api/auth/worker/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: response.credential })
+        });
+
+        const result = await backendRes.json();
+
+        if (backendRes.ok) {
+            // Save worker ID and name
+            localStorage.setItem('workerId', result.workerId);
+            localStorage.setItem('workerName', result.name);
+            
+            // Redirect to Worker Home
+            window.location.href = "../Homes/Worker.html"; 
+        } else {
+            // Display the specific reason for failure (Admin validation etc)
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = result.message;
+            errorElement.classList.remove('hidden');
+            
+            // Log it for debugging
+            console.warn("Login Blocked:", result.message);
+        }
+    } catch (err) {
+        console.error("Fetch Error:", err);
+        const errorElement = document.getElementById('error');
+        errorElement.textContent = "Unable to connect to the server.";
+        errorElement.classList.remove('hidden');
+    }
+}
+
+window.onload = function () {
+    // 1. Link your Client ID and your callback function
+    google.accounts.id.initialize({
+        client_id: "807391346984-tnskuijp45bnadk8ki9b87j7q4hd3dq4.apps.googleusercontent.com",
+        callback: handleWorkerGoogleResponse,
+        context: "signin",
+        ux_mode: "popup" 
+    });
+
+    // 2. Render the button 
+    google.accounts.id.renderButton(
+        document.getElementById("google-worker-btn"), 
+        { 
+            theme: "filled_black", 
+            size: "large", 
+            width: 350, 
+            shape: "rectangular" 
+        }
+    );
+};
