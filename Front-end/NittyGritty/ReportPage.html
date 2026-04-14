@@ -238,17 +238,12 @@
 
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-  import { initWardSelector } from './js/wardSelector.js';
+  import { initWardSelector } from './wardSelector.js';
  
-  // Boot the dropdowns as soon as the page loads
-  initWardSelector();
- 
-  // Optional: listen for when a ward is fully selected
-  document.addEventListener('ward:selected', (e) => {
-    console.log('Ward chosen:', e.detail);
-    // e.detail contains:
-    //   wardId, wardNo, wardLabel, municipality, province, catB, district
+  // Initialize the cascading dropdowns once the DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    initWardSelector();
   });
-</script> 
+</script>
 
 </body></html>
