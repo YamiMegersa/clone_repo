@@ -11,6 +11,7 @@ const MunicipalWorker = require('./models/Worker');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // --- 1. MIDDLEWARE ---
 app.use(cors()); 
@@ -142,16 +143,20 @@ app.get('/', (req, res) => {
 });
 
 // --- 5. DATABASE & START ---
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('✅ Connected to Azure MySQL and Tables Updated!');
-        const PORT = process.env.PORT || 8080;
-        app.listen(PORT, () => {
-            console.log(`🚀 Server running on port ${PORT}`);
-        });
-    })
-    .catch(err => {
-        console.error('❌ Unable to connect or sync:', err);
-    });
+async function startServer() {
+    try {
+        // Test if we can actually talk to the SQL server
+        await sequelize.authenticate();
+        console.log('✅ Database connection established.');
 
+        // Start the server
+        app.listen(PORT, () => {
+            console.log(`🚀 Server is live at http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('❌ Unable to connect to the database:', error);
+    }
+}
+
+startServer();
     //this file is the main entry point for the back-end server. It sets up the Express app, connects to the database, defines API routes, and handles Google authentication for both residents and municipal workers. The server serves static files for the front-end and listens on a specified port.
