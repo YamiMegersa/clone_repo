@@ -276,11 +276,13 @@
 <script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-  import { initWardSelector } from './wardSelector.js';
+  import { initWardSelector } from './js/wardSelector.js';
+
+  initWardSelector();
  
   // Initialize the cascading dropdowns once the DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    initWardSelector();
+  document.addEventListener('ward:selected', (e) => {
+    console.log('Ward chosen:', e.detail);
   });
 </script> 
 
