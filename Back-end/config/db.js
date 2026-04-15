@@ -1,22 +1,21 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
-
+require('dotenv').config(); // Ensure variables are loaded
 
 const sequelize = new Sequelize(
-    process.env.DB_NAME, 
-    process.env.DB_USER, 
-    process.env.DB_PASSWORD, 
+    process.env.DB_NAME,   // Database name
+    process.env.DB_USER,   // Username
+    process.env.DB_PASS,   // Password
     {
         host: process.env.DB_HOST,
-        dialect: 'mysql',
-        port: 3306,
-        dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false // Necessary for Azure Flexible Server
-            }
-        },
-        logging: false // Keeps your console clean
+        port: process.env.DB_PORT || 3306,
+        dialect: 'mysql', // Since you're on Lightsail/Linux
+        logging: false,    // Clean terminal output
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        }
     }
 );
 
