@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Civic Ledger - Report Pothole</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-tertiary-fixed": "#001e2e",
+                "inverse-on-surface": "#303030",
+                "secondary-container": "#6a3b0f",
+                "tertiary-container": "#00b5fc",
+                "tertiary": "#85cfff",
+                "on-secondary": "#4d2600",
+                "on-surface-variant": "#ddc1ae",
+                "tertiary-fixed": "#c7e7ff",
+                "on-tertiary-fixed-variant": "#004c6c",
+                "surface-tint": "#ffb77d",
+                "on-primary-fixed-variant": "#6e3900",
+                "on-tertiary-container": "#004360",
+                "on-tertiary": "#00344c",
+                "on-background": "#e2e2e2",
+                "on-primary-container": "#623200",
+                "surface-container": "#1f1f1f",
+                "primary-fixed": "#ffdcc3",
+                "surface-container-low": "#1b1b1b",
+                "on-primary": "#4d2600",
+                "on-primary-fixed": "#2f1500",
+                "secondary-fixed-dim": "#fdb881",
+                "surface-container-lowest": "#0e0e0e",
+                "primary": "#ffb77d",
+                "surface-container-highest": "#353535",
+                "inverse-primary": "#904d00",
+                "surface-dim": "#131313",
+                "background": "#131313",
+                "secondary": "#fdb881",
+                "on-error": "#690005",
+                "surface-bright": "#393939",
+                "outline": "#a48c7a",
+                "on-surface": "#e2e2e2",
+                "error": "#ffb4ab",
+                "primary-container": "#ff8c00",
+                "primary-fixed-dim": "#ffb77d",
+                "outline-variant": "#564334",
+                "error-container": "#93000a",
+                "surface": "#131313",
+                "secondary-fixed": "#ffdcc3",
+                "on-secondary-fixed-variant": "#6a3b0f",
+                "surface-container-high": "#2a2a2a",
+                "on-error-container": "#ffdad6",
+                "inverse-surface": "#e2e2e2",
+                "tertiary-fixed-dim": "#85cfff",
+                "surface-variant": "#353535",
+                "on-secondary-container": "#e9a771",
+                "on-secondary-fixed": "#2f1500"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Public Sans"],
+                "body": ["Public Sans"],
+                "label": ["Public Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body { background-color: #131313; font-family: 'Public Sans', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    body { min-height: max(884px, 100dvh); }
+
+    #map { 
+        height: 100%; 
+        width: 100%;
+    }
+
+    /* Fix for Leaflet tiles in Dark Mode to match your theme */
+    .leaflet-tile {
+        filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+    }
+
+    /* Ensure map controls don't overlap your top header */
+    .leaflet-top, .leaflet-bottom {
+        z-index: 40 !important;
+    }
+
+    /* Style for custom location button */
+    .leaflet-locate-btn {
+        background: #1B1B1B;
+        border: 2px solid #564334;
+        color: #FFB77D;
+        padding: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .leaflet-locate-btn:hover {
+        background: #353535;
+    }
+
+</style>
+</head>
+<body class="text-on-surface min-h-screen">
+<!-- Top Navigation Anchor -->
+<header class="flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50 bg-[#1B1B1B]/60 backdrop-blur-xl">
+<nav class="flex items-center gap-4">
+<button class="hover:bg-[#353535]/50 transition-colors active:scale-95 duration-200 p-2 rounded-full text-[#FFB77D]">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-xl font-black tracking-tighter text-[#FF8C00] uppercase font-['Public_Sans']">Report Pothole</h1>
+</nav>
+<figure class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="Resident Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional resident in urban clothing with warm cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLwZM4ozqwcVPceAMzwx8yQJhGGnTKotqtIGa7Jc27Y5R5AcMRJ69Da-PfqjJkMSQNFp60mgDUNWqGyNXVmYU_MUEUmqPCviLzoVZTIMJ5zmCdW9ropHy9DbA_Q8I4lIg2bSOE2WPdRW_bKT82Lu_9k66tQYtqa6cMotDByH9Dt626IN2SSINFK6XCbT6KWrLFKtvWAFel8joUtYme5UFFb2iiWrISEL_sodfnXJsPYkCGOwJhx7G-6WeDXBf4czTlVnr_0g1ziyLX"/>
+</figure>
+</header>
+<main class="mt-20 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Map Selection Section -->
+<section class="space-y-4">
+  <header class="flex justify-between items-end">
+    <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">01. Location Protocol</h2>
+    <span class="text-[10px] text-on-surface-variant font-mono">ID: SEC-8842</span>
+  </header>
+
+  <article id="map" class="relative w-full aspect-video rounded-xl overflow-hidden bg-surface-container-lowest border-0 ring-1 ring-outline-variant/15 z-10">
+    </article>
+</section>
+<!-- Media Capture Section -->
+<section class="space-y-4">
+<h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">02. Visual Evidence</h2>
+<article class="grid grid-cols-2 gap-4">
+<button class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
+<span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Capture</span>
+</button>
+<figure class="aspect-square bg-surface-container-low rounded-xl overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-70" data-alt="Close up shot of a jagged asphalt pothole on a city street during grey daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO72Pz4qduDhpQILOpf8Z4eoETokOolMIjwOgl0_2qLoftCyq6PgmH-H-8i2DK9vpQ6ot8TurdbxdZZ4OZyM2F_9W2jgkEi7amk1ZAv8kGebBVxmWY19rgh9aDEGX9_SBO4AaTJEHf6ZUmq-M95DK5gs1uD35Vqh10uaq_rJV8TzPc0xEhxy7fh4MJon-dhZIlOhM15AQO3I0HMcyPfx-wKJwQw9gk9dqNIHuzWFEFsQCv-8HICG7XGH-TLNaVYVFPukIep0nJA9JI"/>
+<button class="absolute top-2 right-2 bg-error-container/80 p-1 rounded-md">
+<span class="material-symbols-outlined text-sm text-on-error-container" data-icon="close">close</span>
+</button>
+</figure>
+</article>
+</section>
+<!-- Form Submission -->
+<form class="space-y-6">
+<fieldset class="space-y-4">
+<legend class="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-4">03. Ledger Details</legend>
+<section class="space-y-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1" for="pothole-type">Infrastructure Hazard Type</label>
+<select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3" id="pothole-type">
+<option>Pothole</option>
+<option>Sinkhole</option>
+<option>Road Crack</option>
+<option>Unfinished Repair</option>
+</select>
+</section>
+<section class="space-y-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1" for="frequency">Recurrence Status</label>
+<select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3" id="frequency">
+<option>First time observed</option>
+<option>Recurring issue</option>
+<option>Degrading repair</option>
+</select>
+</section>
+<section class="space-y-2">
+<label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1" for="description">Situation Briefing</label>
+<textarea class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3 placeholder:text-on-surface-variant/30" id="description" placeholder="Describe the depth, surrounding hazards, and urgency..." rows="3"></textarea>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────────
+     WARD SELECTOR
+     ───────────────────────────────────────────────────────────────── -->
+ 
+<!-- Province -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="province-select">Province</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3"
+    id="province-select"
+    name="province"
+  >
+    <option value="" disabled selected>Loading wards…</option>
+  </select>
+</section>
+ 
+<!-- Municipality -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="municipality-select">Municipality</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3
+           disabled:opacity-40 disabled:cursor-not-allowed"
+    id="municipality-select"
+    name="municipality"
+    disabled
+  >
+    <option value="" disabled selected>Select a municipality…</option>
+  </select>
+</section>
+ 
+<!-- Ward -->
+<section class="space-y-2">
+  <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1"
+         for="ward-select">Ward</label>
+  <select
+    class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30
+           focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3
+           disabled:opacity-40 disabled:cursor-not-allowed"
+    id="ward-select"
+    name="wardId"
+    disabled
+  >
+    <option value="" disabled selected>Select a ward…</option>
+  </select>
+</section>
+<!--  ============================================================= -->
+</fieldset>
+<section class="p-4 bg-surface-container-low rounded-xl space-y-3">
+<aside class="flex justify-between items-center">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Resident UID</label>
+<span class="text-xs font-mono text-primary">CIV-990-221X</span>
+</aside>
+<aside class="flex justify-between items-center">
+<label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Entry Date</label>
+<span class="text-xs font-mono text-on-surface">OCT 24, 2023</span>
+</aside>
+</section>
+<button class="w-full py-5 bg-primary-container hover:bg-surface-tint text-on-primary font-black uppercase tracking-[0.25em] text-sm rounded-lg transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(255,140,0,0.3)]" type="submit">
+                Submit Report
+            </button>
+</form>
+</main>
+<footer class="h-12"></footer>
+
+<!-- <script src="js/MapComponent.js" defer></script> -->
+<script type="module">
+    import { initWardSelector } from './wardSelector.js';
+ 
+    // Initialize the cascading dropdowns once the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+    initWardSelector();
+
+    // Initialise map element
+    // Center of South Africa: [-30.5595, 22.9375]
+    const map = L.map('map').setView([-30.5595, 22.9375], 5);
+
+    // Add the base layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Set default position to device location
+    map.locate({setView: true, maxZoom: 16});
+
+    // Handle successful location finding
+    map.on('locationfound', (e) => {
+        // Add a marker at the user's location
+        L.marker(e.latlng).addTo(map).bindPopup("You are here").openPopup();
+    });
+
+    // Handle location error (e.g., user denied permission)
+    map.on('locationerror', (e) => {
+        console.warn("Location access denied. Defaulting to national view.");
+        map.setView([-30.5595, 22.9375], 5);
+    });
+
+  });
+</script>
+
+</body></html>
