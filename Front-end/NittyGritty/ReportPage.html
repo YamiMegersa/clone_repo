@@ -127,13 +127,31 @@
     </article>
 </section>
 <!-- Media Capture Section -->
+
+<!-- 
+<section class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
+  <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+  <label for="imageInput" class="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:opacity-80">
+    <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
+    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Add Photos</span>
+  </label>
+</section>
+ -->
+
+
+
 <section class="space-y-4">
 <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">02. Visual Evidence</h2>
 <article class="grid grid-cols-2 gap-4">
-<button class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
-<span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
-<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Capture</span>
-</button>
+<section class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
+  <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+  <label for="imageInput" class="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:opacity-80">
+    <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
+    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Capture</span>
+    </label>
+  </section>
+
+
 <figure class="aspect-square bg-surface-container-low rounded-xl overflow-hidden relative">
 <img class="w-full h-full object-cover opacity-70" data-alt="Close up shot of a jagged asphalt pothole on a city street during grey daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO72Pz4qduDhpQILOpf8Z4eoETokOolMIjwOgl0_2qLoftCyq6PgmH-H-8i2DK9vpQ6ot8TurdbxdZZ4OZyM2F_9W2jgkEi7amk1ZAv8kGebBVxmWY19rgh9aDEGX9_SBO4AaTJEHf6ZUmq-M95DK5gs1uD35Vqh10uaq_rJV8TzPc0xEhxy7fh4MJon-dhZIlOhM15AQO3I0HMcyPfx-wKJwQw9gk9dqNIHuzWFEFsQCv-8HICG7XGH-TLNaVYVFPukIep0nJA9JI"/>
 <button class="absolute top-2 right-2 bg-error-container/80 p-1 rounded-md">
@@ -232,18 +250,26 @@
 <button class="w-full py-5 bg-primary-container hover:bg-surface-tint text-on-primary font-black uppercase tracking-[0.25em] text-sm rounded-lg transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(255,140,0,0.3)]" type="submit">
                 Submit Report
             </button>
+
+<output id="imagePreview" class="grid grid-cols-2 gap-4 mt-4"></output>           
 </form>
 </main>
 <footer class="h-12"></footer>
 
+<script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-  import { initWardSelector } from './wardSelector.js';
+  import { initWardSelector } from './js/wardSelector.js';
  
-  // Initialize the cascading dropdowns once the DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    initWardSelector();
+  // Boot the dropdowns as soon as the page loads
+  initWardSelector();
+ 
+  // Optional: listen for when a ward is fully selected
+  document.addEventListener('ward:selected', (e) => {
+    console.log('Ward chosen:', e.detail);
+    // e.detail contains:
+    //   wardId, wardNo, wardLabel, municipality, province, catB, district
   });
-</script>
+</script> 
 
 </body></html>
