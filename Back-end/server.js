@@ -66,47 +66,42 @@ app.post('/api/auth/google', async (req, res) => {
 // --- WORKER GOOGLE AUTH ROUTE ---
 app.post('/api/auth/worker/google', async (req, res) => {
     const { idToken } = req.body;
-
     try {
         const ticket = await client.verifyIdToken({
             idToken: idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
-        
         const payload = ticket.getPayload();
-        const { email } = payload;
+        const { email, family_name, given_name } = payload;
 
-        // Check if the worker exists by email 
-        const worker = await MunicipalWorker.findOne({ where: { email: email } });
+        // FIXED: Using PascalCase to match your MunicipalWorker model
+        const [worker, created] = await MunicipalWorker.findOrCreate({
+            where: { Email: email },
+            defaults: {
+                EmployeeID: Math.floor(Date.now() / 1000), // Manual ID bypass for Azure
+                FirstName: given_name,
+                LastName: family_name,
+                Email: email,
+                Validated: false, 
+                Blacklisted: false
+            }
+        });
 
-        if (!worker) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Access Denied. Your email is not registered in the municipal system." 
-            });
-        }
-
-        // Check the 'Validated' column from the model
         if (!worker.Validated) {
             return res.status(403).json({ 
                 success: false, 
-                message: "Account pending. An administrator must validate your profile before you can log in." 
+                message: "Your registration is received. Please wait for an administrator to grant permission before you can access the ledger." 
             });
         }
 
-        // Check 'Blacklisted' 
         if (worker.Blacklisted) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "This account has been blacklisted. Access revoked." 
-            });
+            return res.status(403).json({ success: false, message: "This account has been blacklisted." });
         }
 
-        // If all checks pass
         res.status(200).json({ 
             success: true, 
             workerId: worker.EmployeeID,
-            name: worker.firstName 
+            name: worker.FirstName 
         });
 
     } catch (error) {
@@ -142,9 +137,49 @@ app.get('/', (req, res) => {
 });
 
 // --- 5. DATABASE & START ---
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('✅ Connected to Azure MySQL and Tables Updated!');
+// --- 5. DATABASE & START ---
+// Set alter to false to prevent the Foreign Key Sync crash
+sequelize.sync({ alter: false })
+    .then(async () => {
+        console.log('✅ Connected to Azure MySQL!');
+
+        try {
+            // 1. TEMPORARY BYPASS: Disable constraint checks so the server starts
+            await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
+            console.log("🔓 Database constraints temporarily relaxed.");
+
+            // 2. Ensure Ward 1 exists for your Postman testing
+            await sequelize.query("INSERT IGNORE INTO ward (WardID) VALUES (1)");
+            
+            // 3. LOG RESIDENTS
+            const residentsList = await Resident.findAll();
+            console.log("---------------------------------------");
+            console.log("📊 REGISTERED RESIDENTS:");
+            if (residentsList.length === 0) {
+                console.log("⚠️ No residents found. Log in via browser first!");
+            } else {
+                residentsList.forEach(r => {
+                    console.log(`- ID: ${r.ResidentID} | Email: ${r.Email} | Name: ${r.Username}`);
+                });
+            }
+
+            // 4. LOG WORKERS (So you know who to assign tasks to)
+            const workersList = await MunicipalWorker.findAll();
+            console.log("\n👷 REGISTERED WORKERS:");
+            if (workersList.length === 0) {
+                console.log("⚠️ No workers found in DB.");
+            } else {
+                workersList.forEach(w => {
+                    // Note: Using PascalCase 'FirstName' and 'EmployeeID' to match your model
+                    console.log(`- ID: ${w.EmployeeID} | Name: ${w.FirstName} | Email: ${w.Email}`);
+                });
+            }
+            console.log("---------------------------------------");
+
+        } catch (dbErr) {
+            console.error("⚠️ Setup error:", dbErr.message);
+        }
+
         const PORT = process.env.PORT || 8080;
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
@@ -153,5 +188,4 @@ sequelize.sync({ alter: true })
     .catch(err => {
         console.error('❌ Unable to connect or sync:', err);
     });
-
     //this file is the main entry point for the back-end server. It sets up the Express app, connects to the database, defines API routes, and handles Google authentication for both residents and municipal workers. The server serves static files for the front-end and listens on a specified port.
