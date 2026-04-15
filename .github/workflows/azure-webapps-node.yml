@@ -7,10 +7,10 @@ on:
 
 env:
   NODE_VERSION: '20.x'
-  DEPLOY_PATH: '/home/ubuntu/Lucs-Project' # Target folder on your Lightsail instance
+  DEPLOY_PATH: '/home/ubuntu/Lucs-Project'
 
 jobs:
-  build-and-deploy:
+  build-test-deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -25,13 +25,25 @@ jobs:
         cd Back-end
         npm install
 
+    # --- NEW: JEST TESTING STEP ---
+    - name: Run Jest Tests
+      env:
+        # You may need to provide mock env vars so Sequelize doesn't crash
+        NODE_ENV: test
+        DB_HOST: localhost 
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      run: |
+        cd Back-end
+        npm test 
+
     - name: Copy Files to Lightsail (SCP)
+      # This step ONLY runs if "Run Jest Tests" passes
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.LIGHTSAIL_HOST }}
         username: ubuntu
         key: ${{ secrets.LIGHTSAIL_KEY }}
-        source: "." # Copies the whole repo (Back-end and Front-end)
+        source: "."
         target: ${{ env.DEPLOY_PATH }}
 
     - name: Restart Server via SSH
@@ -43,6 +55,5 @@ jobs:
         script: |
           cd ${{ env.DEPLOY_PATH }}/Back-end
           npm install --production
-          # This restarts your PM2 process or starts it if not running
-          pm2 restart server.js --name "municipal-api" || pm2 start server.js --name "municipal-api"
+          pm2 restart municipal-api || pm2 start server.js --name "municipal-api"
           pm2 save
