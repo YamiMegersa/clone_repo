@@ -2,7 +2,7 @@ name: Deploy to Amazon Lightsail
 
 on:
   push:
-    branches: [ "LightSailMigration" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
