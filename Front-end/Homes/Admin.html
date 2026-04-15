@@ -265,42 +265,45 @@
 </article>
 </section>
 </article>
-<!-- Registered Users Panel -->
 <article class="md:col-span-5 bg-surface-container-low p-8">
-<header class="flex justify-between items-center mb-10">
-<section>
-<h3 class="text-2xl font-bold tracking-tight mb-1" style="">Registered Users</h3>
-<p class="text-xs uppercase tracking-widest text-neutral-400" style="">Database Entry Log</p>
-</section>
-<button class="material-symbols-outlined text-neutral-500 hover:text-primary-container transition-colors" style="">filter_list</button>
-</header>
-<section class="space-y-4">
-<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Julian Stark</h4>
-<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
-</section>
+    <header class="flex justify-between items-center mb-10">
+        <section>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">Worker Validation</h3>
+            <p class="text-xs uppercase tracking-widest text-neutral-400">Pending Registrations</p>
+        </section>
+    </header>
+    
+    <section id="pending-workers-list" class="space-y-4">
+        <p class="text-[10px] text-neutral-600 uppercase font-bold">Scanning for new applicants...</p>
+    </section>
 </article>
-<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Cassandra Vale</h4>
-<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
-</section>
+<!-- Registered Users Panel -->
+<article class="md:col-span-12 bg-surface-container-low p-8 mt-6">
+    <header class="flex justify-between items-center mb-10">
+        <hgroup>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">Unassigned Reports</h3>
+            <p class="text-xs uppercase tracking-widest text-neutral-400">Incoming faults awaiting personnel allocation</p>
+        </hgroup>
+    </header>
+    
+    <section class="overflow-x-auto" aria-label="Unassigned reports ledger">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-surface-variant text-[10px] uppercase tracking-widest text-neutral-500">
+                    <th class="p-4" scope="col">ID</th>
+                    <th class="p-4" scope="col">Type</th>
+                    <th class="p-4" scope="col">Ward</th>
+                    <th class="p-4" scope="col">Status</th>
+                    <th class="p-4 text-right" scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="unassigned-reports-body">
+                </tbody>
+        </table>
+    </section>
 </article>
-<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Harlan Vance</h4>
-<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
-</section>
-</article>
-<article class="flex items-center justify-between p-4 bg-surface/50 border-l-2 border-primary-container">
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Elena Moretti</h4>
-<p class="text-[10px] uppercase text-neutral-500 font-medium" style="">Resident</p>
-</section>
-</article>
-</section>
-</article>
+
+<script src="AdminHome.js" defer></script>
 <!-- Add New Widget Panel -->
 <article class="md:col-span-12">
 <button class="w-full h-32 bg-surface-container-low hover:bg-surface-container-high border-2 border-dashed border-outline-variant hover:border-primary-container transition-all flex flex-col items-center justify-center group" style="">

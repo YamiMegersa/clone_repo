@@ -2,6 +2,42 @@ const express = require('express');
 const router = express.Router();
 const {MunicipalWorker} = require('../models');
 
+
+// --- 1. GET: Fetch all non-validated workers ---
+// This MUST be above /:id so 'pending' isn't treated as an ID
+router.get('/pending', async (req, res) => {
+    try {
+        const pending = await MunicipalWorker.findAll({ 
+            where: { Validated: false } 
+        });
+        res.json(pending); 
+    } catch (err) {
+        console.error("Error fetching pending workers:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- 2. PUT: Validate a worker ---
+// This allows the Admin to approve a worker
+router.put('/validate/:employeeId', async (req, res) => {
+    try {
+        const { employeeId } = req.params;
+        
+        const [updated] = await MunicipalWorker.update(
+            { Validated: true }, 
+            { where: { EmployeeID: employeeId } }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({ message: "Worker not found or already validated." });
+        }
+
+        res.status(200).json({ success: true, message: "Worker validated successfully!" });
+    } catch (err) {
+        console.error("Validation error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
 // GET: Fetch all municipal workers
 router.get('/', async (req, res) => {
     try{
@@ -48,43 +84,6 @@ router.delete('/:id', async (req, res) => {
         }
         res.status(200).json({message:"Worker deleted successfully"});
     }catch(err){
-        console.error(err);
-        res.status(500).json({error:err.message});
-    }
-});
-
-//POST: Worker Login Route(For Worker_Login.html)
-router.post('/login',async(req,res)=>{
-    try{
-        //Recieve the encrypted token from the frontend
-        const {googleToken}=req.body;
-        
-        //Ask Google's servers to decrypt and verify it
-        const verifiedGoogleProfile=await verifyGoogleToken(googleToken);
-
-        
-        //Search by email to log them in
-        const email=verifiedGoogleProfile.email;
-
-
-        const worker=await MunicipalWorker.findOne({where:{email:email}});
-
-        //1.) Check if the worker exists
-        if (!worker){
-            return res.status(404).json({message:'Worker not found'});
-        }
-        //2.) Check if they are blacklisted
-        if (worker.Blacklisted){
-            return res.status(403).json({message:'Access denied. Worker is blacklisted.'});
-        }
-
-        //3.) Check if they are validated by the admin
-        if (!worker.Validated){
-            return res.status(403).json({message:'Accountpending validation from Admin.'});
-        }
-
-        res.status(200).json({message:'Login successful!', worker:worker});
-    } catch(err){
         console.error(err);
         res.status(500).json({error:err.message});
     }

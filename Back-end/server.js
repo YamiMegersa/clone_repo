@@ -67,47 +67,42 @@ app.post('/api/auth/google', async (req, res) => {
 // --- WORKER GOOGLE AUTH ROUTE ---
 app.post('/api/auth/worker/google', async (req, res) => {
     const { idToken } = req.body;
-
     try {
         const ticket = await client.verifyIdToken({
             idToken: idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
-        
         const payload = ticket.getPayload();
-        const { email } = payload;
+        const { email, family_name, given_name } = payload;
 
-        // Check if the worker exists by email 
-        const worker = await MunicipalWorker.findOne({ where: { email: email } });
+        // FIXED: Using PascalCase to match your MunicipalWorker model
+        const [worker, created] = await MunicipalWorker.findOrCreate({
+            where: { Email: email },
+            defaults: {
+                EmployeeID: Math.floor(Date.now() / 1000), // Manual ID bypass for Azure
+                FirstName: given_name,
+                LastName: family_name,
+                Email: email,
+                Validated: false, 
+                Blacklisted: false
+            }
+        });
 
-        if (!worker) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "Access Denied. Your email is not registered in the municipal system." 
-            });
-        }
-
-        // Check the 'Validated' column from the model
         if (!worker.Validated) {
             return res.status(403).json({ 
                 success: false, 
-                message: "Account pending. An administrator must validate your profile before you can log in." 
+                message: "Your registration is received. Please wait for an administrator to grant permission before you can access the ledger." 
             });
         }
 
-        // Check 'Blacklisted' 
         if (worker.Blacklisted) {
-            return res.status(403).json({ 
-                success: false, 
-                message: "This account has been blacklisted. Access revoked." 
-            });
+            return res.status(403).json({ success: false, message: "This account has been blacklisted." });
         }
 
-        // If all checks pass
         res.status(200).json({ 
             success: true, 
             workerId: worker.EmployeeID,
-            name: worker.firstName 
+            name: worker.FirstName 
         });
 
     } catch (error) {
