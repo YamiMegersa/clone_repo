@@ -1,12 +1,12 @@
 -- 1. Province Table
 CREATE TABLE Province (
-    ProvinceID INT PRIMARY KEY IDENTITY(1,1),
+    ProvinceID INT PRIMARY KEY AUTO_INCREMENT,
     ProvinceName VARCHAR(100) NOT NULL
 );
 
 -- 2. Municipality Table
 CREATE TABLE Municipality (
-    MunicipalityID INT PRIMARY KEY IDENTITY(1,1),
+    MunicipalityID INT PRIMARY KEY AUTO_INCREMENT,
     ProvinceID INT NOT NULL,
     MunicipalityName VARCHAR(100) NOT NULL,
     FOREIGN KEY (ProvinceID) REFERENCES Province(ProvinceID)
@@ -22,28 +22,28 @@ CREATE TABLE Ward (
 
 -- 4. Residents Table
 CREATE TABLE Residents (
-    ResidentID INT PRIMARY KEY IDENTITY(1,1),
-    Username VARCHAR(50) NOT NULL,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    CellphoneNumber VARCHAR(15) NOT NULL UNIQUE,
-    BlackListed BIT DEFAULT 0
+    ResidentID INT PRIMARY KEY AUTO_INCREMENT,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    Email VARCHAR(255) NULL UNIQUE,
+    CellphoneNumber VARCHAR(15) NULL UNIQUE,
+    BlackListed BOOLEAN DEFAULT FALSE
 );
 
 -- 5. Municipal Workers Table
 CREATE TABLE MunicipalWorkers (
-    EmployeeID INT PRIMARY KEY ,
+    EmployeeID INT PRIMARY KEY,
     FirstName VARCHAR(100) NOT NULL,
     LastName VARCHAR(100) NOT NULL,
-    Email VARCHAR(255) NOT NULL UNIQUE,
-    Cell VARCHAR(15) NOT NULL UNIQUE,
-    Blacklisted BIT DEFAULT 0,
-    Validated BIT DEFAULT 0,
-    ProfilePicture VARBINARY(MAX) -- Azure blob
+    Email VARCHAR(255) NULL UNIQUE,
+    Cell VARCHAR(15) NULL UNIQUE,
+    Blacklisted BOOLEAN DEFAULT FALSE,
+    Validated BOOLEAN DEFAULT FALSE,
+    ProfilePicture LONGBLOB
 );
 
--- 6. Subscription Table (Many-to-Many between Residents and Wards)
+-- 6. Subscription Table
 CREATE TABLE Subscription (
-    SubscriptionID INT PRIMARY KEY IDENTITY(1,1),
+    SubscriptionID INT PRIMARY KEY AUTO_INCREMENT,
     WardID INT NOT NULL,
     ResidentID INT NOT NULL,
     FOREIGN KEY (WardID) REFERENCES Ward(WardID),
@@ -52,52 +52,49 @@ CREATE TABLE Subscription (
 
 -- 7. Reports Table
 CREATE TABLE Reports (
-    ReportID INT PRIMARY KEY IDENTITY(1,1),
+    ReportID INT PRIMARY KEY AUTO_INCREMENT,
     WardID INT NOT NULL,
     ResidentID INT NOT NULL,
-    Lattitude DECIMAL(8,4) NOT NULL,
-    Longitude DECIMAL(8,4) NOT NULL,
+    Latitude DECIMAL(9,6) NOT NULL,
+    Longitude DECIMAL(9,6) NOT NULL,
     Progress VARCHAR(50) NOT NULL DEFAULT 'Pending Allocation',
     Type VARCHAR(100),
     Frequency INT NOT NULL,
-    Date DATETIME NOT NULL DEFAULT GETDATE(),
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     DateFulfilled DATETIME NULL,
+    Priority INT NULL,
     FOREIGN KEY (WardID) REFERENCES Ward(WardID),
     FOREIGN KEY (ResidentID) REFERENCES Residents(ResidentID)
 );
 
 -- 8. Allocation Table
 CREATE TABLE Allocation (
-    AllocationID INT PRIMARY KEY IDENTITY(1,1),
+    AllocationID INT PRIMARY KEY AUTO_INCREMENT,
     ReportID INT NOT NULL,
     EmployeeID INT NOT NULL,
+    Accepted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (ReportID) REFERENCES Reports(ReportID),
     FOREIGN KEY (EmployeeID) REFERENCES MunicipalWorkers(EmployeeID)
 );
 
 -- 9. Report Images Table
 CREATE TABLE ReportImages (
-    ImageID INT PRIMARY KEY IDENTITY(1,1),
+    ImageID INT PRIMARY KEY AUTO_INCREMENT,
     ReportID INT NOT NULL,
     Type VARCHAR(50),
-    Image VARBINARY(MAX) NOT NULL,
+    ImageData LONGBLOB NOT NULL,
     FOREIGN KEY (ReportID) REFERENCES Reports(ReportID)
 );
 
--- 10. Consolidated Grievance Table
--- Handles Resident, Municipal Worker, and Anonymous grievances in one place.
+-- 10. Grievance Table
 CREATE TABLE Grievance (
-    GrievanceID INT PRIMARY KEY IDENTITY(1,1),
+    GrievanceID INT PRIMARY KEY AUTO_INCREMENT,
     ResidentID INT NULL,  
     EmployeeID INT NULL,  
     Description TEXT NOT NULL,
-    Attachment VARBINARY(MAX),
-    Resolved BIT DEFAULT 0,
-    Date DATETIME DEFAULT GETDATE(),
-    
+    Attachment LONGBLOB,
+    Resolved BOOLEAN DEFAULT FALSE,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ResidentID) REFERENCES Residents(ResidentID),
-    FOREIGN KEY (EmployeeID) REFERENCES MunicipalWorkers(EmployeeID),
-    
-
-
+    FOREIGN KEY (EmployeeID) REFERENCES MunicipalWorkers(EmployeeID)
 );
