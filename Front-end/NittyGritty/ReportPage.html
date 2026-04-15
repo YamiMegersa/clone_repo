@@ -144,13 +144,31 @@
     </article>
 </section>
 <!-- Media Capture Section -->
+
+<!-- 
+<section class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
+  <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+  <label for="imageInput" class="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:opacity-80">
+    <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
+    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Add Photos</span>
+  </label>
+</section>
+ -->
+
+
+
 <section class="space-y-4">
 <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">02. Visual Evidence</h2>
 <article class="grid grid-cols-2 gap-4">
-<button class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
-<span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
-<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Capture</span>
-</button>
+<section class="flex flex-col items-center justify-center aspect-square bg-surface-container-low rounded-xl border-2 border-dashed border-outline-variant/30 hover:border-primary/50 hover:bg-surface-container transition-all group">
+  <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+  <label for="imageInput" class="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:opacity-80">
+    <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-hover:text-primary" data-icon="add_a_photo">add_a_photo</span>
+    <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Capture</span>
+    </label>
+  </section>
+
+
 <figure class="aspect-square bg-surface-container-low rounded-xl overflow-hidden relative">
 <img class="w-full h-full object-cover opacity-70" data-alt="Close up shot of a jagged asphalt pothole on a city street during grey daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO72Pz4qduDhpQILOpf8Z4eoETokOolMIjwOgl0_2qLoftCyq6PgmH-H-8i2DK9vpQ6ot8TurdbxdZZ4OZyM2F_9W2jgkEi7amk1ZAv8kGebBVxmWY19rgh9aDEGX9_SBO4AaTJEHf6ZUmq-M95DK5gs1uD35Vqh10uaq_rJV8TzPc0xEhxy7fh4MJon-dhZIlOhM15AQO3I0HMcyPfx-wKJwQw9gk9dqNIHuzWFEFsQCv-8HICG7XGH-TLNaVYVFPukIep0nJA9JI"/>
 <button class="absolute top-2 right-2 bg-error-container/80 p-1 rounded-md">
@@ -249,44 +267,21 @@
 <button class="w-full py-5 bg-primary-container hover:bg-surface-tint text-on-primary font-black uppercase tracking-[0.25em] text-sm rounded-lg transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(255,140,0,0.3)]" type="submit">
                 Submit Report
             </button>
+
+<output id="imagePreview" class="grid grid-cols-2 gap-4 mt-4"></output>           
 </form>
 </main>
 <footer class="h-12"></footer>
 
+<script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-    import { initWardSelector } from './wardSelector.js';
+  import { initWardSelector } from './wardSelector.js';
  
-    // Initialize the cascading dropdowns once the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', () => {
+  // Initialize the cascading dropdowns once the DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', () => {
     initWardSelector();
-
-    // Initialise map element
-    // Center of South Africa: [-30.5595, 22.9375]
-    const map = L.map('map').setView([-30.5595, 22.9375], 5);
-
-    // Add the base layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    // Set default position to device location
-    map.locate({setView: true, maxZoom: 16});
-
-    // Handle successful location finding
-    map.on('locationfound', (e) => {
-        // Add a marker at the user's location
-        L.marker(e.latlng).addTo(map).bindPopup("You are here").openPopup();
-    });
-
-    // Handle location error (e.g., user denied permission)
-    map.on('locationerror', (e) => {
-        console.warn("Location access denied. Defaulting to national view.");
-        map.setView([-30.5595, 22.9375], 5);
-    });
-
   });
-</script>
+</script> 
 
 </body></html>

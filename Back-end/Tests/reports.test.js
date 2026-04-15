@@ -69,6 +69,14 @@ describe('Report API Endpoints', () => {
       expect(Report.create).toHaveBeenCalledWith(payload);
     });
 
+    it('should create report and return ID for images', async () => {
+      const payload = { WardID: 1, Type: 'Pothole', /* ... */ };
+      Report.create.mockResolvedValue({ ReportID: 42, ...payload });
+      const res = await request(app).post('/reports').send(payload);
+      expect(res.statusCode).toBe(201);
+      expect(res.body.report.ReportID).toBe(42);
+    });
+
     it('should return 400 if creation fails', async () => {
       Report.create.mockRejectedValue(new Error('Validation Error'));
       const res = await request(app).post('/reports').send({});
