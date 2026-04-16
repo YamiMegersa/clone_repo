@@ -17,6 +17,42 @@ router.get('/pending', async (req, res) => {
     }
 });
 
+// --- 2. GET: Fetch all validated (Active) workers ---
+// ADD THIS HERE
+router.get('/active', async (req, res) => {
+    try {
+        const active = await MunicipalWorker.findAll({ 
+            where: { Validated: true } 
+        });
+        res.json(active);
+    } catch (err) {
+        console.error("Error fetching active workers:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- 4. PUT: Invalidate (Disable) a worker ---
+// ADD THIS HERE
+router.put('/invalidate/:employeeId', async (req, res) => {
+    const { employeeId } = req.params;
+    const { adminEmail } = req.body;
+
+    if (adminEmail !== "2820314@students.wits.ac.za") {
+        return res.status(403).json({ success: false, message: "Admin access only." });
+    }
+
+    try {
+        const [updated] = await MunicipalWorker.update(
+            { Validated: false },
+            { where: { EmployeeID: employeeId } }
+        );
+        if (updated === 0) return res.status(404).json({ message: "Worker not found." });
+        res.status(200).json({ success: true, message: "Account disabled." });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- 2. PUT: Validate a worker ---
 // This allows the Admin to approve a worker
 router.put('/validate/:employeeId', async (req, res) => {

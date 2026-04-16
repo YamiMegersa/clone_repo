@@ -111,6 +111,34 @@ app.post('/api/auth/worker/google', async (req, res) => {
     }
 });
 
+// --- ADMIN: DELETE REPORT ---
+app.delete('/api/admin/delete-report/:id', async (req, res) => {
+    const reportId = req.params.id;
+    const { adminEmail } = req.body; // Sent from the frontend to verify identity
+
+    // 1. Hardcoded Admin Check (Using your Wits email)
+    if (adminEmail !== "2820314@students.wits.ac.za") {
+        return res.status(403).json({ success: false, message: "Unauthorized: Admin access only." });
+    }
+
+    try {
+        // 2. Perform the deletion
+        const deleted = await Report.destroy({
+            where: { ReportID: reportId }
+        });
+
+        if (deleted) {
+            res.status(200).json({ success: true, message: `Report ${reportId} deleted successfully.` });
+        } else {
+            res.status(404).json({ success: false, message: "Report not found." });
+        }
+    } catch (error) {
+        console.error("Deletion Error:", error);
+        res.status(500).json({ success: false, message: "Server error during deletion." });
+    }
+});
+
+
 // --- 3. API ROUTES ---
 const residentRoutes = require('./routes/residents');
 const workerRoutes = require('./routes/workers');
