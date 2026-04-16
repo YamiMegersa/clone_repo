@@ -213,57 +213,17 @@
 </article>
 <!-- Municipal Personnel Panel -->
 <article class="md:col-span-7 bg-surface-container-low p-8">
-<header class="flex justify-between items-center mb-10">
-<section>
-<h3 class="text-2xl font-bold tracking-tight mb-1" style="">Municipal Personnel</h3>
-<p class="text-xs uppercase tracking-widest text-neutral-400" style="">Active Duty Roster</p>
-</section>
-<button class="text-xs font-black uppercase text-primary-container tracking-widest hover:underline transition-all" style="">View Full Archive</button>
-</header>
-<section class="space-y-1">
-<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
-<section class="flex items-center gap-4">
-<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
-<img alt="Staff Member 1" data-alt="Professional man in a suit for a corporate profile, dramatic shadows, black and white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQTElwCMxRMd2lWPsBYYek_91vm-Ek_6qGptrr6EAaYcVteVaJ87UA9Ix-NxjerFLNttwa_ef2yOKhvwcvjyhANwAiKlrNr8LCnuP8DUgOetMhNPVOQAKBDZTrOWSz0EiDBd9vfkOUt2LMHLo7GwPbw2wR9LBcXIhpa4PADwpDtTODolXbRgXkn4CCl24l4MbS2jVS03q6edchmKRWqyisuKGEPKo8eqch48uU4Um9uLq4VvMpTr4_LmAQz2A0cIiD7eaMfuf4YtG5" class="" style="">
-</figure>
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Harlan Vance</h4>
-<p class="text-[10px] uppercase text-neutral-500" style="">Systems Architect</p>
-</section>
-</section>
-<section class="flex items-center gap-8">
-<span class="px-2 py-1 bg-primary-container/10 text-primary-container text-[10px] font-black uppercase tracking-widest" style="">Active</span>
-</section>
-</article>
-<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
-<section class="flex items-center gap-4">
-<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
-<img alt="Staff Member 2" data-alt="Professional woman portrait, sharp business attire, minimalist dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyWNBBIR4POynQxQqtQsSU2ABIHaeZgH59GxWyQ5KxNH0dCaWJb8jKkmYzrLVgUtuNVpC2ZwfvNSKWf9_wTLl_dNVydwhrrRTohdYtDZj1W6jx1NrpmTubNbPvsQNuofjSuIrKmoY7mTzVRq0R6TzuyCGCnZDVEQIq95JEs8gvmhoMZNaK5ezgh7czx-y3RQuboSLXFJPoB16ce8AHAl86mg-kPjVMaQ_sSS8K5RR8u0SWQG5Kd4OloDWS3xYAKpZ18w8IiBlfv17P" class="" style="">
-</figure>
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Elena Moretti</h4>
-<p class="text-[10px] uppercase text-neutral-500" style="">Civil Liaison</p>
-</section>
-</section>
-<section class="flex items-center gap-8">
-<span class="px-2 py-1 bg-surface-container-highest text-neutral-500 text-[10px] font-black uppercase tracking-widest" style="">On Leave</span>
-</section>
-</article>
-<article class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-high transition-colors">
-<section class="flex items-center gap-4">
-<figure class="w-10 h-10 bg-neutral-800 rounded-sm overflow-hidden grayscale contrast-125">
-<img alt="Staff Member 3" data-alt="Male executive profile, serious expression, high-end editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBm7sRbL0Kr4gOo19_gCurh4480tmBorGIzRSSix3F0GVP8rJeBi3ggn9ojFX_rstafC7nQBhUKjZwivGFyumc1rjn4oPkKWRNqnwyTK0DwAlrzg4QSEJUx-tQ10qlS2nxikv0H0mxPGu7BGPr-xuJg53c9CE-vPnrU9nNqEpC9zz4ni-J80Z8HLH1iNRS1UJwinVt1ObUKZ5R2AmXfzI03g6UAAuIjISn4_tjygRIRBJEi77FoGtp4ssYwC7_ZmYBlkrmcBF1POZz-" class="" style="">
-</figure>
-<section>
-<h4 class="text-sm font-bold tracking-tight" style="">Marcus Thorne</h4>
-<p class="text-[10px] uppercase text-neutral-500" style="">Compliance Officer</p>
-</section>
-</section>
-<section class="flex items-center gap-8">
-<span class="px-2 py-1 bg-primary-container/10 text-primary-container text-[10px] font-black uppercase tracking-widest" style="">Active</span>
-</section>
-</article>
-</section>
+    <header class="flex justify-between items-center mb-10">
+        <section>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">Municipal Personnel</h3>
+            <p class="text-xs uppercase tracking-widest text-neutral-400">Active Duty Roster</p>
+        </section>
+        <button class="text-xs font-black uppercase text-primary-container tracking-widest hover:underline transition-all">View Full Archive</button>
+    </header>
+
+    <section id="active-workers-list" class="space-y-1">
+        <p class="p-4 text-[10px] text-neutral-600 uppercase font-bold animate-pulse">Syncing personnel records...</p>
+    </section>
 </article>
 <article class="md:col-span-5 bg-surface-container-low p-8">
     <header class="flex justify-between items-center mb-10">
@@ -294,7 +254,7 @@
                     <th class="p-4" scope="col">Type</th>
                     <th class="p-4" scope="col">Ward</th>
                     <th class="p-4" scope="col">Status</th>
-                    <th class="p-4 text-right" scope="col">Action</th>
+                    <th class="p-4 text-right" scope="col">Management</th> </tr>
                 </tr>
             </thead>
             <tbody id="unassigned-reports-body">
