@@ -231,3 +231,161 @@ async function unsubscribeWard(wardId) {
         }
     }
 }
+
+// ==========================================
+// ADD WARD MODAL CONTROLLER (Native Dialog)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const addWardModal = document.getElementById('add-ward-modal');
+    const addWardForm = document.getElementById('add-ward-form');
+    const closeAddWardIcon = document.getElementById('close-add-ward-icon');
+    const closeAddWardBtn = document.getElementById('close-add-ward-btn');
+
+    // 1. Function to Close Dialog safely
+    const closeAddModal = () => {
+        addWardModal.close(); // Native HTML5 close method
+        addWardForm.reset();  // Clear the dropdowns
+    };
+
+    // 2. Global click listener to open the modal
+    document.addEventListener('click', (event) => {
+        const openBtn = event.target.closest('#open-add-ward-btn');
+        if (openBtn) {
+            addWardModal.showModal(); // Native HTML5 open method
+        }
+        
+        // Close modal if clicking directly on the backdrop
+        if (event.target === addWardModal) {
+            closeAddModal();
+        }
+    });
+
+    // 3. Attach Close Events
+    if (closeAddWardIcon) closeAddWardIcon.addEventListener('click', closeAddModal);
+    if (closeAddWardBtn) closeAddWardBtn.addEventListener('click', closeAddModal);
+
+    // 4. Handle the Form Submission
+  // 4. Handle the Form Submission
+    if (addWardForm) {
+        addWardForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+            
+            const formData = new FormData(addWardForm);
+            const selectedWardId = formData.get('ward');
+            const residentId = sessionStorage.getItem('residentId') || '1';
+
+            try {
+                // 1. Send the POST request to your backend
+                // (Ensure this URL matches exactly where you mounted the route in server.js)
+                const response = await fetch('/api/residents/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ResidentID: residentId,
+                        WardID: selectedWardId
+                    })
+                });
+
+                const data = await response.json();
+
+                // 2. Handle the server's response
+                if (response.ok) {
+                    // Success (201 Created)! 
+                    closeAddModal(); // Hide the modal
+                    await renderSubscribedWards(residentId); // Refresh the cards to show the new ward
+                    
+                    
+                } else {
+                    // This catches your 400 (duplicate subscription) and 404 errors
+                    await showModal('Notice', data.message || data.error, 'alert');
+                }
+
+            } catch (error) {
+                // This catches network drops or server crashes
+                console.error('Failed to subscribe:', error);
+                await showModal('Network Error', 'Could not connect to the server to add the ward.', 'alert');
+            }
+        });
+    }
+});
+// ==========================================
+// CASCADING DROPDOWNS CONTROLLER
+// ==========================================
+const provinceSelect = document.getElementById('province');
+const municipalitySelect = document.getElementById('municipality');
+const wardSelect = document.getElementById('ward');
+
+// Helper to clear and reset a dropdown
+const resetDropdown = (selectElement, defaultText) => {
+    selectElement.innerHTML = `<option disabled selected value="">${defaultText}</option>`;
+};
+
+// 1. Initial Load: Fetch all Provinces
+async function loadProvinces() {
+    try {
+        const response = await fetch('/api/geography/provinces');
+        if (response.ok) {
+            const provinces = await response.json();
+            provinces.forEach(prov => {
+                const option = document.createElement('option');
+                option.value = prov.ProvinceID;
+                option.textContent = prov.ProvinceName;
+                provinceSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading provinces:', error);
+    }
+}
+
+// 2. Listen for Province Change -> Load Municipalities
+provinceSelect.addEventListener('change', async (e) => {
+    const provinceId = e.target.value;
+    
+    // Reset downstream dropdowns
+    resetDropdown(municipalitySelect, 'Choose a municipality');
+    resetDropdown(wardSelect, 'Choose a ward');
+
+    try {
+        const response = await fetch(`/api/geography/provinces/${provinceId}/municipalities`);
+        if (response.ok) {
+            const municipalities = await response.json();
+            municipalities.forEach(muni => {
+                const option = document.createElement('option');
+                option.value = muni.MunicipalityID;
+                option.textContent = muni.MunicipalityName;
+                municipalitySelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading municipalities:', error);
+    }
+});
+
+// 3. Listen for Municipality Change -> Load Wards
+municipalitySelect.addEventListener('change', async (e) => {
+    const municipalityId = e.target.value;
+    
+    // Reset downstream dropdown
+    resetDropdown(wardSelect, 'Choose a ward');
+
+    try {
+        const response = await fetch(`/api/geography/municipalities/${municipalityId}/wards`);
+        if (response.ok) {
+            const wards = await response.json();
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward.WardID;
+                option.textContent = `Ward ${ward.WardID} (${ward.WardCouncillor || 'No Councillor listed'})`;
+                wardSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading wards:', error);
+    }
+});
+
+// Trigger the initial load of provinces when the script runs
+loadProvinces();
