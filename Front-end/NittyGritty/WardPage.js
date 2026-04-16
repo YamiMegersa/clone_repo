@@ -253,3 +253,18 @@ for(let i=1; i<=3; i++) {
 
     dialog.showModal();
 }
+
+// JEST TEST CASE RUNNING TO SIMULATE DOM INTERACTIONS
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        fetchWardReports,
+        fetchWardDetails,
+        renderStats,
+        renderTable,
+        openIssueModal,
+        // Expose global state for testing
+        getCurrentReports: () => currentReports,
+        setCurrentReports: (reports) => { currentReports = reports; },
+        getActiveReportId: () => activeReportId
+    };
+}
