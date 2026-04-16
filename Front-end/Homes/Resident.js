@@ -104,7 +104,7 @@ async function renderSubscribedWards(residentId) {
             }
 
             // 3. Otherwise, redirect to the Ward Page and pass the ID in the URL
-            window.location.href = `/nittygritty/WardPage.html?wardId=${ward.WardID}`;
+            window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}`;
         });
             wardsGrid.insertBefore(card, addButton);
         });
