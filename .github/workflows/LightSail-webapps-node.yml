@@ -29,7 +29,10 @@ jobs:
       run: |
         cd Front-end
         npm install
+        chmod +x ./node_modules/.bin/jest
         npm test
+
+        
 
     # --- CodeCov ---
     - name: Upload coverage reports to Codecov
