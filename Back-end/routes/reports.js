@@ -80,4 +80,41 @@ router.delete('/:id', async (req,res)=>{
     }
 });
 
+// GET: Fetch all reports for a specific Ward
+// GET: Fetch all reports for a specific Ward
+router.get('/ward/:wardId', async (req, res) => {
+    try {
+        const reports = await Report.findAll({
+            where: { WardID: req.params.wardId }, // Fixed the 'req.req' typo
+            order: [['CreatedAt', 'DESC']]        // Fixed the column name to match your DB
+        });
+        res.json(reports);
+    } catch (err) {
+        console.error('Error fetching ward reports:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Increment the Frequency (Bump) of a specific report
+router.put('/:id/bump', async (req, res) => {
+    try {
+        const report = await Report.findByPk(req.params.id);
+        
+        if (!report) {
+            return res.status(404).json({ error: 'Report not found' });
+        }
+
+        // Increment the frequency by 1
+        await report.increment('Frequency', { by: 1 });
+        
+        // Reload to get the fresh data
+        await report.reload();
+
+        res.json({ message: 'Issue bumped successfully', newFrequency: report.Frequency });
+    } catch (err) {
+        console.error('Error bumping report:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports=router;

@@ -91,7 +91,21 @@ async function renderSubscribedWards(residentId) {
             <footer aria-hidden="true" class="absolute bottom-0 left-0 h-1 w-0 bg-primary-container transition-all duration-500 group-hover:w-full"></footer>
         `;
 
+        
+
             // Insert BEFORE the "Add New Ward" button
+        card.addEventListener('click', (event) => {
+            // 1. Check if the click happened inside the three-dots menu or dropdown
+            const clickedMenu = event.target.closest('nav[aria-label="Ward management options"]');
+            
+            // 2. If they clicked the menu, do nothing and let the menu open
+            if (clickedMenu) {
+                return; 
+            }
+
+            // 3. Otherwise, redirect to the Ward Page and pass the ID in the URL
+            window.location.href = `/nittygritty/WardPage.html?wardId=${ward.WardID}`;
+        });
             wardsGrid.insertBefore(card, addButton);
         });
 
@@ -272,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const formData = new FormData(addWardForm);
             const selectedWardId = formData.get('ward');
-            const residentId = sessionStorage.getItem('residentId') || '1';
+            const residentId = sessionStorage.getItem('residentId') || '1';//fallback to big Fakir
 
             try {
                 // 1. Send the POST request to your backend
