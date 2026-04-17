@@ -276,11 +276,13 @@
 <script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-    import { initWardSelector } from './js/wardSelector.js';
+    import { initWardSelector } from './js/js/wardSelector.js';
+
+  initWardSelector();
  
     // Initialise the cascading dropdowns once the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', () => {
-        initWardSelector();
+    document.addEventListener('ward:selected', (e) => {
+        console.log('Ward chosen:', e.detail);
     });
 
     // Initialise map without a setView initially
