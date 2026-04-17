@@ -30,7 +30,7 @@ jobs:
         cd Front-end
         npm install
         chmod +x ./node_modules/.bin/jest
-        npm test
+        npm test --coverage
 
         
 
@@ -50,7 +50,7 @@ jobs:
       run: |
         cd Back-end
         npm install
-        npm test 
+        npm test --coverage
 
     # --- DEPLOYMENT ---
     # This step ONLY runs if BOTH testing steps above pass successfully.
