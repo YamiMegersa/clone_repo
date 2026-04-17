@@ -137,7 +137,6 @@
 <section class="space-y-4">
   <header class="flex justify-between items-end">
     <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">01. Location Protocol</h2>
-    <span class="text-[10px] text-on-surface-variant font-mono">ID: SEC-8842</span>
   </header>
 
   <article id="map" class="relative w-full aspect-video rounded-xl overflow-hidden bg-surface-container-lowest border-0 ring-1 ring-outline-variant/15 z-10">
@@ -154,9 +153,6 @@
   </label>
 </section>
  -->
-
-
-
 <section class="space-y-4">
 <h2 class="text-xs font-bold uppercase tracking-[0.2em] text-primary">02. Visual Evidence</h2>
 <article class="grid grid-cols-2 gap-4">
@@ -168,17 +164,19 @@
     </label>
   </section>
 
+<!-- /* Below is for pothole image */ -->
 
-<figure class="aspect-square bg-surface-container-low rounded-xl overflow-hidden relative">
+<!-- <figure class="aspect-square bg-surface-container-low rounded-xl overflow-hidden relative">
 <img class="w-full h-full object-cover opacity-70" data-alt="Close up shot of a jagged asphalt pothole on a city street during grey daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO72Pz4qduDhpQILOpf8Z4eoETokOolMIjwOgl0_2qLoftCyq6PgmH-H-8i2DK9vpQ6ot8TurdbxdZZ4OZyM2F_9W2jgkEi7amk1ZAv8kGebBVxmWY19rgh9aDEGX9_SBO4AaTJEHf6ZUmq-M95DK5gs1uD35Vqh10uaq_rJV8TzPc0xEhxy7fh4MJon-dhZIlOhM15AQO3I0HMcyPfx-wKJwQw9gk9dqNIHuzWFEFsQCv-8HICG7XGH-TLNaVYVFPukIep0nJA9JI"/>
 <button class="absolute top-2 right-2 bg-error-container/80 p-1 rounded-md">
 <span class="material-symbols-outlined text-sm text-on-error-container" data-icon="close">close</span>
 </button>
-</figure>
+</figure> -->
+
 </article>
 </section>
 <!-- Form Submission -->
-<form class="space-y-6">
+<form id="pothole_report_form" class="space-y-6">
 <fieldset class="space-y-4">
 <legend class="text-xs font-bold uppercase tracking-[0.2em] text-primary mb-4">03. Ledger Details</legend>
 <section class="space-y-2">
@@ -252,7 +250,9 @@
     <option value="" disabled selected>Select a ward…</option>
   </select>
 </section>
+
 <!--  ============================================================= -->
+
 </fieldset>
 <section class="p-4 bg-surface-container-low rounded-xl space-y-3">
 <aside class="flex justify-between items-center">
@@ -261,7 +261,7 @@
 </aside>
 <aside class="flex justify-between items-center">
 <label class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Entry Date</label>
-<span class="text-xs font-mono text-on-surface">OCT 24, 2023</span>
+<span id="current-date" class="text-xs font-mono text-on-surface"></span>
 </aside>
 </section>
 <button class="w-full py-5 bg-primary-container hover:bg-surface-tint text-on-primary font-black uppercase tracking-[0.25em] text-sm rounded-lg transition-all active:scale-[0.98] shadow-[0_10px_30px_rgba(255,140,0,0.3)]" type="submit">
@@ -276,12 +276,88 @@
 <script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-  import { initWardSelector } from './wardSelector.js';
+    import { initWardSelector } from './js/wardSelector.js';
  
-  // Initialize the cascading dropdowns once the DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    initWardSelector();
-  });
+    // Initialise the cascading dropdowns once the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        initWardSelector();
+    });
+
+    // Initialise map without a setView initially
+    const map = L.map('map');
+
+    // Add your tiles as before
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Set default position to device location
+    map.locate({setView: true, maxZoom: 16});
+
+
+    let currentLat = null;
+    let currentLng = null;
+    // Handle successful location finding
+    map.on('locationfound', (e) => {
+        // Store location data
+        currentLat = e.latlng.lat;
+        currentLng = e.latlng.lng;
+        // Add a marker at the user's location
+        L.marker(e.latlng).addTo(map).bindPopup("Current Location").openPopup();
+    });
+
+    // Handle location error (e.g., user denied permission)
+    map.on('locationerror', (e) => {
+        console.warn("Location access denied. Defaulting to national view.");
+        map.setView([-30.5595, 22.9375], 5);
+    });
+
+    // Gets current date + updates element
+    const dateElement = document.getElementById('current-date');
+    const now = new Date();
+  
+    const options = { month: 'short', day: '2-digit', year: 'numeric' };
+    const formattedDate = now.toLocaleDateString('en-UK', options).toUpperCase();
+  
+    dateElement.textContent = formattedDate;
+
+    // ============ Building actual report data ============
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const reportForm = document.getElementById('pothole-report-form');
+
+      reportForm.addEventListener('submit', (event) => {
+        // Prevent the page from reloading
+        event.preventDefault();
+
+        // Use FormData to grab all named inputs at once
+        const formData = new FormData(reportForm);
+        
+        // Combine standard fields with the cascading dropdown values
+        const reportData = {
+          hazardType: formData.get('hazardType'),
+          recurrence: formData.get('recurrence'),
+          briefing: formData.get('briefing'),
+          province: formData.get('province'),
+          municipality: formData.get('municipality'),
+          wardId: formData.get('wardId'),
+          latitude: currentLat,
+          longitude: currentLng,
+          timestamp: new Date().toISOString(),
+          // Add coordinates from your map marker if available
+          location: marker.getLatLng() 
+        };
+
+        // Store locally (Great for PWA offline capability)
+        localStorage.setItem('lastSavedReport', JSON.stringify(reportData));
+        
+        console.log('Report Data Stored:', reportData);
+        alert('Report saved locally!');
+      });
+});
+
+    // =====================================================
 </script> 
 
 </body></html>
