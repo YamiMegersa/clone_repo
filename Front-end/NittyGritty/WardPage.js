@@ -150,15 +150,20 @@ function renderTable(reports) {
     }
 
     reports.forEach(report => {
-        let statusBadge = '';
+let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssueModal
         const progressStr = (report.Progress || '').toLowerCase(); 
         
-        if (progressStr === 'active' || progressStr === 'pending allocation') {
-            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
-        } else if (progressStr === 'in progress') {
-            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
-        } else {
+        // 1. ONLY give the Resolved badge if it is actually resolved
+        if (progressStr === 'resolved') {
             statusBadge = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
+        
+        // 2. Catch the "middle" steps and label them In Progress
+        } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
+        
+        // 3. Everything else defaults to Active
+        } else {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
         }
 
         const iconMap = {
@@ -211,16 +216,22 @@ function openIssueModal(reportId) {
     document.getElementById('modal-date').textContent = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
     document.getElementById('modal-frequency').textContent = report.Frequency || 0;
     
-    const progressStr = (report.Progress || '').toLowerCase();
-    let badgeHTML = '';
-    if (progressStr === 'active' || progressStr === 'pending allocation') {
-        badgeHTML = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
-    } else if (progressStr === 'in progress') {
-        badgeHTML = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
-    } else {
-        badgeHTML = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
-    }
-    document.getElementById('modal-status').innerHTML = badgeHTML;
+        let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssueModal
+        const progressStr = (report.Progress || '').toLowerCase(); 
+        
+        // 1. ONLY give the Resolved badge if it is actually resolved
+        if (progressStr === 'resolved') {
+            statusBadge = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
+        
+        // 2. Catch the "middle" steps and label them In Progress
+        } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
+        
+        // 3. Everything else defaults to Active
+        } else {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
+        }
+    document.getElementById('modal-status').innerHTML = statusBadge;
 
     const carousel = document.getElementById('modal-carousel');
     carousel.innerHTML = ''; 
