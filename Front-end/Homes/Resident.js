@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     // For testing, replace '1' with your actual logic to get the logged-in user's ID
-    const residentId = sessionStorage.getItem('residentId') || '1'; 
+    const residentId = localStorage.getItem('residentId');
+    if (!residentId) {
+        // Kick them back to the login screen
+        window.location.href = '/'; 
+        return; // Stop running any more code
+    }
     renderSubscribedWards(residentId);
 });
 
@@ -215,7 +220,7 @@ async function unsubscribeWard(wardId) {
     
     if (confirmDelete) {
         try {
-            const residentId = sessionStorage.getItem('residentId') || '1'; 
+            const residentId = localStorage.getItem('residentId') || '1'; 
 
             const response = await fetch('/api/residents/unsubscribe', {
                 method: 'DELETE',
@@ -286,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const formData = new FormData(addWardForm);
             const selectedWardId = formData.get('ward');
-            const residentId = sessionStorage.getItem('residentId') || '1';//fallback to big Fakir
+            const residentId = localStorage.getItem('residentId') || '1';//fallback to big Fakir
 
             try {
                 // 1. Send the POST request to your backend
