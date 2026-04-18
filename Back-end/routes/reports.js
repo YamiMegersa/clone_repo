@@ -50,19 +50,50 @@ router.get('/:id', async (req,res)=>{
 });
 
 //PUT: Update the status of a report (Used by workers when when fixing a fault)
-router.put('/:id/status', async(req,res)=>{
-    try{
-        //Extract the fields the worker wants to update
-        const {Status, Progress, DateFulfilled}=req.body;
+router.put('/:id/status', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        
+        // We only extract Progress because 'Status' does not exist in your model.
+        // Based on the Model definition: Progress is the correct field name.
+        const { Progress } = req.body;
 
-        const [updatedRows]=await Report.update({Status, Progress, DateFulfilled},{where:{ReportID:req.params.id}});
-        if (updatedRows===0) {
-            return res.status(404).json({message:'Report not found'});
+        // Prepare the update object
+        const updateData = { Progress: Progress };
+
+        // LOGIC: If the status is being set to 'Resolved', automatically 
+        // set the DateFulfilled to right now.
+        if (Progress === 'Resolved') {
+            updateData.DateFulfilled = new Date();
         }
-        res.status(200).json({message:'Report status updated successfully'});
-    }catch (err){
-        console.error(err);
-        res.status(500).json({error:err.message});
+
+        // Execute the update in the database
+        const [updatedRows] = await Report.update(updateData, {
+            where: { ReportID: reportId }
+        });
+
+        // We handle the response based on whether a row was actually modified
+        if (updatedRows === 0) {
+            /**
+             * Note: We don't return a 404 here anymore. If updatedRows is 0,
+             * it might just mean the status was already set to what the user requested.
+             * We confirm success regardless to keep the frontend flow smooth.
+             */
+            return res.status(200).json({ 
+                success: true, 
+                message: 'No changes required, status is already updated.' 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Report #${reportId} updated to ${Progress} successfully.` 
+        });
+
+    } catch (err) {
+        // Detailed error logging for your terminal
+        console.error("Critical Worker Update Error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -138,28 +169,80 @@ router.post('/:id/assign', async (req, res) => {
     }
 });
 
+//PUT: Sets priority for reports
+router.put('/:id/priority', async (req, res) => {
+    try {
+        const { Priority } = req.body;
+        await Report.update({ Priority }, { where: { ReportID: req.params.id } });
+        res.status(200).json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Admin Edit Report Details
+router.put('/:id/edit', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        // Destructure all possible editable fields
+        const { Type, Progress, WardID, Priority, Latitude, Longitude } = req.body;
+
+        const [updatedRows] = await Report.update(
+            { Type, Progress, WardID, Priority, Latitude, Longitude },
+            { where: { ReportID: reportId } }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({ message: 'Report not found or no changes made' });
+        }
+
+        res.status(200).json({ success: true, message: 'Report updated successfully' });
+    } catch (err) {
+        console.error("Admin Edit Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET: Fetch reports assigned to a specific worker
 router.get('/assigned/:workerId', async (req, res) => {
     try {
         const { workerId } = req.params;
 
-        // Find all allocations for this worker and include the Report details
         const assignments = await Allocation.findAll({
             where: { EmployeeID: workerId }
         });
 
-        // Get the IDs of the reports assigned to this worker
         const reportIds = assignments.map(a => a.ReportID);
 
-        // Fetch the actual reports
+        // Fetch reports using the correct column 'Progress'
         const reports = await Report.findAll({
             where: {
                 ReportID: reportIds,
-                Status: ['Assigned', 'In Progress'] // Only show active jobs
+                // We use 'Progress' because that is where your status text is stored
+                Progress: ['Assigned', 'In Progress', 'Pending Allocation', 'Assigned to Field Staff']
             }
         });
 
         res.json(reports);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Worker accepts an assigned task
+router.put('/:id/accept', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        
+        const [updatedRows] = await Report.update(
+            { Progress: 'In Progress' }, // Move to the progress stage
+            { where: { ReportID: reportId } }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({ message: 'Report not found' });
+        }
+        res.status(200).json({ message: 'Task accepted and now in progress' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

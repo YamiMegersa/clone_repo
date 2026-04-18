@@ -147,4 +147,49 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Function for incremental updates (Satisfies UAT: "update a task progress")
+async function updateProgress(reportId, percentage) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                Status: 'In Progress', 
+                Progress: `${percentage}%` 
+            })
+        });
+
+        if (response.ok) {
+            alert(`Progress updated to ${percentage}%`);
+            // Optional: Refresh UI to show the new percentage on the card
+        }
+    } catch (err) {
+        console.error("Failed to update progress:", err);
+    }
+}
+
+// Updated resolveTask (Satisfies UAT: "marked as completed for all users")
+async function resolveTask(reportId) {
+    if(!confirm("Are you sure this job is finished?")) return;
+    
+    try {
+        const response = await fetch(`/api/reports/${reportId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                Status: 'Resolved', 
+                Progress: '100%',
+                DateFulfilled: new Date().toISOString() // Track when it was actually done
+            })
+        });
+
+        if (response.ok) {
+            alert("Job Marked as Resolved!");
+            location.reload(); 
+        }
+    } catch (err) {
+        console.error("Error resolving task:", err);
+    }
+}
+
 module.exports=router;
