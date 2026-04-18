@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // If there is no Ward ID, send them back to the dashboard
     if (!wardId) {
-        window.location.href = '/Resident.html';
+        window.location.href = '../Homes/Resident.html';
         return;
     }
 
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup Navigation (Back Button)
     document.getElementById('back-btn').addEventListener('click', () => {
-        window.location.href = '/Homes/Resident.html';
+        window.location.href = '../Homes/Resident.html';
     });
 
     // Fetch the Data

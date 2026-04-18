@@ -47,7 +47,7 @@ imageInput.addEventListener('change', (e) => {
 
     //1. Collect form data
         const formData={
-            WardID: parseInt(document.getElementById('ward-Select').value),
+            WardID: parseInt(document.getElementById('ward-select').value),
             ResidentID: 123, //Placeholder, replace with actual user ID from login/session
             Lattitude:window.mapLat || 0, //Fallback to 0 if not set
             Longitude:window.mapLng || 0,
