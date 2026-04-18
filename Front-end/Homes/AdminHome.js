@@ -2,43 +2,125 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUnassignedReports();
     loadPendingWorkers();
     loadActiveWorkers();
+
+    const editForm = document.getElementById('edit-report-form');
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditSubmit);
+    }
 });
 
+// Separate the submission logic for clarity
+async function handleEditSubmit(e) {
+    e.preventDefault();
+    
+    const id = document.getElementById('edit-report-id').value;
+    const updatedData = {
+        Type: document.getElementById('edit-type').value,
+        Progress: document.getElementById('edit-description').value
+    };
+
+    if (!id) {
+        alert("Error: Report ID is missing.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/reports/${id}/edit`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        });
+
+        if (response.ok) {
+            alert("Report updated successfully!");
+            closeEditModal();
+            loadUnassignedReports(); // Refresh the table to see changes
+        } else {
+            const error = await response.json();
+            alert("Failed to save: " + error.message);
+        }
+    } catch (err) {
+        console.error("Save Error:", err);
+        alert("Network error. Check server console.");
+    }
+}
+
+// Ensure your openEditModal populates the hidden ID correctly
+async function openEditModal(reportId) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}`);
+        const report = await response.json();
+
+        // These IDs must match your HTML exactly
+        document.getElementById('edit-report-id').value = report.ReportID;
+        document.getElementById('edit-type').value = report.Type;
+        document.getElementById('edit-description').value = report.Progress || '';
+        
+        document.getElementById('edit-report-modal').classList.remove('hidden');
+    } catch (err) {
+        console.error("Failed to load report data:", err);
+    }
+}
+
+function closeEditModal() {
+    document.getElementById('edit-report-modal').classList.add('hidden');
+}
+
+//loads all reports to be assigned by the admin
 async function loadUnassignedReports() {
     try {
-        // Fetching reports where Status is 'Pending'
         const response = await fetch('/api/reports'); 
         const reports = await response.json();
         
         const tableBody = document.getElementById('unassigned-reports-body');
         tableBody.innerHTML = '';
 
-        // Filter for Pending only (or handle this in the backend route)
-        const pending = reports.filter(r => r.Status === 'Pending');
+        const pending = reports.filter(r => r.Progress && r.Progress.includes('Pending'));
 
-    pending.forEach(report => {
+        pending.forEach(report => {
     const row = `
-        <tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors">
-            <td class="p-4 font-mono text-primary-container">#${report.ReportID}</td>
-            <td class="p-4 font-bold">${report.Type}</td>
-            <td class="p-4 text-xs font-medium">Ward ${report.WardID}</td>
-            <td class="p-4 text-[10px] font-black uppercase tracking-tighter text-orange-400">${report.Status}</td>
-            <td class="p-4 text-right flex gap-2 justify-end">
-                <button onclick="assignToWorker(${report.ReportID})" 
-                        class="bg-primary-container text-on-primary px-4 py-2 rounded text-[10px] font-black uppercase hover:bg-white transition-all">
-                    Assign
-                </button>
-                <button onclick="handleDelete(${report.ReportID})" 
-                        class="bg-red-500 text-white px-4 py-2 rounded text-[10px] font-black uppercase hover:bg-red-700 transition-all">
-                    Delete
-                </button>
-            </td>
-        </tr>
-    `;
-    tableBody.insertAdjacentHTML('beforeend', row);
-});
+    <tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors">
+        <td class="p-4 font-mono text-primary-container">#${report.ReportID}</td>
+        <td class="p-4 font-bold">${report.Type}</td>
+        <td class="p-4 text-xs font-medium">Ward ${report.WardID}</td>
+        <td class="p-4">
+            <select onchange="updatePriority(${report.ReportID}, this.value)" 
+                    class="bg-surface-container-lowest text-[10px] border border-outline/30 rounded px-2 py-1 focus:ring-primary text-on-surface uppercase font-black">
+                <option value="1" ${report.Priority == 1 ? 'selected' : ''}>1 - Critical</option>
+                <option value="2" ${report.Priority == 2 ? 'selected' : ''}>2 - High</option>
+                <option value="3" ${report.Priority == 3 ? 'selected' : ''}>3 - Routine</option>
+            </select>
+        </td>
+        <td class="p-4 text-right flex gap-2 justify-end">
+            <button onclick="assignToWorker(${report.ReportID})" ...>Assign</button>
+            <button onclick="openEditModal(${report.ReportID})" 
+        class="bg-surface-container-highest text-on-surface px-4 py-2 rounded text-[10px] font-black uppercase hover:bg-primary transition-all">
+    Edit
+</button>
+        </td>
+    </tr>
+`;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
     } catch (err) {
         console.error("Failed to load admin ledger:", err);
+    }
+}
+
+//allows for admins to set priority
+async function updatePriority(reportId, priorityValue) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}/priority`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Priority: priorityValue })
+        });
+
+        if (response.ok) {
+            console.log(`Report #${reportId} set to Priority ${priorityValue}`);
+        }
+    } catch (err) {
+        console.error("Failed to update priority:", err);
     }
 }
 
@@ -202,3 +284,4 @@ async function loadActiveWorkers() {
         console.error("Error loading active workers:", err);
     }
 }
+
