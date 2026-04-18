@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------------
 
 const CSV_URL =
-  'https://raw.githubusercontent.com/ZFakir/Lucs-Project/refs/heads/Geolocation/wards.csv?token=GHSAT0AAAAAADVD3BFEV6AN4NZQKFUQNC3Y2O7GMGA';
+  '/Front-end/NittyGritty/data/wards.csv';
 
 // ---------------------------------------------------------------------------
 // State
