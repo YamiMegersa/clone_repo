@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
             province_val: document.getElementById('province-select').value,
             municipality_val: document.getElementById('municipality-select').value,
             WardID: parseInt(document.getElementById('ward-select').value),
-            // NEED TO GET USER ID SOMEHOW
             ResidentID: localStorage.getItem('residentId'),
             Lattitude: window.mapLat || 0,
             Longitude: window.mapLng || 0,

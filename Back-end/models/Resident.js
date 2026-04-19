@@ -19,7 +19,7 @@ const Resident = sequelize.define('Resident', {
   CellphoneNumber: { 
     type: DataTypes.STRING(15), 
     unique: true, 
-    allowNull: false 
+    allowNull: true 
   },
   BlackListed: { 
     type: DataTypes.BOOLEAN, 
