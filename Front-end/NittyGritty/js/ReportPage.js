@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             municipality_val: document.getElementById('municipality-select').value,
             WardID: parseInt(document.getElementById('ward-select').value),
             // NEED TO GET USER ID SOMEHOW
-            ResidentID: '',
+            ResidentID: localStorage.getItem('residentId'),
             Lattitude: window.mapLat || 0,
             Longitude: window.mapLng || 0,
             Status: 'Pending',
