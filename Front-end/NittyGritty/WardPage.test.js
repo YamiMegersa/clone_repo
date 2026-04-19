@@ -165,14 +165,14 @@ describe('WardPage.js Modal Interactions', () => {
         expect(dialog.showModal).toHaveBeenCalled();
     });
 
-    test('openIssueModal() disables bump button if issue was previously bumped', () => {
-        // Seed local storage to simulate a previous bump
-        window.localStorage.setItem('bumpedIssues', JSON.stringify([99]));
+test('openIssueModal() disables bump button if issue was previously bumped', () => {
+    // FIX: Seed local storage with a String '99' instead of a Number 99
+    window.localStorage.setItem('bumpedIssues', JSON.stringify(['99']));
 
-        openIssueModal(99);
+    openIssueModal(99);
 
-        const bumpBtn = document.getElementById('bump-btn');
-        expect(bumpBtn.disabled).toBe(true);
-        expect(bumpBtn.innerHTML).toContain('Already Bumped');
-    });
+    const bumpBtn = document.getElementById('bump-btn');
+    expect(bumpBtn.disabled).toBe(true);
+    expect(bumpBtn.innerHTML).toContain('Already Bumped');
+});
 });
