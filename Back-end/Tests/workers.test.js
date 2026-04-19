@@ -11,6 +11,7 @@ jest.mock('../models', () => ({
         findByPk: jest.fn(),
         destroy: jest.fn(),
         findOne: jest.fn(),
+        update: jest.fn(),
     }
 }));
 
@@ -69,6 +70,82 @@ describe('MunicipalWorker API Endpoints', () => {
             MunicipalWorker.findByPk.mockResolvedValue(null);
             const res = await request(app).get('/workers/99');
             expect(res.statusCode).toBe(404);
+        });
+    });
+
+    // --- Tests for GET /workers/active ---
+    describe('GET /workers/active', () => {
+        it('should fetch all active workers', async () => {
+            MunicipalWorker.findAll.mockResolvedValue([{ EmployeeID: 2, Validated: true }]);
+            const res = await request(app).get('/workers/active');
+            expect(res.statusCode).toBe(200);
+        });
+    });
+
+    // --- Tests for PUT /workers/invalidate/:id ---
+    describe('PUT /workers/invalidate/:employeeId', () => {
+        it('should disable a worker account if admin email is correct', async () => {
+            MunicipalWorker.update.mockResolvedValue([1]);
+            const res = await request(app)
+                .put('/workers/invalidate/1')
+                .send({ adminEmail: "2820314@students.wits.ac.za" });
+            
+            expect(res.statusCode).toBe(200);
+            expect(res.body.message).toBe("Account disabled.");
+        });
+
+        it('should return 403 if admin email is wrong', async () => {
+            const res = await request(app)
+                .put('/workers/invalidate/1')
+                .send({ adminEmail: "wrong@wits.ac.za" });
+            
+            expect(res.statusCode).toBe(403);
+            expect(res.body.message).toBe("Admin access only.");
+        });
+
+        it('should return 404 if worker not found', async () => {
+            MunicipalWorker.update.mockResolvedValue([0]);
+            const res = await request(app)
+                .put('/workers/invalidate/99')
+                .send({ adminEmail: "2820314@students.wits.ac.za" });
+            expect(res.statusCode).toBe(404);
+        });
+    });
+
+    describe('PUT /workers/invalidate/:employeeId Extra Coverage', () => {
+        it('should return 404 if worker to invalidate does not exist', async () => {
+            MunicipalWorker.update.mockResolvedValue([0]); // 0 rows updated
+            const res = await request(app)
+                .put('/workers/invalidate/999')
+                .send({ adminEmail: '2820314@students.wits.ac.za' });
+            
+            expect(res.statusCode).toBe(404);
+            expect(res.body.message).toBe("Worker not found.");
+        });
+
+        it('should cover the catch block for invalidate', async () => {
+            MunicipalWorker.update.mockRejectedValue(new Error('Invalidate Crash'));
+            const res = await request(app)
+                .put('/workers/invalidate/1')
+                .send({ adminEmail: '2820314@students.wits.ac.za' });
+            
+            expect(res.statusCode).toBe(500);
+        });
+    });
+
+    // --- Tests for PUT /workers/validate/:id ---
+    describe('PUT /workers/validate/:employeeId', () => {
+        it('should validate a worker successfully', async () => {
+            MunicipalWorker.update.mockResolvedValue([1]);
+            const res = await request(app).put('/workers/validate/1');
+            expect(res.statusCode).toBe(200);
+            expect(res.body.message).toBe("Worker validated successfully!");
+        });
+
+        it('should return 500 if update fails', async () => {
+            MunicipalWorker.update.mockRejectedValue(new Error("Server Error"));
+            const res = await request(app).put('/workers/validate/1');
+            expect(res.statusCode).toBe(500);
         });
     });
 

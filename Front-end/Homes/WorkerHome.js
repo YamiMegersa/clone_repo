@@ -25,7 +25,7 @@ async function loadMyAssignedTasks(workerId) {
 
         container.innerHTML = ''; 
 
-        // 1. Handle Empty State
+        // Handle Empty State
         if (!reports || reports.length === 0) {
             container.innerHTML = `
                 <section class="py-20 text-center border-2 border-dashed border-outline/20 rounded-3xl">
@@ -37,11 +37,11 @@ async function loadMyAssignedTasks(workerId) {
             return;
         }
 
-        // 2. SORTING LOGIC: 1 (Critical) -> 2 (High) -> 3 (Routine)
+        // SORTING LOGIC for priority: 1 (Critical) -> 2 (High) -> 3 (Routine)
         // This ensures the most urgent tasks appear at the top of the worker's feed
         reports.sort((a, b) => (a.Priority || 3) - (b.Priority || 3));
 
-        // 3. Render the Cards
+        // Render the Cards
         reports.forEach(report => {
             renderTaskCard(report, container);
         });
@@ -60,6 +60,7 @@ async function loadMyAssignedTasks(workerId) {
     }
 }
 
+//workers can accept tasks 
 async function acceptTask(reportId) {
     try {
         const response = await fetch(`/api/reports/${reportId}/accept`, {
@@ -75,9 +76,9 @@ async function acceptTask(reportId) {
         console.error("Error accepting task:", err);
     }
 }
-// Modify your renderTaskCard function
+
 function renderTaskCard(report, container) {
-    // 1. Map Priority numbers to visual labels
+    // Map Priority numbers to visual labels
     const priorityLabels = {
         1: { text: 'Critical', class: 'bg-red-500/20 text-red-500 border-red-500/50' },
         2: { text: 'High', class: 'bg-orange-500/20 text-orange-500 border-orange-500/50' },
@@ -86,7 +87,7 @@ function renderTaskCard(report, container) {
     
     const priority = priorityLabels[report.Priority] || priorityLabels[3];
 
-    // 2. Determine the Task State (New vs In-Progress)
+    // Determine the Task State (New vs In-Progress)
     // We check if the Progress string contains "Assigned" or "Pending"
     const isNewTask = report.Progress.includes('Assigned') || report.Progress.includes('Pending');
     const accentColor = isNewTask ? 'border-yellow-500' : 'border-primary';
@@ -133,6 +134,7 @@ function renderTaskCard(report, container) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
+//resolves a task once its done
 async function resolveTask(reportId) {
     if(!confirm("Are you sure this job is finished?")) return;
     

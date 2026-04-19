@@ -49,7 +49,7 @@ router.get('/:id', async (req,res)=>{
     }
 });
 
-//PUT: Update the status of a report (Used by workers when when fixing a fault)
+//PUT: Update the status of a report (Used by workers when fixing a fault)
 router.put('/:id/status', async (req, res) => {
     try {
         const reportId = req.params.id;
