@@ -77,55 +77,74 @@ async function acceptTask(reportId) {
     }
 }
 
+//Renders an individual task card for the worker ledger.
+
 function renderTaskCard(report, container) {
-    // Map Priority numbers to visual labels
+    // Map Priority numbers to visual labels for clear UI feedback
     const priorityLabels = {
-        1: { text: 'Critical', class: 'bg-red-500/20 text-red-500 border-red-500/50' },
-        2: { text: 'High', class: 'bg-orange-500/20 text-orange-500 border-orange-500/50' },
-        3: { text: 'Routine', class: 'bg-blue-500/20 text-blue-500 border-blue-500/50' }
+        1: { text: 'Critical', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
+        2: { text: 'High', class: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        3: { text: 'Routine', class: 'bg-blue-500/20 text-blue-400 border-blue-500/30' }
     };
     
     const priority = priorityLabels[report.Priority] || priorityLabels[3];
 
     // Determine the Task State (New vs In-Progress)
-    // We check if the Progress string contains "Assigned" or "Pending"
-    const isNewTask = report.Progress.includes('Assigned') || report.Progress.includes('Pending');
-    const accentColor = isNewTask ? 'border-yellow-500' : 'border-primary';
+    // We check if the Progress string contains "Assigned" or "Pending" to toggle UI controls
+    const isNewTask = report.Progress.toLowerCase().includes('assigned') || report.Progress.toLowerCase().includes('pending');
+    
+    // UI Logic: Yellow accent for new tasks, Primary theme color for active tasks
+    const accentColor = isNewTask ? 'border-yellow-600/50' : 'border-primary/50';
 
     const html = `
         <article class="bg-surface-container-high p-8 rounded-2xl border-l-4 ${accentColor} relative mb-6 shadow-xl hover:bg-surface-container-highest transition-all group">
             
             <header class="flex justify-between items-start mb-6 cursor-pointer" onclick="showTaskDetails(${report.ReportID})">
-                <section>
+                <hgroup>
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary">${report.Progress}</span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary/80">${report.Progress}</span>
                         <span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-tighter ${priority.class}">
                             ${priority.text}
                         </span>
                     </div>
-                    <h3 class="text-3xl font-black tracking-tight group-hover:text-primary transition-colors">${report.Type}</h3>
-                    <p class="text-on-surface-variant text-sm mt-1 uppercase tracking-tighter font-medium">
+                    <h3 class="text-3xl font-black tracking-tight group-hover:text-primary transition-colors text-neutral-300">${report.Type}</h3>
+                    <p class="text-zinc-400 text-sm mt-1 uppercase tracking-tighter font-medium">
                         Ward ${report.WardID} • ID: #${report.ReportID}
                     </p>
-                </section>
-                <span class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">open_in_new</span>
+                </hgroup>
+                <span class="material-symbols-outlined text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true">open_in_new</span>
             </header>
 
-            <nav class="flex flex-wrap gap-4" onclick="event.stopPropagation()">
+            <nav class="flex flex-col gap-4" onclick="event.stopPropagation()">
                 ${isNewTask ? `
                     <button onclick="acceptTask(${report.ReportID})" 
-                            class="flex-1 bg-yellow-600 text-black px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-500 transition-all shadow-lg shadow-yellow-900/20">
+                            class="w-full bg-yellow-700/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all shadow-lg">
                         <span class="material-symbols-outlined text-base">play_arrow</span> Accept Task
                     </button>
                 ` : `
+                    <section class="flex flex-col gap-2 p-4 bg-black/20 rounded-xl border border-white/5" aria-label="Progress Update">
+                        <div class="flex justify-between items-center">
+                            <label for="progress-${report.ReportID}" class="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Update Progress</label>
+                            <output class="text-[10px] font-mono text-primary/70">${report.Progress}</output>
+                        </div>
+                        <select id="progress-${report.ReportID}" 
+                                onchange="updateProgress(${report.ReportID}, this.value)" 
+                                class="bg-neutral-900 text-neutral-300 text-xs border border-white/10 rounded-lg px-3 py-2 focus:ring-1 focus:ring-primary outline-none">
+                            <option value="" disabled selected>Update current stage...</option>
+                            <option value="In Progress - 25%" ${report.Progress.includes('25%') ? 'selected' : ''}>25% - Excavation/Prep</option>
+                            <option value="In Progress - 50%" ${report.Progress.includes('50%') ? 'selected' : ''}>50% - Active Repairs</option>
+                            <option value="In Progress - 75%" ${report.Progress.includes('75%') ? 'selected' : ''}>75% - Quality Testing</option>
+                        </select>
+                    </section>
+
                     <button onclick="resolveTask(${report.ReportID})" 
-                            class="flex-1 bg-primary text-black px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white transition-all shadow-lg shadow-primary/20">
+                            class="w-full bg-primary/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-primary transition-all shadow-lg">
                         <span class="material-symbols-outlined text-base">check_circle</span> Mark as Complete
                     </button>
                 `}
                 
                 <button onclick="showTaskDetails(${report.ReportID})" 
-                        class="bg-surface-container-low text-on-surface px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-surface-container transition-all border border-outline/50">
+                        class="w-full bg-neutral-800 text-neutral-400 px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-neutral-700 transition-all border border-white/5">
                     <span class="material-symbols-outlined text-base">info</span> View Briefing
                 </button>
             </nav>
@@ -134,7 +153,7 @@ function renderTaskCard(report, container) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
-//resolves a task once its done
+//Moves task to final 'Resolved' state.Sends 'Fixed' status to trigger the backend logic for DateFulfilled.
 async function resolveTask(reportId) {
     if(!confirm("Are you sure this job is finished?")) return;
     
@@ -142,8 +161,8 @@ async function resolveTask(reportId) {
         const response = await fetch(`/api/reports/${reportId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            // changes progress to resolved
-            body: JSON.stringify({ Progress: 'Resolved' }) 
+            // Using 'Fixed' status to satisfy both DB logic and Jest tests
+            body: JSON.stringify({ Status: 'Fixed', Progress: 'Resolved' }) 
         });
 
         if (response.ok) {
@@ -178,4 +197,29 @@ async function showTaskDetails(reportId) {
 
 function closeModal() {
     document.getElementById('task-detail-modal').classList.add('hidden');
+}
+
+//This updates the 'Progress' field in the DB so Admins/Residents can see live status.
+
+async function updateProgress(reportId, progressText) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                Progress: progressText,
+                Status: 'In Progress' 
+            })
+        });
+
+        if (response.ok) {
+            console.log("Progress updated: " + progressText);
+            // We don't reload the page here to keep the worker's scroll position,
+            // but we update the UI label manually.
+            const label = document.querySelector(`#progress-${reportId}`).previousElementSibling.querySelector('output');
+            if (label) label.textContent = progressText;
+        }
+    } catch (err) {
+        console.error("Failed to update progress:", err);
+    }
 }

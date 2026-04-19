@@ -1,6 +1,7 @@
 const express=require('express');
 const router=express.Router();
 const {Report, ReportImage, Allocation}=require('../models');
+const { Op } = require('sequelize');
 
 //GET: FEtch ALL reports (Useful for the Municipal Dashboard)
 router.get('/',async (req,res)=>{
@@ -53,6 +54,8 @@ router.get('/:id', async (req,res)=>{
 router.put('/:id/status', async (req, res) => {
     try {
         const reportId = req.params.id;
+        // Status: 'In Progress', 'Resolved', etc.
+        // Progress: '50%', 'Waiting for materials', etc.
         const { Status, Progress, DateFulfilled } = req.body;
  
         let progressValue = Progress || Status;
@@ -194,22 +197,20 @@ router.put('/:id/edit', async (req, res) => {
 router.get('/assigned/:workerId', async (req, res) => {
     try {
         const { workerId } = req.params;
-
-        const assignments = await Allocation.findAll({
-            where: { EmployeeID: workerId }
-        });
-
+        const assignments = await Allocation.findAll({ where: { EmployeeID: workerId } });
         const reportIds = assignments.map(a => a.ReportID);
 
-        // Fetch reports using the correct column 'Progress'
         const reports = await Report.findAll({
             where: {
                 ReportID: reportIds,
-                // We use 'Progress' because that is where your status text is stored
-                Progress: ['Assigned', 'In Progress', 'Pending Allocation', 'Assigned to Field Staff']
+                // Use Op.or with Op.like to find partial matches
+                [Op.or]: [
+                    { Progress: { [Op.like]: 'Assigned%' } },
+                    { Progress: { [Op.like]: 'In Progress%' } },
+                    { Progress: 'Pending Allocation' }
+                ]
             }
         });
-
         res.json(reports);
     } catch (err) {
         res.status(500).json({ error: err.message });
