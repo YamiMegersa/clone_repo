@@ -51,7 +51,6 @@ async function openEditModal(reportId) {
         const response = await fetch(`/api/reports/${reportId}`);
         const report = await response.json();
 
-        // These IDs must match your HTML exactly
         document.getElementById('edit-report-id').value = report.ReportID;
         document.getElementById('edit-type').value = report.Type;
         document.getElementById('edit-description').value = report.Progress || '';
@@ -69,13 +68,13 @@ function closeEditModal() {
 //loads all reports to be assigned by the admin
 async function loadUnassignedReports() {
     try {
-        const response = await fetch('/api/reports'); 
+        const response = await fetch('/api/reports');  //fetch all reports
         const reports = await response.json();
         
         const tableBody = document.getElementById('unassigned-reports-body');
         tableBody.innerHTML = '';
 
-        const pending = reports.filter(r => r.Progress && r.Progress.includes('Pending'));
+        const pending = reports.filter(r => r.Progress && r.Progress.includes('Pending')); //only show reports that need to be assigned
 
         pending.forEach(report => {
     const row = `
@@ -241,7 +240,7 @@ async function invalidateWorker(employeeId) {
     }
 }
 
-// --- LOAD ACTIVE WORKERS ---
+//loads the active workers so admin can see list of them
 async function loadActiveWorkers() {
     try {
         // We fetch workers who are already validated (active)

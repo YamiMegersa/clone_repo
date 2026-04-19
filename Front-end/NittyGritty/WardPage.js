@@ -10,7 +10,9 @@ let activeReportId = null;
 document.addEventListener('DOMContentLoaded', () => {
     // Get the Ward ID from the URL
     const urlParams = new URLSearchParams(window.location.search);
+    //window.location.search looks at the query part of the URL
     const wardId = urlParams.get('wardId');
+    //extract wardID part from there
 
     // If there is no Ward ID, send them back to the dashboard
     if (!wardId) {
@@ -36,16 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close Modal Logic
     document.getElementById('close-issue-modal').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) dialog.close(); // Close if clicking outside the box
+        if (e.target === dialog) dialog.close(); // Close if clicking the parent dialog
     });
 
 
-    // Carousel Desktop Navigation Logic
+    // Carousel Desktop Navigation Logic for image swiping
     const carousel = document.getElementById('modal-carousel');
     const btnPrev = document.getElementById('carousel-prev');
-    const btnNext = document.getElementById('carousel-next');
+    const btnNext = document.getElementById('carousel-next');//arrows
 
-    if (btnPrev && btnNext && carousel) {
+    if (btnPrev && btnNext && carousel) { //wrapped in an if because it must exist first
         btnNext.addEventListener('click', () => {
             // Scroll right by the exact width of one image container
             carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
@@ -59,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bump Button Logic
     document.getElementById('bump-btn').addEventListener('click', async () => {
-        if (!activeReportId) return;
+        if (!activeReportId) return; //if they're not in a report ignore logic
         
         const btn = document.getElementById('bump-btn');
         btn.innerHTML = `<i class="material-symbols-outlined animate-spin">refresh</i> Bumping...`;
@@ -70,18 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('modal-frequency').textContent = data.newFrequency;
+                document.getElementById('modal-frequency').textContent = data.newFrequency; //change view
                 
                 const localReport = currentReports.find(r => r.ReportID === activeReportId);
-                if (localReport) localReport.Frequency = data.newFrequency;
-                
+                if (localReport) localReport.Frequency = data.newFrequency; //changes data
+
+                const currentBumped = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
+                if (!currentBumped.includes(String(activeReportId))) {
+                    currentBumped.push(String(activeReportId));
+                    localStorage.setItem('bumpedIssues', JSON.stringify(currentBumped));
+                }
+
                 btn.innerHTML = `<i class="material-symbols-outlined">check</i> Bumped!`;
                 btn.classList.add('bg-[#FF8C00]', 'text-white');
-                setTimeout(() => {
-                    btn.innerHTML = `<i class="material-symbols-outlined">exposure_plus_1</i> Bump this Issue`;
-                    btn.classList.remove('bg-[#FF8C00]', 'text-white');
-                    btn.disabled = false;
-                }, 2000);
             }
         } catch (error) {
             console.error('Failed to bump issue', error);
@@ -100,7 +103,7 @@ async function fetchWardReports(wardId) {
         if (!response.ok) throw new Error('Failed to fetch reports');
         
         // Correctly assign the data to our global variable
-        currentReports = await response.json(); 
+        currentReports = await response.json(); //returns an array of reports
         
         renderStats(currentReports);
         renderTable(currentReports);
@@ -120,7 +123,7 @@ async function fetchWardDetails(wardId) {
         
         const ward = await response.json();
         
-        const councillorName = ward.WardCouncillor ? ward.WardCouncillor : 'Unassigned';
+        const councillorName = ward.WardCouncillor ? ward.WardCouncillor : 'Unassigned'; //just in case ward has no cllr
         document.getElementById('councillor-label').textContent = `${councillorName}`;
 
     } catch (error) {
@@ -149,7 +152,7 @@ function renderTable(reports) {
         return;
     }
 
-    reports.forEach(report => {
+    reports.forEach(report => {//populate the table body with the rows
 let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssueModal
         const progressStr = (report.Progress || '').toLowerCase(); 
         
@@ -175,11 +178,12 @@ let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssue
             'sanitation': 'recycling'
         };
         const typeStr = (report.Type || '').toLowerCase();
-        const icon = iconMap[typeStr] || 'report_problem'; 
+        const icon = iconMap[typeStr] || 'report_problem'; //falls back to triangle with exclamation 
 
         const formattedDate = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
+        //The above looks for a date, converts it to ISO format, splits by T and chooses the first element.
 
-        const tr = document.createElement('tr');
+        const tr = document.createElement('tr'); //creates table-row
         // Added cursor-pointer so the user knows it's clickable
         tr.className = 'hover:bg-surface-container-high transition-colors group cursor-pointer';
         tr.innerHTML = `
@@ -206,7 +210,7 @@ let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssue
 // ==========================================
 function openIssueModal(reportId) {
     const report = currentReports.find(r => r.ReportID === reportId);
-    if (!report) return;
+    if (!report) return;//if the report mysteriously disappears
 
     activeReportId = reportId;
     const dialog = document.getElementById('issue-modal');
@@ -235,7 +239,7 @@ function openIssueModal(reportId) {
 
     const carousel = document.getElementById('modal-carousel');
     carousel.innerHTML = ''; 
-    
+ /////////////////INSERT IMAGE FETCHING CODE HERE PLEASE YAMI   
 for(let i=1; i<=3; i++) {
         const imgUrl = `https://picsum.photos/seed/${reportId + i}/800/600`;
         carousel.innerHTML += `
@@ -248,7 +252,7 @@ for(let i=1; i<=3; i++) {
     const bumpBtn = document.getElementById('bump-btn');
     const bumpedIssues = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
     
-    if (bumpedIssues.includes(reportId)) {
+    if (bumpedIssues.includes(String(reportId))) { 
         // Already bumped: Disable button and show grayed out state
         bumpBtn.disabled = true;
         bumpBtn.innerHTML = `<i class="material-symbols-outlined">check_circle</i> Already Bumped`;
@@ -265,7 +269,7 @@ for(let i=1; i<=3; i++) {
     dialog.showModal();
 }
 
-// JEST TEST CASE RUNNING TO SIMULATE DOM INTERACTIONS
+// EXPORTS SO THAT JEST TEST CASES WORK
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         fetchWardReports,
