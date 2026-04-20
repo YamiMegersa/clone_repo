@@ -1,3 +1,13 @@
+
+const taskImages = {}; 
+
+const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const workerId = localStorage.getItem('workerId');
     const workerName = localStorage.getItem('workerName');
@@ -135,6 +145,14 @@ function renderTaskCard(report, container) {
                             <option value="In Progress - 50%" ${report.Progress.includes('50%') ? 'selected' : ''}>50% - Active Repairs</option>
                             <option value="In Progress - 75%" ${report.Progress.includes('75%') ? 'selected' : ''}>75% - Quality Testing</option>
                         </select>
+
+                        <div class="mt-3 border-t border-white/10 pt-3">
+                            <label for="imageInput-${report.ReportID}" class="flex items-center gap-2 cursor-pointer text-xs font-bold uppercase text-primary/80 hover:text-primary transition-colors w-fit">
+                                <span class="material-symbols-outlined text-base">add_a_photo</span> Attach Proof of Work
+                            </label>
+                            <input type="file" id="imageInput-${report.ReportID}" multiple accept="image/*" class="hidden" onchange="handleImageSelect(event, ${report.ReportID})">
+                            <div id="imagePreview-${report.ReportID}" class="grid grid-cols-4 gap-2 mt-3"></div>
+                        </div>
                     </section>
 
                     <button onclick="resolveTask(${report.ReportID})" 
@@ -157,12 +175,17 @@ function renderTaskCard(report, container) {
 async function resolveTask(reportId) {
     if(!confirm("Are you sure this job is finished?")) return;
     
+    let base64Images = [];
+    if (taskImages[reportId] && taskImages[reportId].length > 0) {
+        base64Images = await Promise.all(taskImages[reportId].map(file => toBase64(file)));
+    }
+
     try {
         const response = await fetch(`/api/reports/${reportId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             // Using 'Fixed' status to satisfy both DB logic and Jest tests
-            body: JSON.stringify({ Status: 'Fixed', Progress: 'Resolved' }) 
+            body: JSON.stringify({ Status: 'Fixed', Progress: 'Resolved', images: base64Images }) 
         });
 
         if (response.ok) {
@@ -222,4 +245,47 @@ async function updateProgress(reportId, progressText) {
     } catch (err) {
         console.error("Failed to update progress:", err);
     }
+}
+// --- IMAGE LOGIC ---
+window.handleImageSelect = (event, reportId) => {
+    // Initialize array if it doesn't exist for this task
+    if (!taskImages[reportId]) {
+        taskImages[reportId] = [];
+    }
+    
+    const newFiles = Array.from(event.target.files);
+    taskImages[reportId] = taskImages[reportId].concat(newFiles);
+    
+    // Clear the input so you can select the same file again if needed
+    event.target.value = ''; 
+    
+    renderPreviews(reportId);
+};
+
+window.removeImage = (reportId, index) => {
+    taskImages[reportId].splice(index, 1);
+    renderPreviews(reportId);
+};
+
+function renderPreviews(reportId) {
+    const previewContainer = document.getElementById(`imagePreview-${reportId}`);
+    if (!previewContainer) return;
+    
+    previewContainer.innerHTML = '';
+    
+    taskImages[reportId].forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const html = `
+                <figure class="aspect-square bg-surface-container-low rounded-lg overflow-hidden relative m-0 border border-white/10">
+                    <img src="${e.target.result}" class="w-full h-full object-cover" alt="Preview" />
+                    <button type="button" onclick="removeImage(${reportId}, ${index})" class="absolute top-1 right-1 bg-red-500/80 p-0.5 rounded shadow-lg hover:bg-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-[10px] text-white">close</span>
+                    </button>
+                </figure>
+            `;
+            previewContainer.insertAdjacentHTML('beforeend', html);
+        };
+        reader.readAsDataURL(file);
+    });
 }
