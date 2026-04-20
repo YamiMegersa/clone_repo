@@ -2,6 +2,17 @@
  * @jest-environment jsdom
  */
 
+
+
+ /* 
+ * * DESCRIPTION:
+ * This test suite validates the frontend logic of the ReportPage.html interface.
+ * Because ReportPage.js does not export standalone functions and relies heavily on 
+ * DOM manipulation and event listeners, we test it by simulating real user interactions 
+ * (like selecting files and clicking submit) in a virtual DOM environment provided by Jest.
+ */
+
+
 describe('ReportPage.js Code Coverage Suite', () => {
     let form, imageInput, preview;
     let domContentLoadedCallbacks = [];
