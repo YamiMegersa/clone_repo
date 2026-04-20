@@ -123,10 +123,10 @@
 <!-- Top Navigation Anchor -->
 <header class="flex justify-between items-center w-full px-6 py-4 fixed top-0 z-50 bg-[#1B1B1B]/60 backdrop-blur-xl">
 <nav class="flex items-center gap-4">
-<button class="hover:bg-[#353535]/50 transition-colors active:scale-95 duration-200 p-2 rounded-full text-[#FFB77D]">
+<button onclick="window.location.href='../Homes/Resident.html'" class="hover:bg-[#353535]/50 transition-colors active:scale-95 duration-200 p-2 rounded-full text-[#FFB77D]">
 <span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
 </button>
-<h1 class="text-xl font-black tracking-tighter text-[#FF8C00] uppercase font-['Public_Sans']">Report Pothole</h1>
+<h1 class="text-xl font-black tracking-tighter text-[#FF8C00] uppercase font-['Public_Sans']">Report Issue</h1>
 </nav>
 <figure class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
 <img alt="Resident Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional resident in urban clothing with warm cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLwZM4ozqwcVPceAMzwx8yQJhGGnTKotqtIGa7Jc27Y5R5AcMRJ69Da-PfqjJkMSQNFp60mgDUNWqGyNXVmYU_MUEUmqPCviLzoVZTIMJ5zmCdW9ropHy9DbA_Q8I4lIg2bSOE2WPdRW_bKT82Lu_9k66tQYtqa6cMotDByH9Dt626IN2SSINFK6XCbT6KWrLFKtvWAFel8joUtYme5UFFb2iiWrISEL_sodfnXJsPYkCGOwJhx7G-6WeDXBf4czTlVnr_0g1ziyLX"/>
@@ -186,6 +186,12 @@
 <option>Sinkhole</option>
 <option>Road Crack</option>
 <option>Unfinished Repair</option>
+<option>Water Leak</option>
+<option>Street Light</option>
+<option>Illegal Dumping</option>
+<option>Electricity</option>
+<option>Sanitation</option>
+<option>Other</option>
 </select>
 </section>
 <section class="space-y-2">
@@ -276,7 +282,7 @@
 <script src="js/ReportPage.js" defer></script>
 <!-- <script src="js/MapComponent.js" defer></script> -->
 <script type="module">
-    import { initWardSelector } from './js/js/wardSelector.js';
+    import { initWardSelector } from './js/wardSelector.js';
 
   initWardSelector();
  
