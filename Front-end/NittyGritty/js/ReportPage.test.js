@@ -12,7 +12,9 @@
  * (like selecting files and clicking submit) in a virtual DOM environment provided by Jest.
  */
 
-
+// Inside ReportPage.test.js
+document.body.innerHTML = `<select id="province-select"><option value="GT">Gauteng</option></select>`;
+require('./ReportPage.js'); // Now import it
 describe('ReportPage.js Code Coverage Suite', () => {
     // Variables to hold references to our DOM elements and mock data
     let form, imageInput, preview;
