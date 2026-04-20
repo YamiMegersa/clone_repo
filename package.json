@@ -9,6 +9,12 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "express": "^5.2.1",
+<<<<<<< HEAD
     "google-auth-library": "^10.6.2"
+=======
+    "google-auth-library": "^10.6.2",
+    "sequelize": "^6.37.8"
+>>>>>>> 3d3d2a91195ea5c4bb5e5a3af6fe97f2dd31be49
   }
 }

@@ -400,3 +400,79 @@ municipalitySelect.addEventListener('change', async (e) => {
 
 // Trigger the initial load of provinces when the script runs
 loadProvinces();
+
+//notifications
+let notifications = [];
+
+
+async function loadNotifications(wardId) {
+  try {
+    // Hits your: router.get('/ward/:wardId')
+    const response = await fetch(`/api/reports/ward/${wardId}`); 
+    const reports = await response.json();
+    
+    // Convert your Report data into Notification-style data for the UI
+    notifications = reports.map(report => ({
+      id: report.ReportID, 
+      reportId: report.ReportID, 
+      // Generate a message based on the report data
+      message: `New issue: ${report.Type} reported at ${report.Latitude}, ${report.Longitude}`,
+      type: 'GENERAL_UPDATE',
+      isRead: false, // We can't track this without a DB table, so they are always unread initially
+      timestamp: new Date(report.CreatedAt) 
+    }));
+
+    renderNotifications();
+  } catch (error) {
+    console.error("Failed to load reports:", error);
+  }
+}
+
+// Call this when the page loads
+loadNotifications();
+
+async function handleNotificationClick(notif) {
+  // 1. Optimistically mark as read in the UI
+  notif.isRead = true;
+  renderNotifications();
+
+  // 2. Tell the database it was read (fire-and-forget)
+  fetch(`/api/notifications/${notif.id}/read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(err => console.error("Failed to update read status", err));
+
+  // 3. Navigate to the ward page and pass the reportId in the URL
+  // Example result: /ward?openReport=rep-101
+  window.location.href = `/ward?openReport=${notif.reportId}`; 
+}
+
+//live updates
+setInterval(async () => {
+  const lastTimestamp = notifications[0]?.timestamp.toISOString() || new Date(0).toISOString();
+  
+  try {
+    // Ask the API for anything newer than our newest notification
+    const response = await fetch(`/api/notifications/updates?since=${lastTimestamp}`);
+    const newUpdates = await response.json();
+
+    if (newUpdates.length > 0) {
+      newUpdates.forEach(update => {
+        // Handle AC 3 (Mute check)
+        if (!isMuted) {
+           console.log("PUSH ALERT:", update.message);
+           // e.g., trigger an actual Toast or Browser Push Notification here
+        }
+        
+        notifications.unshift({
+          ...update,
+          timestamp: new Date(update.createdAt)
+        });
+      });
+      
+      renderNotifications();
+    }
+  } catch (err) {
+    console.error("Failed to fetch updates");
+  }
+}, 30000); // Check every 30 seconds

@@ -1,7 +1,7 @@
 const request = require('supertest');
 const express = require('express');
 const reportRouter = require('../routes/reports'); // Adjust path to your router file
-const { Report } = require('../models');
+const { Report, Allocation } = require('../models');
 
 // Mock the Sequelize models
 jest.mock('../models', () => ({
@@ -12,8 +12,11 @@ jest.mock('../models', () => ({
     update: jest.fn(),
     destroy: jest.fn(),
   },
+  Allocation: {
+    create: jest.fn(),
+    findAll: jest.fn(),
+  },
   ReportImage: {},
-  Allocation: {}
 }));
 
 const app = express();
@@ -69,10 +72,97 @@ describe('Report API Endpoints', () => {
       expect(Report.create).toHaveBeenCalledWith(payload);
     });
 
+    it('should create report and return ID for images', async () => {
+      const payload = { WardID: 1, Type: 'Pothole', /* ... */ };
+      Report.create.mockResolvedValue({ ReportID: 42, ...payload });
+      const res = await request(app).post('/reports').send(payload);
+      expect(res.statusCode).toBe(201);
+      expect(res.body.report.ReportID).toBe(42);
+    });
+
     it('should return 400 if creation fails', async () => {
       Report.create.mockRejectedValue(new Error('Validation Error'));
       const res = await request(app).post('/reports').send({});
       expect(res.statusCode).toBe(400);
+    });
+  });
+
+  //  Test Admin Edit 
+  describe('PUT /reports/:id/edit', () => {
+    it('should update report details successfully', async () => {
+      Report.update.mockResolvedValue([1]);
+      const res = await request(app).put('/reports/1/edit').send({ Type: 'Pothole' });
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('should return 404 if no report was updated', async () => {
+      Report.update.mockResolvedValue([0]);
+      const res = await request(app).put('/reports/99/edit').send({ Type: 'Pothole' });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return 500 on server error', async () => {
+      Report.update.mockRejectedValue(new Error('Admin Edit Crash'));
+      const res = await request(app).put('/reports/1/edit').send({});
+      expect(res.statusCode).toBe(500);
+    });
+  });
+
+  // Test Claiming Logic 
+  describe('POST /reports/:id/claim', () => {
+    it('should successfully claim a task', async () => {
+      Allocation.create.mockResolvedValue({});
+      Report.update.mockResolvedValue([1]);
+
+      const res = await request(app).post('/reports/5/claim').send({ EmployeeID: 123 });
+      
+      expect(res.statusCode).toBe(201);
+      expect(res.body.message).toBe("Task successfully claimed");
+    });
+  });
+
+  //  Test Ward Fetching 
+  describe('GET /reports/ward/:wardId', () => {
+    it('should fetch reports for a ward', async () => {
+      Report.findAll.mockResolvedValue([{ ReportID: 1, WardID: 10 }]);
+      const res = await request(app).get('/reports/ward/10');
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+  });
+
+  // Test Bumping Frequency 
+  describe('PUT /reports/:id/bump', () => {
+    it('should increment report frequency', async () => {
+      const mockReport = { 
+        Frequency: 5, 
+        increment: jest.fn().mockResolvedValue(true),
+        reload: jest.fn().mockResolvedValue(true)
+      };
+      Report.findByPk.mockResolvedValue(mockReport);
+
+      const res = await request(app).put('/reports/1/bump');
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe('Issue bumped successfully');
+    });
+  });
+
+  // Test Worker Assigned Reports 
+  describe('GET /reports/assigned/:workerId', () => {
+    it('should fetch reports assigned to a worker', async () => {
+      Allocation.findAll.mockResolvedValue([{ ReportID: 1 }]);
+      Report.findAll.mockResolvedValue([{ ReportID: 1, Progress: 'Assigned' }]);
+
+      const res = await request(app).get('/reports/assigned/123');
+      expect(res.statusCode).toBe(200);
+      expect(res.body.length).toBe(1);
+    });
+
+    it('should return 500 if assigned fetch fails', async () => {
+        Allocation.findAll.mockRejectedValue(new Error('Allocation Fail'));
+        const res = await request(app).get('/reports/assigned/123');
+        expect(res.statusCode).toBe(500);
     });
   });
 

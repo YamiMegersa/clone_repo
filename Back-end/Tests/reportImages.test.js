@@ -83,6 +83,17 @@ describe('ReportImage API Endpoints', () => {
             expect(ReportImage.create).toHaveBeenCalled();
         });
 
+        it('should upload base64 image to existing report', async () => {
+            Report.findByPk.mockResolvedValue({ ReportID: 42 });
+            ReportImage.create.mockResolvedValue({ ImageID: 1, ReportID: 42 });
+            const res = await request(app)
+                .post('/images/report/42')
+                .send({ Image: 'fakebase64data' });
+            expect(res.statusCode).toBe(201);
+            expect(res.body.message).toBe('Image uploaded successfully!');
+            expect(ReportImage.create).toHaveBeenCalledWith(expect.objectContaining({ ReportID: '42', Image: 'fakebase64data' }));
+});
+
         it('should return 404 if the report does not exist', async () => {
             Report.findByPk.mockResolvedValue(null);
 
