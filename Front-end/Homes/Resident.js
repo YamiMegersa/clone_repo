@@ -119,14 +119,6 @@ async function renderSubscribedWards(residentId) {
     }
 }
 
-// Helper to keep icons dynamic based on district type
-function getIconForDistrict(district) {
-    if (district.toLowerCase().includes('hub')) return 'domain';
-    if (district.toLowerCase().includes('corridor')) return 'holiday_village';
-    return 'location_city';
-}
-
-
 
 document.addEventListener('click', (event) => {
     // 1. Check if we clicked a three-dots button
@@ -201,7 +193,7 @@ function showModal(title, message, type = 'alert') {
             
             document.getElementById('modal-ok').onclick = () => {
                 dialog.close();
-                resolve(true);
+                resolve(true); //resolves the promise
             };
         }
 
@@ -216,7 +208,7 @@ async function unsubscribeWard(wardId) {
         'Remove Ward', 
         `Are you sure you want to stop tracking Ward ${wardId}? You will no longer receive alerts for this area.`, 
         'confirm'
-    );
+    ); //resolves or does not resolve the promise
     
     if (confirmDelete) {
         try {
@@ -252,7 +244,7 @@ async function unsubscribeWard(wardId) {
 }
 
 // ==========================================
-// ADD WARD MODAL CONTROLLER (Native Dialog)
+// ADD WARD SELECTION MODAL CONTROLLER (Native Dialog)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     const addWardModal = document.getElementById('add-ward-modal');
@@ -330,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // ==========================================
-// CASCADING DROPDOWNS CONTROLLER
+// CASCADING DROPDOWNS CONTROLLER FOR WARD SUBSCRIPTIONS
 // ==========================================
 const provinceSelect = document.getElementById('province');
 const municipalitySelect = document.getElementById('municipality');
