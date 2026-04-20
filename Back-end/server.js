@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- 1. MIDDLEWARE ---
 app.use(cors()); 
-app.use(express.json()); 
+app.use(express.json({ limit: '50mb' })); // Vital for the base64 images
 
 // --- 2. Resident GOOGLE AUTH API ROUTE ---
 

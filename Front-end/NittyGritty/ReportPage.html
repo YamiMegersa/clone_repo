@@ -197,9 +197,10 @@
 <section class="space-y-2">
 <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1" for="frequency">Recurrence Status</label>
 <select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary-container focus:ring-0 text-on-surface font-headline py-3" id="frequency">
-<option>First time observed</option>
-<option>Recurring issue</option>
-<option>Degrading repair</option>
+    <option value="" disabled selected>Select frequency</option>
+    <option value="1">First time observed</option>
+    <option value="2">Occurs occasionally</option>
+    <option value="3">Persistent issue</option>
 </select>
 </section>
 <section class="space-y-2">
