@@ -3,8 +3,7 @@ const router = express.Router();
 const {MunicipalWorker} = require('../models');
 
 
-// --- 1. GET: Fetch all non-validated workers ---
-// This MUST be above /:id so 'pending' isn't treated as an ID
+//  GET: Fetch all non-validated workers ---
 router.get('/pending', async (req, res) => {
     try {
         const pending = await MunicipalWorker.findAll({ 
@@ -17,8 +16,7 @@ router.get('/pending', async (req, res) => {
     }
 });
 
-// --- 2. GET: Fetch all validated (Active) workers ---
-// ADD THIS HERE
+// GET: Fetch all validated (Active) workers ---
 router.get('/active', async (req, res) => {
     try {
         const active = await MunicipalWorker.findAll({ 
@@ -31,8 +29,7 @@ router.get('/active', async (req, res) => {
     }
 });
 
-// --- 4. PUT: Invalidate (Disable) a worker ---
-// ADD THIS HERE
+// PUT: Invalidate (Disable) a worker ---
 router.put('/invalidate/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
     const { adminEmail } = req.body;
@@ -53,7 +50,7 @@ router.put('/invalidate/:employeeId', async (req, res) => {
     }
 });
 
-// --- 2. PUT: Validate a worker ---
+// PUT: Validate a worker ---
 // This allows the Admin to approve a worker
 router.put('/validate/:employeeId', async (req, res) => {
     try {

@@ -93,75 +93,62 @@
 </section>
 <!-- Completed Tasks (Dulled) -->
 <section class="border-t border-outline/20">
-<header class="p-8 pb-4">
-<h2 class="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant">Completed Tasks</h2>
-</header>
+    <header class="p-8 pb-4">
+        <h2 class="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant">Completed Tasks</h2>
+    </header>
+    <section class="px-8 pb-8 space-y-4 opacity-40 grayscale hover:opacity-100 transition-opacity" id="completed-tasks-list">
+        </section>
+</section>
+
+<footer class="p-6 bg-surface-container-high/30 border-t border-outline/20">
+    <button onclick="toggleCompletedTasks()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">history</span> Show Completed Tasks
+    </button>
+</footer>
 <section class="px-8 pb-8 space-y-4 opacity-40 grayscale hover:opacity-60 transition-opacity">
 <!-- Sample Completed Task -->
 </section>
 </section>
-<!-- Panel Footer Action -->
-<footer class="p-6 bg-surface-container-high/30 border-t border-outline/20">
-<button class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-sm">history</span> Show Completed Tasks
-                </button>
-</footer>
 </article>
-<!-- Live Operations Map (Ancillary Context) -->
-<section class="bg-surface-container-low rounded-3xl overflow-hidden h-72 relative border border-outline/20">
-<section class="absolute inset-0 grayscale opacity-30" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCFi7YguagCleCRNAnWvz0HkB-Bok0-As-bR-pXUZqYJJFGaUPOcPTQ-ZAHcJBhanUfpWwsuPRwcjJwwN5PTVAC7HCMxBA8pa6NrIc59BpCiJ71L7n0qKn4SjkGDuh-S_uL-NTTD972_atFZ2sfLmQ90EJFs7Hz95c50Qtmz2wN9fyIvEr3yh4ZdxCT-AurbGo8NeoAlBuZdNbIRDDmzEaa3XSuFzpRpqtGiTTt8z6xobALkbBhl0Kpezd8q0NTYeRAWH1DHV6mpQw'); background-size: cover; background-position: center;"></section>
-<section class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></section>
-<section class="relative p-6 flex flex-col justify-between h-full">
-<header class="flex justify-between items-start">
-<h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">Live Area Context</h3>
-</header>
-<footer class="flex items-center justify-between">
-<section class="bg-surface-container-high/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-outline/30 flex items-center gap-2">
-<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-<span class="text-[10px] font-bold uppercase tracking-widest">South Metro Zone</span>
-</section>
-</footer>
-</section>
-</section>
+
 </main>
-<!-- Semantic Footer -->
-<footer class="p-10 border-t border-outline/10 text-center">
-<p class="text-[10px] font-bold uppercase tracking-[0.4em] text-on-surface-variant/40">The Civic Ledger © 2024 • Groundwork Field Services</p>
-</footer>
+
 <script src="WorkerHome.js" defer></script> <!-- double check this-->
-<div id="task-detail-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
-    <article class="bg-surface-container-low border border-outline/30 w-full max-w-2xl p-10 rounded-3xl shadow-2xl">
+<dialog id="task-detail-modal" class="fixed inset-0 z-[100] p-6 bg-black/90 backdrop-blur-md w-full h-full border-none flex items-center justify-center backdrop:bg-transparent open:flex hidden" aria-labelledby="detail-type">
+    <article class="bg-surface-container-low border border-outline/30 w-full max-w-2xl p-10 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
         <header class="flex justify-between items-start mb-8">
-            <section>
-                <span id="detail-id" class="text-xs font-mono text-primary uppercase tracking-widest"></span>
+            <hgroup>
+                <small id="detail-id" class="text-xs font-mono text-primary uppercase tracking-widest block mb-1"></small>
                 <h2 id="detail-type" class="text-4xl font-black tracking-tighter"></h2>
-            </section>
-            <button onclick="closeModal()" class="material-symbols-outlined hover:text-primary transition-colors">close</button>
+            </hgroup>
+            <button type="button" onclick="closeModal()" class="material-symbols-outlined hover:text-primary transition-colors text-on-surface p-2" aria-label="Close">
+                close
+            </button>
         </header>
 
         <section class="space-y-6">
-            <div>
-                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-2">Situation Briefing</h4>
+            <figure>
+                <figcaption class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-2">Situation Briefing</figcaption>
                 <p id="detail-description" class="text-on-surface leading-relaxed"></p>
-            </div>
+            </figure>
             
             <div class="flex gap-10">
-                <div>
-                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-1">Location</h4>
-                    <p id="detail-ward" class="text-sm font-bold"></p>
-                </div>
-                <div>
-                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-1">Current Status</h4>
+                <section>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-1">Location</h3>
+                    <p id="detail-ward" class="text-sm font-bold text-on-surface"></p>
+                </section>
+                <section>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant mb-1">Current Status</h3>
                     <p id="detail-status" class="text-sm font-bold text-primary"></p>
-                </div>
+                </section>
             </div>
         </section>
 
         <footer class="mt-10 pt-6 border-t border-outline/20">
-            <button onclick="closeModal()" class="w-full py-4 text-[10px] font-black uppercase tracking-widest bg-surface-container-high rounded-xl hover:bg-outline transition-colors">
+            <button type="button" onclick="closeModal()" class="w-full py-4 text-[10px] font-black uppercase tracking-widest bg-surface-container-high text-on-surface rounded-xl hover:bg-outline transition-colors">
                 Return to Ledger
             </button>
         </footer>
     </article>
-</div>
+</dialog>
 </body></html>

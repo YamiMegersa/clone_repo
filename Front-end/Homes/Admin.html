@@ -293,26 +293,60 @@
     </article>
 </aside>
 <script src="AdminHome.js" defer></script>
-<!-- Add New Widget Panel -->
-<article class="md:col-span-12">
-<button class="w-full h-32 bg-surface-container-low hover:bg-surface-container-high border-2 border-dashed border-outline-variant hover:border-primary-container transition-all flex flex-col items-center justify-center group" style="">
-<span class="material-symbols-outlined text-neutral-600 group-hover:text-primary-container transition-colors text-3xl mb-2" style="">add_circle</span>
-<p class="text-xs uppercase tracking-[0.2em] font-black text-neutral-500 group-hover:text-on-surface transition-colors" style="">Expand Control Interface</p>
-</button>
-</article>
 </section>
 </main>
-<!-- Footer Shell -->
-<footer class="bg-neutral-950 w-full py-12 px-8 border-t border-neutral-900 mt-20">
-<section class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-<p class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 text-center md:text-left" style="">
-                © 2024 The Civic Ledger. <span class="text-neutral-400" style="">Digital Monolith Architecture.</span>
-</p>
-<nav class="flex gap-8">
-<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">Terms and Conditions</a>
-<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">Contact Us</a>
-<a class="text-xs uppercase tracking-widest font-public-sans text-neutral-600 hover:text-orange-500 underline cursor-pointer" href="#" style="">About Us</a>
-</nav>
-</section>
-</footer>
+<aside id="assign-task-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+    <article class="bg-surface-container-low border border-outline/30 w-full max-w-lg p-10 rounded-3xl shadow-2xl">
+        
+        <header class="flex justify-between items-start mb-8">
+            <hgroup>
+                <h2 class="text-3xl font-black tracking-tighter text-on-surface">Deploy Operative</h2>
+                <p class="text-[10px] uppercase tracking-widest text-neutral-500 mt-1">Select personnel for field allocation</p>
+            </hgroup>
+            <button onclick="closeAssignModal()" class="material-symbols-outlined hover:text-primary transition-colors">close</button>
+        </header>
+
+        <form id="assign-task-form" class="space-y-6">
+            <input type="hidden" id="assign-report-id">
+            
+            <section>
+                <label for="worker-dropdown" class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant block mb-2">Available Personnel</label>
+                <select id="worker-dropdown" required class="progress-dropdown w-full bg-surface-container-high border-outline/30 rounded-xl px-4 py-3 text-sm focus:ring-primary text-neutral-300 outline-none appearance-none">
+                    <option value="" disabled selected>Loading active roster...</option>
+                </select>
+            </section>
+
+            <footer class="pt-4">
+                <button type="submit" class="w-full py-4 bg-primary-container text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-white transition-all shadow-lg shadow-primary/20">
+                    Confirm Deployment
+                </button>
+            </footer>
+        </form>
+    </article>
+</aside>
+
+<article class="md:col-span-12 bg-surface-container-low p-8 mt-6">
+    <header class="flex justify-between items-center mb-10">
+        <hgroup>
+            <h2 class="text-2xl font-bold tracking-tight mb-1">Active Assignment Ledger</h2>
+            <p class="text-xs uppercase tracking-widest text-neutral-400">Personnel-linked tasks for performance oversight</p>
+        </hgroup>
+    </header>
+    
+    <section class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-surface-variant text-[10px] uppercase tracking-widest text-neutral-500">
+                    <th class="p-4">Report ID</th>
+                    <th class="p-4">Operative</th>
+                    <th class="p-4">Task Type</th>
+                    <th class="p-4">Current Progress</th>
+                    <th class="p-4 text-right">Contact</th>
+                </tr>
+            </thead>
+            <tbody id="assigned-tasks-body">
+                </tbody>
+        </table>
+    </section>
+</article>
 </body></html>
