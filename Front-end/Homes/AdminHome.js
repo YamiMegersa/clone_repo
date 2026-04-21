@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadUnassignedReports();
+    loadAssignedTasks();
     loadPendingWorkers();
     loadActiveWorkers();
 
@@ -13,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handleEditSubmit(e) {
     e.preventDefault();
     
-    const id = document.getElementById('edit-report-id').value;
+    const id = document.getElementById('edit-report-id').value; //finds which report is being changed
     const updatedData = {
         Type: document.getElementById('edit-type').value,
         Progress: document.getElementById('edit-description').value
@@ -68,44 +69,86 @@ function closeEditModal() {
 //loads all reports to be assigned by the admin
 async function loadUnassignedReports() {
     try {
-        const response = await fetch('/api/reports');  //fetch all reports
+        //  Fetch all reports from the database
+        const response = await fetch('/api/reports');
+        if (!response.ok) throw new Error("Failed to fetch reports");
+        
         const reports = await response.json();
         
+        // Identify the target table body and clear existing rows
         const tableBody = document.getElementById('unassigned-reports-body');
+        if (!tableBody) return; // Guard clause
         tableBody.innerHTML = '';
 
-        const pending = reports.filter(r => r.Progress && r.Progress.includes('Pending')); //only show reports that need to be assigned
+        // Filter for reports that need assignment (Progress includes "Pending")
+        // We use toLowerCase() so it catches "Pending", "pending", or "PENDING"
+        const pending = reports.filter(r => 
+            r.Progress && r.Progress.toLowerCase().includes('pending')
+        );
 
+        // Handle Empty State: Show a clean message if the ledger is clear
+        if (pending.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="p-12 text-center">
+                        <p class="text-[10px] uppercase tracking-[0.3em] text-neutral-600 font-black">
+                            Clear Ledger: No Active Assignments
+                        </p>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        //Generate and inject rows for each unassigned report
         pending.forEach(report => {
-    const row = `
-    <tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors">
-        <td class="p-4 font-mono text-primary-container">#${report.ReportID}</td>
-        <td class="p-4 font-bold">${report.Type}</td>
-        <td class="p-4 text-xs font-medium">Ward ${report.WardID}</td>
-        <td class="p-4">
-            <select onchange="updatePriority(${report.ReportID}, this.value)" 
-                    class="bg-surface-container-lowest text-[10px] border border-outline/30 rounded px-2 py-1 focus:ring-primary text-on-surface uppercase font-black">
-                <option value="1" ${report.Priority == 1 ? 'selected' : ''}>1 - Critical</option>
-                <option value="2" ${report.Priority == 2 ? 'selected' : ''}>2 - High</option>
-                <option value="3" ${report.Priority == 3 ? 'selected' : ''}>3 - Routine</option>
-            </select>
-        </td>
-        <td class="p-4 text-right flex gap-2 justify-end">
-            <button onclick="assignToWorker(${report.ReportID})" ...>Assign</button>
-            <button onclick="openEditModal(${report.ReportID})" 
-        class="bg-surface-container-highest text-on-surface px-4 py-2 rounded text-[10px] font-black uppercase hover:bg-primary transition-all">
-    Edit
-</button>
-        </td>
-    </tr>
-`;
-            tableBody.insertAdjacentHTML('beforeend', row);
-        });
+    // Inside the pending.forEach() in loadUnassignedReports(), replace the row template:
+const isDeclined = report.Progress.toLowerCase().includes('declined');
+const declinedBadge = isDeclined 
+    ? `<span class="ml-2 px-2 py-0.5 bg-red-900/30 text-red-400 border border-red-500/20 text-[9px] font-black uppercase rounded">Re-assign</span>` 
+    : '';
+
+const row = `
+<tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors group ${isDeclined ? 'border-l-2 border-red-500/50' : ''}">
+    <td class="p-4 font-mono text-primary-container text-xs">#${report.ReportID}</td>
+    <td class="p-4 font-bold text-sm tracking-tight">${report.Type} ${declinedBadge}</td>
+    <td class="p-4 text-[10px] font-black uppercase text-neutral-500">Ward ${report.WardID || 'N/A'}</td>
+    <td class="p-4">
+        <select onchange="updatePriority(${report.ReportID}, this.value)" 
+                class="bg-surface-container-lowest text-[10px] border border-outline/20 rounded-lg px-3 py-1.5 text-on-surface uppercase font-black cursor-pointer">
+            <option value="1" ${report.Priority == 1 ? 'selected' : ''}>1 - Critical</option>
+            <option value="2" ${report.Priority == 2 ? 'selected' : ''}>2 - High</option>
+            <option value="3" ${report.Priority == 3 ? 'selected' : ''}>3 - Routine</option>
+        </select>
+    </td>
+    <td class="p-4 text-right flex gap-3 justify-end">
+        <button onclick="openAssignModal(${report.ReportID})" 
+                class="bg-primary-container text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-white transition-all">
+            ${isDeclined ? 'Re-assign' : 'Assign'}
+        </button>
+        <button onclick="openEditModal(${report.ReportID})" 
+                class="bg-surface-container-highest text-on-surface px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-primary hover:text-black transition-all">
+            Edit
+        </button>
+        <button onclick="handleDelete(${report.ReportID})" 
+                class="bg-red-900/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">
+            Delete
+        </button>
+    </td>
+</tr>`;
+    
+    tableBody.insertAdjacentHTML('beforeend', row);
+});
+
+        console.log(`Admin Ledger: Loaded ${pending.length} pending reports.`);
+
     } catch (err) {
-        console.error("Failed to load admin ledger:", err);
+        console.error("Critical Failure in loadUnassignedReports:", err);
+        const tableBody = document.getElementById('unassigned-reports-body');
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-error text-[10px] font-bold uppercase text-center">Sync Error: Check Server Connection</td></tr>`;
+        }
     }
 }
-
 //allows for admins to set priority
 async function updatePriority(reportId, priorityValue) {
     try {
@@ -200,7 +243,7 @@ const handleDelete = async (reportId) => {
     if (!window.confirm("Are you sure you want to delete this report?")) return;
 
     try {
-        const response = await fetch(`http://18.170.126.9:8080/api/admin/delete-report/${reportId}`, {
+        const response = await fetch(`/api/reports/${reportId}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ adminEmail })
@@ -208,11 +251,13 @@ const handleDelete = async (reportId) => {
 
         const data = await response.json();
 
-        if (data.success) {
+        if (response.ok) {
             alert("Report deleted successfully");
             loadUnassignedReports(); 
+            // If the report was already assigned, refresh that table too
+            if (typeof loadAssignedTasks === 'function') loadAssignedTasks();
         } else {
-            alert("Failed to delete: " + data.message);
+            alert("Failed to delete: " + (data.message || "Unknown Error"));
         }
     } catch (error) {
         console.error("Error deleting report:", error);
@@ -239,6 +284,180 @@ async function invalidateWorker(employeeId) {
         console.error("Invalidation error:", err);
     }
 }
+
+function renderAssignmentTracker(allocations, container) {
+    const html = `
+    <section class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-[10px] uppercase tracking-widest text-zinc-500 border-b border-outline/20">
+                    <th class="p-4">Report ID</th>
+                    <th class="p-4">Task Type</th>
+                    <th class="p-4">Assigned To</th>
+                    <th class="p-4">Status</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm text-neutral-300">
+                ${allocations.map(item => `
+                    <tr class="border-b border-outline/10 hover:bg-white/5 transition-colors">
+                        <td class="p-4 font-mono">#${item.ReportID}</td>
+                        <td class="p-4 font-bold">${item.Report.Type}</td>
+                        <td class="p-4 text-primary">${item.MunicipalWorker.FirstName} ${item.MunicipalWorker.LastName}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded-full bg-zinc-800 text-[10px] font-bold">
+                                ${item.Report.Progress}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </section>`;
+    
+    container.innerHTML = html;
+}
+
+
+// Function to open the assign modal and set the report ID
+function openAssignModal(reportId) {
+    document.getElementById('assign-report-id').value = reportId;
+    document.getElementById('assign-task-modal').classList.remove('hidden');
+    loadWorkerDropdown(); // Refresh the list every time it opens
+}
+
+function closeAssignModal() {
+    document.getElementById('assign-task-modal').classList.add('hidden');
+}
+
+// Fetches workers and puts them in the dropdown
+async function loadWorkerDropdown() {
+    const dropdown = document.getElementById('worker-dropdown');
+    try {
+        const response = await fetch('/api/workers/active');
+        const workers = await response.json();
+
+        dropdown.innerHTML = '<option value="" disabled selected>Select Operative...</option>';
+        workers.forEach(worker => {
+            const option = document.createElement('option');
+            // Store the EmployeeID but show the Full Name
+            option.value = worker.EmployeeID;
+            option.textContent = `${worker.FirstName} ${worker.LastName}`;
+            dropdown.appendChild(option);
+        });
+    } catch (err) {
+        dropdown.innerHTML = '<option value="" disabled>Error loading personnel</option>';
+    }
+}
+
+async function loadAssignedTasks() {
+    try {
+        const response = await fetch('/api/reports/admin/tracker');
+        const allocations = await response.json();
+        
+        const tableBody = document.getElementById('assigned-tasks-body');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (allocations.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-[10px] uppercase text-neutral-600">No active field assignments.</td></tr>`;
+            return;
+        }
+
+        allocations.forEach(item => {
+            // item.Report and item.MunicipalWorker come from the Sequelize 'include'
+            const row = `
+            <tr class="border-b border-outline/10 hover:bg-white/5 transition-colors">
+                <td class="p-4 font-mono text-xs text-primary-container">#${item.ReportID}</td>
+                <td class="p-4">
+                    <div class="flex flex-col">
+                        <span class="font-bold text-sm text-on-surface">${item.MunicipalWorker.FirstName} ${item.MunicipalWorker.LastName}</span>
+                        <span class="text-[9px] uppercase text-neutral-500">ID: ${item.EmployeeID}</span>
+                    </div>
+                </td>
+                <td class="p-4 font-medium text-xs">${item.Report.Type}</td>
+                <td class="p-4">
+                    <span class="px-2 py-1 rounded bg-surface-container-highest text-[10px] font-black uppercase text-primary border border-primary/20">
+                        ${item.Report.Progress || 'In Transit'}
+                    </span>
+                </td>
+                <td class="p-4 text-right">
+                    <a href="mailto:${item.MunicipalWorker.Email}" class="material-symbols-outlined text-neutral-500 hover:text-primary transition-colors">mail</a>
+                </td>
+            </tr>`;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    } catch (err) {
+        console.error("Error loading tracker:", err);
+    }
+}
+
+// Handles the actual assignment submission
+document.getElementById('assign-task-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const reportId = document.getElementById('assign-report-id').value;
+    const workerId = document.getElementById('worker-dropdown').value;
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}/assign`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ EmployeeID: workerId })
+        });
+
+        if (response.ok) {
+            alert("Operative Assigned!");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Assignment failed:", err);
+    }
+});
+
+async function checkForDeclinedTasks() {
+    try {
+        const response = await fetch('/api/reports');
+        const reports = await response.json();
+        
+        // Filter for reports that were declined
+        const declined = reports.filter(r => 
+            r.Progress && r.Progress.toLowerCase().includes('declined')
+        );
+
+        const list = document.getElementById('notification-list');
+        const dot = document.getElementById('notification-dot');
+
+        if (declined.length > 0) {
+            dot.classList.remove('hidden');
+            list.innerHTML = declined.map(report => `
+                <li class="p-4 border-b border-outline/10 hover:bg-white/5 transition-colors cursor-pointer" onclick="focusOnTask(${report.ReportID})">
+                    <p class="text-[9px] font-mono text-primary mb-1 uppercase tracking-tighter">Task Refused: #${report.ReportID}</p>
+                    <p class="text-xs text-on-surface leading-tight">${report.Progress}</p>
+                </li>
+            `).join('');
+        } else {
+            dot.classList.add('hidden');
+            list.innerHTML = `<li class="p-8 text-center text-[10px] text-on-surface-variant uppercase tracking-widest">No New Alerts</li>`;
+        }
+    } catch (err) {
+        console.error("Notification check failed:", err);
+    }
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notification-dropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Scrolls the admin to the task that needs attention
+function focusOnTask(reportId) {
+    toggleNotifications();
+    alert("Focusing on Report #" + reportId + " for reassignment.");
+    // Logic to scroll to/highlight the row can go here
+}
+
+// Run this every 30 seconds to keep the admin updated
+setInterval(checkForDeclinedTasks, 30000);
+document.addEventListener('DOMContentLoaded', checkForDeclinedTasks);
 
 //loads the active workers so admin can see list of them
 async function loadActiveWorkers() {
