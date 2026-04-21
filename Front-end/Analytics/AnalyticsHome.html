@@ -90,31 +90,33 @@
 </header>
 <section class="px-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
 <!-- Request Volume -->
-<article class="bg-surface-container-low p-8 rounded-lg group cursor-pointer hover:bg-surface-container-high transition-all duration-300 flex flex-col h-full relative overflow-hidden">
-<header class="flex justify-between items-start mb-12">
-<section>
-<span class="text-[10px] font-bold uppercase tracking-widest text-primary-container mb-4 block">Metric Alpha</span>
-<h2 class="text-3xl font-black tracking-tight text-on-surface font-headline leading-none">Request Volume &amp; Resolution</h2>
-</section>
-<span class="material-symbols-outlined text-primary-container text-4xl group-hover:scale-110 transition-transform">analytics</span>
-</header>
-<section class="flex-1 flex items-end gap-2 mb-8 h-64">
-<figure class="flex-1 bg-surface-container-highest rounded-sm h-[40%] group-hover:bg-primary-container/20 transition-colors"></figure>
-<figure class="flex-1 bg-surface-container-highest rounded-sm h-[65%] group-hover:bg-primary-container/40 transition-colors"></figure>
-<figure class="flex-1 bg-primary-container rounded-sm h-[90%]"></figure>
-<figure class="flex-1 bg-surface-container-highest rounded-sm h-[55%] group-hover:bg-primary-container/40 transition-colors"></figure>
-<figure class="flex-1 bg-surface-container-highest rounded-sm h-[75%] group-hover:bg-primary-container/20 transition-colors"></figure>
-</section>
-<footer class="flex justify-between items-center mt-auto border-t border-white/5 pt-6">
-<section>
-<p class="text-3xl font-black tracking-tighter text-on-surface">1,284</p>
-<p class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Active requests</p>
-</section>
-<nav class="flex items-center gap-2 text-primary-container font-bold text-xs uppercase tracking-widest group-hover:gap-4 transition-all">
-                    View Report
-                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</nav>
-</footer>
+<article onclick="window.location.href='ReqVol.html'" class="bg-surface-container-low p-8 rounded-lg group cursor-pointer hover:bg-surface-container-high transition-all duration-300 flex flex-col h-full relative overflow-hidden">
+    <header class="flex justify-between items-start mb-12">
+        <section>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-primary-container mb-4 block">Metric Alpha</span>
+            <h2 class="text-3xl font-black tracking-tight text-on-surface font-headline leading-none">Request Volume &amp; Resolution</h2>
+        </section>
+        <span class="material-symbols-outlined text-primary-container text-4xl group-hover:scale-110 transition-transform">analytics</span>
+    </header>
+
+    <section class="flex-1 flex items-end gap-2 mb-8 h-64">
+        <figure class="flex-1 bg-surface-container-highest rounded-sm h-[40%] group-hover:bg-primary-container/20 transition-colors"></figure>
+        <figure class="flex-1 bg-surface-container-highest rounded-sm h-[65%] group-hover:bg-primary-container/40 transition-colors"></figure>
+        <figure class="flex-1 bg-primary-container rounded-sm h-[90%]"></figure>
+        <figure class="flex-1 bg-surface-container-highest rounded-sm h-[55%] group-hover:bg-primary-container/40 transition-colors"></figure>
+        <figure class="flex-1 bg-surface-container-highest rounded-sm h-[75%] group-hover:bg-primary-container/20 transition-colors"></figure>
+    </section>
+
+    <footer class="flex justify-between items-center mt-auto border-t border-white/5 pt-6">
+        <section>
+            <p id="total-active-count" class="text-3xl font-black tracking-tighter text-on-surface">1,284</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-500">Active requests</p>
+        </section>
+        <nav class="flex items-center gap-2 text-primary-container font-bold text-xs uppercase tracking-widest group-hover:gap-4 transition-all">
+            View Report
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </nav>
+    </footer>
 </article>
 <!-- Worker Performance -->
 <article class="bg-surface-container-low p-8 rounded-lg group cursor-pointer hover:bg-surface-container-high transition-all duration-300 flex flex-col h-full">
@@ -245,4 +247,5 @@
 <a class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-primary-container" href="#">Privacy</a>
 </nav>
 </footer>
+<script src="AnalyticsHome.js"></script>
 </body></html>

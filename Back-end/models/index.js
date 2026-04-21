@@ -49,6 +49,20 @@ Grievance.belongsTo(Resident, { foreignKey: 'ResidentID' });
 MunicipalWorker.hasMany(Grievance, { foreignKey: 'MunicipalID' }); // [cite: 7, 20, 21]
 Grievance.belongsTo(MunicipalWorker, { foreignKey: 'MunicipalID' });
 
+const MockWard = require('./MockWard')(sequelize);
+const MockReport = require('./MockReport')(sequelize);
+
+// Define the relationship
+MockWard.hasMany(MockReport, {
+    foreignKey: 'WardID',
+    sourceKey: 'WardID'
+});
+
+MockReport.belongsTo(MockWard, {
+    foreignKey: 'WardID',
+    targetKey: 'WardID'
+});
+
 // 3. Export everything
 module.exports = {
     sequelize,
@@ -61,5 +75,7 @@ module.exports = {
     ReportImage,
     Allocation,
     Subscription,
-    Grievance
+    Grievance,
+    MockWard,
+    MockReport
 };

@@ -144,7 +144,7 @@
 <span class="text-primary-container material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
 </header>
 <figure class="flex flex-col gap-4">
-<p class="text-5xl font-black tracking-tighter text-on-surface">24.8k</p>
+<p id="req-volume-count"class="text-5xl font-black tracking-tighter text-on-surface">Loading...</p>
 <nav class="flex items-end gap-1.5 h-32 w-full">
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[30%]"></span>
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[45%]"></span>
@@ -166,7 +166,7 @@
 <span class="text-primary-container material-symbols-outlined" data-icon="done_all">done_all</span>
 </header>
 <figure class="flex flex-col gap-4">
-<p class="text-5xl font-black tracking-tighter text-on-surface">19.2k</p>
+<p id="res-volume-count" class="text-5xl font-black tracking-tighter text-on-surface">Loading...</p>
 <nav class="flex items-end gap-1.5 h-32 w-full">
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[20%]"></span>
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[40%]"></span>
@@ -190,10 +190,10 @@
 <figure class="flex-1 flex flex-col items-center justify-center relative py-4">
 <svg class="size-36 transform -rotate-90">
 <circle class="text-surface-container-highest" cx="72" cy="72" fill="transparent" r="64" stroke="currentColor" stroke-width="12"></circle>
-<circle class="text-primary-container" cx="72" cy="72" fill="transparent" r="64" stroke="currentColor" stroke-dasharray="402.12" stroke-dashoffset="92.48" stroke-width="12"></circle>
+<circle id="res-rate-circle" class="text-primary-container" cx="72" cy="72" fill="transparent" r="64" stroke="currentColor" stroke-dasharray="402.12" stroke-dashoffset="92.48" stroke-width="12"></circle>
 </svg>
 <hgroup class="absolute inset-0 flex flex-col items-center justify-center">
-<p class="text-4xl font-black tracking-tighter text-on-surface">77%</p>
+<p id="res-rate-text" class="text-4xl font-black tracking-tighter text-on-surface">77%</p>
 <p class="text-[10px] font-black uppercase text-outline">Efficiency</p>
 </hgroup>
 </figure>
@@ -213,4 +213,5 @@
 </section>
 </section>
 </main>
+<script src="ReqVol.js"></script>
 </body></html>
