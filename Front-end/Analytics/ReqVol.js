@@ -2,7 +2,7 @@
 // 1. GLOBAL STATE
 // ==========================================
 let currentSelection = { type: 'province', ids: { provinceId: 1 } }; 
-
+let currentFilteredReports = []; // Stores the reports currently matching the date filter
 // ==========================================
 // 2. THE MAP CLICK HANDLER
 // ==========================================
@@ -59,7 +59,7 @@ async function fetchDashboardData() {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const reports = await response.json();
-        updateUI(reports);
+        updateUI(reports,start,end);
     } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
         // Show error in UI
@@ -71,18 +71,124 @@ async function fetchDashboardData() {
 // ==========================================
 // 4. UI UPDATER
 // ==========================================
-function updateUI(reports) {
-    const totalRequests = reports.length;
-    const resolvedRequests = reports.filter(r => (r.Progress || '').toLowerCase() === 'resolved').length;
-    const resolutionRate = totalRequests === 0 ? 0 : Math.round((resolvedRequests / totalRequests) * 100);
+function updateUI(reports, startDateStr, endDateStr) {
+    // 1. Convert the dates so we can compare them
+    const start = new Date(startDateStr).getTime();
+    const endObj = new Date(endDateStr);
+    endObj.setHours(23, 59, 59, 999);
+    const end = endObj.getTime();
 
+    // 2. Build the combined list for the Modal (Created OR Resolved in this window)
+    currentFilteredReports = reports.filter(report => {
+        const cTime = report.CreatedAt ? new Date(report.CreatedAt).getTime() : 0;
+        const rTime = report.DateFulfilled ? new Date(report.DateFulfilled).getTime() : 0;
+        
+        const createdInWindow = cTime >= start && cTime <= end;
+        const resolvedInWindow = rTime >= start && rTime <= end;
+        
+        return createdInWindow || resolvedInWindow;
+    });
+
+    // 3. Count Requests (Was it CREATED in this window?)
+    const totalRequests = reports.filter(report => {
+        if (!report.CreatedAt) return false;
+        const time = new Date(report.CreatedAt).getTime();
+        return time >= start && time <= end;
+    }).length;
+
+    // 4. Count Resolutions (Was it RESOLVED in this window?)
+    const resolvedRequests = reports.filter(report => {
+        if ((report.Progress || '').toLowerCase() !== 'resolved' || !report.DateFulfilled) return false;
+        const time = new Date(report.DateFulfilled).getTime();
+        return time >= start && time <= end;
+    }).length;
+
+    // Avoid division by zero for the efficiency ring
+    const resolutionRate = totalRequests === 0 ? 0 : Math.round((resolvedRequests / totalRequests) * 100);
+    // Update Text Fields
     document.getElementById('req-volume-count').textContent = formatNumber(totalRequests);
     document.getElementById('res-volume-count').textContent = formatNumber(resolvedRequests);
     document.getElementById('res-rate-text').textContent = `${resolutionRate}%`;
 
+    // Update SVG Circle
     const circle = document.getElementById('res-rate-circle');
     const dashOffset = 402.12 - ((402.12 * resolutionRate) / 100);
     circle.style.strokeDashoffset = dashOffset;
+    circle.style.transition = 'stroke-dashoffset 1s ease-in-out';
+    
+    // Update Bar Charts
+    updateBarCharts(reports, startDateStr, endDateStr);
+}
+// ==========================================
+// 6. BAR CHART GENERATOR
+// ==========================================
+function updateBarCharts(reports, startDateStr, endDateStr) {
+    const numBuckets = 7; // Matches the 7 visual bars you had in your design
+    const reqCounts = new Array(numBuckets).fill(0);
+    const resCounts = new Array(numBuckets).fill(0);
+
+    // Convert string dates back to timestamps
+    const startObj = new Date(startDateStr);
+    const endObj = new Date(endDateStr);
+    endObj.setHours(23, 59, 59, 999); // Stretch to midnight
+    
+    const start = startObj.getTime();
+    const end = endObj.getTime();
+    const timeSpan = end - start || 1; // Avoid division by zero
+
+    reports.forEach(report => {
+        // 1. Bucket the Requests (When was it reported?)
+        if (report.CreatedAt) {
+            const createdTime = new Date(report.CreatedAt).getTime();
+            if (createdTime >= start && createdTime <= end) {
+                // Calculate which of the 7 buckets this timestamp falls into
+                let bucketIndex = Math.floor(((createdTime - start) / timeSpan) * numBuckets);
+                if (bucketIndex >= numBuckets) bucketIndex = numBuckets - 1; // Cap to max index
+                if (bucketIndex >= 0) reqCounts[bucketIndex]++;
+            }
+        }
+
+        // 2. Bucket the Resolutions (When was it fixed?)
+        if ((report.Progress || '').toLowerCase() === 'resolved' && report.DateFulfilled) {
+            const resolvedTime = new Date(report.DateFulfilled).getTime();
+            if (resolvedTime >= start && resolvedTime <= end) {
+                let bucketIndex = Math.floor(((resolvedTime - start) / timeSpan) * numBuckets);
+                if (bucketIndex >= numBuckets) bucketIndex = numBuckets - 1;
+                if (bucketIndex >= 0) resCounts[bucketIndex]++;
+            }
+        }
+    });
+
+    // Render both charts
+    renderChart('req-chart-container', reqCounts);
+    renderChart('res-chart-container', resCounts);
+}
+
+function renderChart(containerId, dataArr) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = ''; // Wipe previous chart
+    
+    // Find the highest value to scale the bars from 0% to 100%
+    const maxVal = Math.max(...dataArr) || 1; 
+    
+    dataArr.forEach(val => {
+        const span = document.createElement('span');
+        
+        // If there is data, use orange. If 0, use the dark gray container color.
+        const bgClass = val > 0 ? 'bg-primary-container' : 'bg-surface-container-highest';
+        span.className = `flex-1 ${bgClass} rounded-t-sm transition-all duration-700 ease-out hover:opacity-80`;
+        
+        // Calculate height. If 0, give it a tiny 5% height so the bar is still visible on the baseline
+        const heightPct = val === 0 ? 5 : (val / maxVal) * 100;
+        span.style.height = `${heightPct}%`;
+        
+        // Add a tooltip so hovering over the bar shows the exact number!
+        span.title = `${val} reports`;
+        
+        container.appendChild(span);
+    });
 }
 
 function formatNumber(num) {
@@ -102,3 +208,78 @@ document.addEventListener('DOMContentLoaded', () => {
     // Force an initial load
     fetchDashboardData(); 
 });
+
+// ==========================================
+// 7. LEDGER MODAL LOGIC
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('ledger-modal');
+    const openBtn = document.getElementById('view-ledger-btn');
+    const closeBtn = document.getElementById('close-ledger-btn');
+
+    // Open Modal
+    openBtn.addEventListener('click', () => {
+        renderLedgerTable(currentFilteredReports);
+        modal.showModal();
+    });
+
+    // Close Modal
+    closeBtn.addEventListener('click', () => modal.close());
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.close(); // Close if clicking outside the box
+    });
+});
+
+function renderLedgerTable(reports) {
+    const tbody = document.getElementById('ledger-table-body');
+    tbody.innerHTML = ''; 
+
+    if (reports.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-8 py-6 text-center text-on-surface-variant font-bold">No issues found for this period.</td></tr>`;
+        return;
+    }
+
+    reports.forEach(report => {
+        let statusBadge = ''; 
+        const progressStr = (report.Progress || '').toLowerCase(); 
+        
+        if (progressStr === 'resolved') {
+            statusBadge = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
+        } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
+        } else {
+            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-[#4d2600] text-[10px] font-black uppercase rounded-full">Active</span>`;
+        }
+
+        const iconMap = {
+            'pothole': 'road',
+            'water leak': 'water_drop',
+            'street light': 'lightbulb',
+            'illegal dumping': 'delete',
+            'electricity': 'bolt',
+            'sanitation': 'recycling'
+        };
+        const typeStr = (report.Type || '').toLowerCase();
+        const icon = iconMap[typeStr] || 'report_problem'; 
+
+        const formattedDate = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
+
+        const tr = document.createElement('tr'); 
+        tr.className = 'hover:bg-surface-container-high transition-colors';
+        tr.innerHTML = `
+            <td class="px-8 py-4">
+                <span class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[#FF8C00]" style="font-variation-settings: 'FILL' 1;">${icon}</span>
+                    <span class="font-bold text-white uppercase tracking-tight">${report.Type || 'General'}</span>
+                </span>
+            </td>
+            <td class="px-8 py-4 text-on-surface-variant font-medium text-sm truncate max-w-[200px]" title="${report.Description || 'No description provided.'}">
+                ${report.Description || 'No description provided.'}
+            </td>
+            <td class="px-8 py-4 text-center">${statusBadge}</td>
+            <td class="px-8 py-4 text-right font-mono text-on-surface-variant text-sm">${formattedDate}</td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}

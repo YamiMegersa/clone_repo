@@ -145,7 +145,7 @@
 </header>
 <figure class="flex flex-col gap-4">
 <p id="req-volume-count"class="text-5xl font-black tracking-tighter text-on-surface">Loading...</p>
-<nav class="flex items-end gap-1.5 h-32 w-full">
+<nav id="req-chart-container" class="flex items-end gap-1.5 h-32 w-full">
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[30%]"></span>
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[45%]"></span>
 <span class="flex-1 bg-primary-container rounded-t-sm h-[60%]"></span>
@@ -167,7 +167,7 @@
 </header>
 <figure class="flex flex-col gap-4">
 <p id="res-volume-count" class="text-5xl font-black tracking-tighter text-on-surface">Loading...</p>
-<nav class="flex items-end gap-1.5 h-32 w-full">
+<nav id="res-chart-container" class="flex items-end gap-1.5 h-32 w-full">
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[20%]"></span>
 <span class="flex-1 bg-surface-container-highest rounded-t-sm h-[40%]"></span>
 <span class="flex-1 bg-primary-container rounded-t-sm h-[55%]"></span>
@@ -206,12 +206,37 @@
 <span class="size-2 rounded-full bg-surface-container-highest"></span> Pending
                                 </li>
 </ul>
-<button class="text-xs font-black uppercase text-primary-container hover:underline decoration-2 underline-offset-4">View Ledger</button>
+<button id="view-ledger-btn" class="text-xs font-black uppercase text-primary-container hover:underline decoration-2 underline-offset-4">View Ledger</button>
 </footer>
 </article>
 </section>
 </section>
 </section>
 </main>
+
+<dialog id="ledger-modal" class="bg-[#131313] border border-white/5 shadow-2xl rounded-xl overflow-hidden w-[95%] max-w-5xl p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm focus:outline-none m-auto">
+    <header class="px-8 py-6 border-b border-[#FF8C00]/20 flex justify-between items-center bg-surface-container-low">
+        <h2 class="text-xl font-bold uppercase tracking-widest text-white italic">Active Ledger</h2>
+        <button id="close-ledger-btn" class="text-on-surface-variant hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </header>
+    
+    <div class="max-h-[60vh] overflow-y-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 bg-surface-container-low shadow-md z-10">
+                <tr class="text-on-surface-variant">
+                    <th class="px-8 py-4 text-[0.7rem] font-black uppercase tracking-widest" scope="col">Type</th>
+                    <th class="px-8 py-4 text-[0.7rem] font-black uppercase tracking-widest" scope="col">Description</th>
+                    <th class="px-8 py-4 text-[0.7rem] font-black uppercase tracking-widest text-center" scope="col">Status</th>
+                    <th class="px-8 py-4 text-[0.7rem] font-black uppercase tracking-widest text-right" scope="col">Date Reported</th>
+                </tr>
+            </thead>
+            <tbody id="ledger-table-body" class="divide-y divide-white/5">
+                </tbody>
+        </table>
+    </div>
+</dialog>
+
 <script src="ReqVol.js"></script>
 </body></html>
