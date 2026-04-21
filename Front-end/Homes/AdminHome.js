@@ -101,38 +101,40 @@ async function loadUnassignedReports() {
 
         //Generate and inject rows for each unassigned report
         pending.forEach(report => {
-    const row = `
-    <tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors group">
-        <td class="p-4 font-mono text-primary-container text-xs">#${report.ReportID}</td>
-        <td class="p-4 font-bold text-sm tracking-tight">${report.Type}</td>
-        <td class="p-4 text-[10px] font-black uppercase text-neutral-500">Ward ${report.WardID || 'N/A'}</td>
-        
-        <td class="p-4">
-            <select onchange="updatePriority(${report.ReportID}, this.value)" 
-                    class="bg-surface-container-lowest text-[10px] border border-outline/20 rounded-lg px-3 py-1.5 text-on-surface uppercase font-black cursor-pointer">
-                <option value="1" ${report.Priority == 1 ? 'selected' : ''}>1 - Critical</option>
-                <option value="2" ${report.Priority == 2 ? 'selected' : ''}>2 - High</option>
-                <option value="3" ${report.Priority == 3 ? 'selected' : ''}>3 - Routine</option>
-            </select>
-        </td>
-        
-        <td class="p-4 text-right flex gap-3 justify-end">
-            <button onclick="openAssignModal(${report.ReportID})" 
-                    class="bg-primary-container text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-white transition-all">
-                Assign
-            </button>
-            
-            <button onclick="openEditModal(${report.ReportID})" 
-                    class="bg-surface-container-highest text-on-surface px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-primary hover:text-black transition-all">
-                Edit
-            </button>
+    // Inside the pending.forEach() in loadUnassignedReports(), replace the row template:
+const isDeclined = report.Progress.toLowerCase().includes('declined');
+const declinedBadge = isDeclined 
+    ? `<span class="ml-2 px-2 py-0.5 bg-red-900/30 text-red-400 border border-red-500/20 text-[9px] font-black uppercase rounded">Re-assign</span>` 
+    : '';
 
-            <button onclick="handleDelete(${report.ReportID})" 
-                    class="bg-red-900/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">
-                Delete
-            </button>
-        </td>
-    </tr>`;
+const row = `
+<tr class="border-b border-surface-variant hover:bg-surface-container-high transition-colors group ${isDeclined ? 'border-l-2 border-red-500/50' : ''}">
+    <td class="p-4 font-mono text-primary-container text-xs">#${report.ReportID}</td>
+    <td class="p-4 font-bold text-sm tracking-tight">${report.Type} ${declinedBadge}</td>
+    <td class="p-4 text-[10px] font-black uppercase text-neutral-500">Ward ${report.WardID || 'N/A'}</td>
+    <td class="p-4">
+        <select onchange="updatePriority(${report.ReportID}, this.value)" 
+                class="bg-surface-container-lowest text-[10px] border border-outline/20 rounded-lg px-3 py-1.5 text-on-surface uppercase font-black cursor-pointer">
+            <option value="1" ${report.Priority == 1 ? 'selected' : ''}>1 - Critical</option>
+            <option value="2" ${report.Priority == 2 ? 'selected' : ''}>2 - High</option>
+            <option value="3" ${report.Priority == 3 ? 'selected' : ''}>3 - Routine</option>
+        </select>
+    </td>
+    <td class="p-4 text-right flex gap-3 justify-end">
+        <button onclick="openAssignModal(${report.ReportID})" 
+                class="bg-primary-container text-black px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-white transition-all">
+            ${isDeclined ? 'Re-assign' : 'Assign'}
+        </button>
+        <button onclick="openEditModal(${report.ReportID})" 
+                class="bg-surface-container-highest text-on-surface px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-primary hover:text-black transition-all">
+            Edit
+        </button>
+        <button onclick="handleDelete(${report.ReportID})" 
+                class="bg-red-900/20 text-red-500 border border-red-500/30 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">
+            Delete
+        </button>
+    </td>
+</tr>`;
     
     tableBody.insertAdjacentHTML('beforeend', row);
 });
@@ -410,6 +412,52 @@ document.getElementById('assign-task-form').addEventListener('submit', async (e)
         console.error("Assignment failed:", err);
     }
 });
+
+async function checkForDeclinedTasks() {
+    try {
+        const response = await fetch('/api/reports');
+        const reports = await response.json();
+        
+        // Filter for reports that were declined
+        const declined = reports.filter(r => 
+            r.Progress && r.Progress.toLowerCase().includes('declined')
+        );
+
+        const list = document.getElementById('notification-list');
+        const dot = document.getElementById('notification-dot');
+
+        if (declined.length > 0) {
+            dot.classList.remove('hidden');
+            list.innerHTML = declined.map(report => `
+                <li class="p-4 border-b border-outline/10 hover:bg-white/5 transition-colors cursor-pointer" onclick="focusOnTask(${report.ReportID})">
+                    <p class="text-[9px] font-mono text-primary mb-1 uppercase tracking-tighter">Task Refused: #${report.ReportID}</p>
+                    <p class="text-xs text-on-surface leading-tight">${report.Progress}</p>
+                </li>
+            `).join('');
+        } else {
+            dot.classList.add('hidden');
+            list.innerHTML = `<li class="p-8 text-center text-[10px] text-on-surface-variant uppercase tracking-widest">No New Alerts</li>`;
+        }
+    } catch (err) {
+        console.error("Notification check failed:", err);
+    }
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notification-dropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+// Scrolls the admin to the task that needs attention
+function focusOnTask(reportId) {
+    toggleNotifications();
+    alert("Focusing on Report #" + reportId + " for reassignment.");
+    // Logic to scroll to/highlight the row can go here
+}
+
+// Run this every 30 seconds to keep the admin updated
+setInterval(checkForDeclinedTasks, 30000);
+document.addEventListener('DOMContentLoaded', checkForDeclinedTasks);
 
 //loads the active workers so admin can see list of them
 async function loadActiveWorkers() {

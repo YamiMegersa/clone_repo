@@ -221,6 +221,32 @@ router.put('/:id/edit', async (req, res) => {
     }
 });
 
+// PUT: Worker declines a task
+// PUT: Worker declines a task
+router.put('/:id/decline', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        const { reason, workerName } = req.body;
+
+        await Allocation.destroy({ where: { ReportID: reportId } });
+
+        await Report.update(
+            { 
+                Status: 'Pending',                                          // ← already correct
+                Progress: `Pending - Declined by ${workerName}: ${reason}` // ← prefix with "Pending"
+            }, 
+            { where: { ReportID: reportId } }
+        );
+
+        
+        res.status(200).json({ message: "Task returned to pool" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
 // GET: Fetch reports assigned to a specific worker
 router.get('/assigned/:workerId', async (req, res) => {
     try {

@@ -118,6 +118,8 @@ async function toggleCompletedTasks() {
     }
 }
 
+
+
 async function toggleCompletedTasks() {
     const container = document.getElementById('completed-tasks-list');
     const button = document.querySelector('footer button');
@@ -207,10 +209,21 @@ function renderTaskCard(report, container) {
 
             <nav class="flex flex-col gap-4" onclick="event.stopPropagation()">
                 ${isNewTask ? `
-                    <button onclick="acceptTask(${report.ReportID})" 
-                            class="w-full bg-yellow-700/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all shadow-lg">
-                        <span class="material-symbols-outlined text-base">play_arrow</span> Accept Task
-                    </button>
+                    <menu class="flex gap-4 p-0 m-0 list-none">
+        <li class="flex-1">
+            <button type="button" onclick="acceptTask(${report.ReportID})" 
+                    class="w-full bg-yellow-700/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all shadow-lg">
+                <span class="material-symbols-outlined text-base">play_arrow</span> Accept
+            </button>
+        </li>
+        
+        <li class="flex-1">
+            <button type="button" onclick="declineTask(${report.ReportID})" 
+                    class="w-full bg-red-900/40 text-red-400 border border-red-500/30 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-red-800/40 transition-all">
+                <span class="material-symbols-outlined text-base">close</span> Decline
+            </button>
+        </li>
+    </menu>
                 ` : `
                     <section class="flex flex-col gap-2 p-4 bg-black/20 rounded-xl border border-white/5" aria-label="Progress Update">
                         <div class="flex justify-between items-center">
@@ -250,6 +263,31 @@ function renderTaskCard(report, container) {
 
     container.insertAdjacentHTML('beforeend', html);
 }
+
+//workers can decline tasks
+async function declineTask(reportId) {
+    const reason = prompt("Please provide a reason for declining this task (e.g., lack of materials, site inaccessible):");
+    if (reason === null) return; // User cancelled
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}/decline`, {
+            method: 'PUT', // Using PUT because we are updating the state
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                reason, 
+                workerName: localStorage.getItem('workerName') || "A worker" 
+            })
+        });
+
+        if (response.ok) {
+            alert("Task returned to central command. Admin has been notified.");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Error declining task:", err);
+    }
+}
+
 
 //Moves task to final 'Resolved' state.Sends 'Fixed' status to trigger the backend logic for DateFulfilled.
 async function resolveTask(reportId) {
