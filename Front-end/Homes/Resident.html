@@ -169,6 +169,23 @@
             </footer>
         </form>
     </dialog>
+
+    <div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface-container-low p-8 rounded-xl max-w-md w-full border border-white/10 shadow-2xl relative m-4">
+            <header class="flex justify-between items-start mb-6">
+                <h3 class="text-xl font-black uppercase tracking-widest text-orange-500">
+                    Report Details
+                </h3>
+                <button id="close-modal-btn" class="text-white/40 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </header>
+            
+            <div id="modal-content" class="space-y-4">
+            </div>
+        </div>
+    </div>
+
     <script src="Resident.js"></script>
 </body>
 </html>

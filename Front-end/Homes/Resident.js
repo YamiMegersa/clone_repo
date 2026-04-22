@@ -1,3 +1,6 @@
+// Global variable to store loaded reports for modal access
+let loadedReports = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     // For testing, replace '1' with your actual logic to get the logged-in user's ID
     const residentId = localStorage.getItem('residentId');
@@ -145,20 +148,6 @@ document.addEventListener('click', (event) => {
 function manageNotifications(wardId) {
     console.log(`Managing notifications for Ward ${wardId}`);
     // Add your routing logic here
-}
-
-function showReportDetails(report) {
-    const details = `
-        <div style="text-align: left;">
-            <strong>Report ID:</strong> ${report.ReportID}<br>
-            <strong>Type:</strong> ${report.Type}<br>
-            <strong>Ward:</strong> ${report.WardID}<br>
-            <strong>Progress:</strong> ${report.Progress}<br>
-            <strong>Created:</strong> ${new Date(report.CreatedAt).toLocaleString()}<br>
-            <strong>Description:</strong> ${report.Description || 'N/A'}
-        </div>
-    `;
-    showModal('Report Details', details);
 }
 
 // ==========================================
@@ -418,6 +407,7 @@ loadProvinces();
 //notifications
 
 // timestamps
+
 function getTimeAgo(dateString) {
     const date = new Date(dateString);
     const seconds = Math.floor((new Date() - date) / 1000);
@@ -436,16 +426,16 @@ function getTimeAgo(dateString) {
     return "JUST NOW";
 }
 
-const createAlertHTML = (category, timeAgo, message) => `
-    <li class="group">
-        <article class="space-y-2">
-            <header class="flex justify-between items-start">
+// Updated to pass the full report object and an index, and added cursor-pointer
+const createAlertHTML = (report, index) => `
+    <li class="group cursor-pointer hover:bg-white/5 p-3 -mx-3 rounded-lg transition-colors" data-index="${index}">
+        <article class="space-y-2 pointer-events-none"> <header class="flex justify-between items-start">
                 <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">
-                Ward${wardId} - ${category}
+                Ward ${report.WardID} - ${report.Type || 'SYSTEM ALERT'}
                 </span>
-                <span class="text-[9px] opacity-40 uppercase">${timeAgo}</span>
+                <span class="text-[9px] opacity-40 uppercase">${getTimeAgo(report.CreatedAt)}</span>
             </header>
-            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${message}</p>
+            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${report.Progress || 'No details provided.'}</p>
             <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
         </article>
     </li>
@@ -456,36 +446,64 @@ function renderAlerts(reports) {
     const emptyMessage = document.getElementById('empty-alerts-message');
     const pulseIndicator = document.getElementById('alert-pulse-indicator');
 
+    // Save to our global variable for modal lookup
+    loadedReports = reports;
     listContainer.innerHTML = '';
 
     if (!reports || reports.length === 0) {
         emptyMessage.classList.remove('hidden');
         pulseIndicator.classList.remove('animate-pulse');
-        pulseIndicator.classList.add('opacity-30'); // Dim it instead of hiding entirely
+        pulseIndicator.classList.add('opacity-30');
     } else {
-        // Hide empty state, ensure pulsing
         emptyMessage.classList.add('hidden');
         pulseIndicator.classList.add('animate-pulse');
         pulseIndicator.classList.remove('opacity-30');
 
-        // Generate HTML for each report and append
-        const alertsHTML = reports.map(report => createAlertHTML(
-            report.WardID,
-            report.Type || 'SYSTEM ALERT', 
-            getTimeAgo(report.CreatedAt), 
-            report.Progress || 'No details provided.'
-        )).join('');
-
+        // Pass the whole report object and its array index
+        const alertsHTML = reports.map((report, index) => createAlertHTML(report, index)).join('');
         listContainer.innerHTML = alertsHTML;
-
-        // Add click listeners to each alert item
-        const alertItems = listContainer.querySelectorAll('li');
-        alertItems.forEach((item, index) => {
-            item.addEventListener('click', () => {
-                showReportDetails(reports[index]);
-            });
-        });
     }
+}
+
+// 3. Modal Control Functions
+function openReportModal(index) {
+    const report = loadedReports[index];
+    if (!report) return;
+
+    const modal = document.getElementById('report-modal');
+    const modalContent = document.getElementById('modal-content');
+
+    // Populate the modal with the specific report's data
+    // Feel free to adjust report.Description/report.Status to match your DB schema
+    modalContent.innerHTML = `
+        <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Ward</span>
+                <span class="font-bold">${report.WardID}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Type</span>
+                <span class="font-bold">${report.Type || 'System Alert'}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Date Logged</span>
+                <span class="font-bold">${new Date(report.CreatedAt).toLocaleDateString()} ${new Date(report.CreatedAt).toLocaleTimeString()}</span>
+            </div>
+            
+            <div class="mt-6 pt-4">
+                <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Latest Progress / Details</span>
+                <div class="bg-black/20 p-4 rounded-lg text-sm font-medium leading-relaxed">
+                    ${report.Progress || report.Description || 'No further details have been provided for this report.'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+}
+
+function closeReportModal() {
+    document.getElementById('report-modal').classList.add('hidden');
 }
 
 async function loadResidentNotifications(residentId) {
@@ -495,29 +513,22 @@ async function loadResidentNotifications(residentId) {
         
         const subscribedWards = await subRes.json();
         
-        // If no subscriptions, render empty state and exit early
         if (subscribedWards.length === 0) {
             renderAlerts([]);
             return;
         }
 
-        //Create an array of fetch promises for each Ward ID
         const reportPromises = subscribedWards.map(ward => {
             const wardId = ward.WardID || ward.WardId || ward.wardId;
-            if (!wardId) {
-                throw new Error('Subscription item missing Ward ID');
-            }
+            if (!wardId) throw new Error('Subscription item missing Ward ID');
+            
             return fetch(`/api/reports/ward/${wardId}`).then(res => {
-                if (!res.ok) {
-                    throw new Error(`Failed to fetch reports for ward ${wardId}`);
-                }
+                if (!res.ok) throw new Error(`Failed to fetch reports for ward ${wardId}`);
                 return res.json();
             });
         });
 
-        //Execute all fetch requests concurrently
         const reportsArrays = await Promise.all(reportPromises);
-
         const allReports = reportsArrays
             .flat()
             .sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
@@ -526,7 +537,6 @@ async function loadResidentNotifications(residentId) {
 
     } catch (error) {
         console.error("Error loading notifications:", error);
-        // Optional: Render a specific error state in the UI
         document.getElementById('alerts-list-container').innerHTML = 
             `<li class="text-sm text-red-500">Failed to load alerts.</li>`;
     }
@@ -534,12 +544,34 @@ async function loadResidentNotifications(residentId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentResidentId = localStorage.getItem('residentId') || 1;
-    // Kick off the fetch
     loadResidentNotifications(currentResidentId);
 
-    // Wire up the "Clear All" button
     document.getElementById('clear-alerts-btn').addEventListener('click', () => {
-        // Render an empty array to clear the UI immediately
         renderAlerts([]);
     });
+
+    document.getElementById('alerts-list-container').addEventListener('click', (e) => {
+        // Find the nearest list item that was clicked
+        const clickedItem = e.target.closest('li[data-index]');
+        if (clickedItem) {
+            const index = clickedItem.getAttribute('data-index');
+            openReportModal(index);
+        }
+    });
+
+    // Listen for close button click
+    const closeBtn = document.getElementById('close-modal-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeReportModal);
+    }
+
+    // Close the modal if the user clicks the dark background outside the modal
+    const modal = document.getElementById('report-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeReportModal();
+            }
+        });
+    }
 });
