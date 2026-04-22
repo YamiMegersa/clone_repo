@@ -147,6 +147,8 @@ const geographyRoutes = require('./routes/geography');
 const allocationRoutes = require('./routes/allocations');
 const reportImageRoutes = require('./routes/reportImages');
 const grievanceRoutes = require('./routes/grievances');
+const notificationRoutes =  require('./routes/notifications');
+
 
 app.use('/api/workers', workerRoutes);
 app.use('/api/residents', residentRoutes);
@@ -155,6 +157,7 @@ app.use('/api/geography', geographyRoutes);
 app.use('/api/allocations', allocationRoutes);
 app.use('/api/report-images', reportImageRoutes);
 app.use('/api/grievances', grievanceRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // --- 4. STATIC FILES & FRONTEND ---
 const frontendPath = path.resolve(__dirname, '..', 'Front-end');

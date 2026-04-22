@@ -1,8 +1,23 @@
 const express=require('express');
 const router=express.Router();
-const {Report, ReportImage, Allocation}=require('../models');
+const {Report, ReportImage, Allocation,Notification}=require('../models');
 const { Op } = require('sequelize');
 const { MunicipalWorker } = require('../models');
+
+
+async function notify(recipientId, type, title, message, reportId = null) {
+    try {
+        await Notification.create({
+            RecipientID: String(recipientId),
+            Type: type,
+            Title: title,
+            Message: message,
+            ReportID: reportId
+        });
+    } catch (err) {
+        console.error('[Notify] Failed:', err.message);
+    }
+}
 
 if (Allocation && Report && MunicipalWorker) {
     Allocation.belongsTo(Report, { foreignKey: 'ReportID' });
@@ -36,14 +51,23 @@ router.get('/resident/:residentId', async (req,res)=>{
     }
 });
 
-//POST: Log a new report/fault
-router.post('/', async (req,res)=>{
-    try{
-        const newReport=await Report.create(req.body);
-        res.status(201).json({message:"Report logged successfully", report:newReport});
-    }catch (err){
-        console.error(err);
-        res.status(400).json({error:err.message});
+// POST: Log a new report/fault and NOTIFIES ADMIN 
+router.post('/', async (req, res) => {
+    try {
+        const newReport = await Report.create(req.body);
+ 
+        // Notify all admins about the new report
+        await notify(
+            'admin',
+            'NEW_REPORT',
+            `New ${newReport.Type} Report`,
+            `A new fault has been logged in Ward ${newReport.WardID || 'N/A'}. Report #${newReport.ReportID} is pending assignment.`,
+            newReport.ReportID
+        );
+ 
+        res.status(201).json({ message: 'Report logged successfully', report: newReport });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 });
 
@@ -148,24 +172,32 @@ router.post('/:id/claim', async (req, res) => {
     }
 });
 
-// POST: Admin assigns a report to a worker
+// POST: Admin assigns a report to a worker and NOTIFIES WORKER 
 router.post('/:id/assign', async (req, res) => {
     try {
         const { EmployeeID } = req.body;
         const ReportID = req.params.id;
-
-        // 1. Create the link in the Allocation table
-        await Allocation.create({ 
-            ReportID: ReportID, 
-            EmployeeID: EmployeeID 
-        });
-
-        // 2. Update the report status so the worker can see it
+ 
+        await Allocation.create({ ReportID, EmployeeID });
         await Report.update(
             { Status: 'Assigned', Progress: 'Assigned to Field Staff' },
             { where: { ReportID: ReportID } }
         );
-
+ 
+        // ── Look up the report type for a richer notification 
+        const report = await Report.findByPk(ReportID);
+        const taskType = report ? report.Type : 'a task';
+        const ward = report ? `Ward ${report.WardID}` : 'your area';
+ 
+        // ── Notify the assigned worker 
+        await notify(
+            EmployeeID,
+            'TASK_ASSIGNED',
+            `New Assignment: ${taskType}`,
+            `You have been assigned a new task in ${ward}. Report #${ReportID} is ready for acceptance.`,
+            ReportID
+        );
+ 
         res.status(200).json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -221,25 +253,32 @@ router.put('/:id/edit', async (req, res) => {
     }
 });
 
-// PUT: Worker declines a task
-// PUT: Worker declines a task
+// PUT: Worker declines a task and NOTIFIES ADMIN 
 router.put('/:id/decline', async (req, res) => {
     try {
         const reportId = req.params.id;
         const { reason, workerName } = req.body;
-
+ 
         await Allocation.destroy({ where: { ReportID: reportId } });
-
         await Report.update(
-            { 
-                Status: 'Pending',                                          // ← already correct
-                Progress: `Pending - Declined by ${workerName}: ${reason}` // ← prefix with "Pending"
-            }, 
+            {
+                Status: 'Pending',
+                Progress: `Pending - Declined by ${workerName}: ${reason}`
+            },
             { where: { ReportID: reportId } }
         );
-
-        
-        res.status(200).json({ message: "Task returned to pool" });
+ 
+        // Notify admin of the declined task 
+        await notify(
+            'admin',
+            'TASK_DECLINED',
+            `Task #${reportId} Declined`,
+            `${workerName} declined Report #${reportId}. Reason: "${reason}". The task needs reassignment.`,
+            reportId
+        );
+ 
+        console.log(`[ALERT] Report #${reportId} was declined by ${workerName}. Reason: ${reason}`);
+        res.status(200).json({ message: 'Task returned to pool' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

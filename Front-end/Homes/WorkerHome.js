@@ -9,6 +9,7 @@ const toBase64 = file => new Promise((resolve, reject) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+    localStorage.setItem('role', 'worker');
     const workerId = localStorage.getItem('workerId');
     const workerName = localStorage.getItem('workerName');
 

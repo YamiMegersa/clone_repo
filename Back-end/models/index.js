@@ -8,6 +8,7 @@ const { DataTypes } = require('sequelize');
 const { Province, Municipality, Ward } = require('./Geography');
 const { Allocation, Report, ReportImage } = require('./Report');
 const { Resident, Subscription } = require('./Resident');
+const Notification = require('./Notification')(sequelize, DataTypes);
 
 // Import single-model files
 const MunicipalWorker = require('./Worker');
@@ -61,5 +62,6 @@ module.exports = {
     ReportImage,
     Allocation,
     Subscription,
-    Grievance
+    Grievance,
+    Notification
 };

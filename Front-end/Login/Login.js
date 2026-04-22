@@ -78,8 +78,12 @@ async function handleCredentialResponse(response) {
             
             //check if admin first
             if (result.role === 'admin') {
+                localStorage.clear();
+                localStorage.setItem('role', 'admin');
+                 localStorage.removeItem('residentId');
                 window.location.href = "../Homes/Admin.html";
             } else { //if not admin, normal resident
+                localStorage.clear();
                 localStorage.setItem('residentId', result.residentId); //saves ID to localstorage
                 window.location.href = "../Homes/Resident.html"; 
             }

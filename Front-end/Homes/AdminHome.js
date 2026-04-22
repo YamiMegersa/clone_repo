@@ -1,3 +1,7 @@
+localStorage.setItem('role', 'admin');
+localStorage.removeItem('workerId');
+localStorage.removeItem('workerName');
+
 document.addEventListener('DOMContentLoaded', () => {
     loadUnassignedReports();
     loadAssignedTasks();
@@ -413,51 +417,6 @@ document.getElementById('assign-task-form').addEventListener('submit', async (e)
     }
 });
 
-async function checkForDeclinedTasks() {
-    try {
-        const response = await fetch('/api/reports');
-        const reports = await response.json();
-        
-        // Filter for reports that were declined
-        const declined = reports.filter(r => 
-            r.Progress && r.Progress.toLowerCase().includes('declined')
-        );
-
-        const list = document.getElementById('notification-list');
-        const dot = document.getElementById('notification-dot');
-
-        if (declined.length > 0) {
-            dot.classList.remove('hidden');
-            list.innerHTML = declined.map(report => `
-                <li class="p-4 border-b border-outline/10 hover:bg-white/5 transition-colors cursor-pointer" onclick="focusOnTask(${report.ReportID})">
-                    <p class="text-[9px] font-mono text-primary mb-1 uppercase tracking-tighter">Task Refused: #${report.ReportID}</p>
-                    <p class="text-xs text-on-surface leading-tight">${report.Progress}</p>
-                </li>
-            `).join('');
-        } else {
-            dot.classList.add('hidden');
-            list.innerHTML = `<li class="p-8 text-center text-[10px] text-on-surface-variant uppercase tracking-widest">No New Alerts</li>`;
-        }
-    } catch (err) {
-        console.error("Notification check failed:", err);
-    }
-}
-
-function toggleNotifications() {
-    const dropdown = document.getElementById('notification-dropdown');
-    dropdown.classList.toggle('hidden');
-}
-
-// Scrolls the admin to the task that needs attention
-function focusOnTask(reportId) {
-    toggleNotifications();
-    alert("Focusing on Report #" + reportId + " for reassignment.");
-    // Logic to scroll to/highlight the row can go here
-}
-
-// Run this every 30 seconds to keep the admin updated
-setInterval(checkForDeclinedTasks, 30000);
-document.addEventListener('DOMContentLoaded', checkForDeclinedTasks);
 
 //loads the active workers so admin can see list of them
 async function loadActiveWorkers() {

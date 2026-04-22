@@ -65,14 +65,14 @@
 <span class="text-2xl font-black tracking-tighter text-on-surface uppercase">Groundwork</span>
 </section>
 <section class="flex items-center gap-6">
-<button class="material-symbols-outlined text-on-surface opacity-70 hover:opacity-100 transition-opacity">notifications</button>
-<figure class="flex items-center gap-3">
-<figcaption class="hidden md:block text-right">
-<p class="text-xs font-bold">John Doe</p>
-<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Field Operative</p>
-</figcaption>
-<img alt="User profile photo" class="w-10 h-10 rounded-full border border-primary/50 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvC3yQ8SK0p4ed_xI6R01Q4yNLiYfYod7D4q4x91q15xvNuh9_fvYZ2-EvRU-KQW96Ou9KCySlvcC_s_Stsb2zNw9yShUYYydYiSYL_BDXEOtTMKf9xqaLaMhQac_oCAzlFQ4q0oLz0grzsD6VFtBOLlI9EqZRLmEHyoPjD-4zRB5EEqwu8GmaTB8wSTVrsdijH-b1slQCm2cPje8z9yzkZBOp7Et361kOzocXdaoeLx8RGPObyYpgKpX86b69K9kWj1FmSfrwklM"/>
-</figure>
+    <div id="notif-shell" class="notif-shell"></div>
+    <figure class="flex items-center gap-3">
+        <figcaption class="hidden md:block text-right">
+            <p class="text-xs font-bold">John Doe</p>
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">Field Operative</p>
+        </figcaption>
+        <img alt="User profile photo" class="w-10 h-10 rounded-full border border-primary/50 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvC3yQ8SK0p4ed_xI6R01Q4yNLiYfYod7D4q4x91q15xvNuh9_fvYZ2-EvRU-KQW96Ou9KCySlvcC_s_Stsb2zNw9yShUYYydYiSYL_BDXEOtTMKf9xqaLaMhQac_oCAzlFQ4q0oLz0grzsD6VFtBOLlI9EqZRLmEHyoPjD-4zRB5EEqwu8GmaTB8wSTVrsdijH-b1slQCm2cPje8z9yzkZBOp7Et361kOzocXdaoeLx8RGPObyYpgKpX86b69K9kWj1FmSfrwklM"/>
+    </figure>
 </section>
 </header>
 <main class="flex-1 p-10 max-w-screen-xl mx-auto w-full flex flex-col gap-10">
@@ -113,7 +113,8 @@
 
 </main>
 
-<script src="WorkerHome.js" defer></script> <!-- double check this-->
+<script src="WorkerHome.js" defer></script>
+<script src="notifications-ui.js" defer></script>
 <dialog id="task-detail-modal" class="fixed inset-0 z-[100] p-6 bg-black/90 backdrop-blur-md w-full h-full border-none flex items-center justify-center backdrop:bg-transparent open:flex hidden" aria-labelledby="detail-type">
     <article class="bg-surface-container-low border border-outline/30 w-full max-w-2xl p-10 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
         <header class="flex justify-between items-start mb-8">

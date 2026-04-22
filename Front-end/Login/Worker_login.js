@@ -52,9 +52,12 @@ async function handleWorkerGoogleResponse(response) {
         const result = await backendRes.json();
 
         if (backendRes.ok) {
+            localStorage.clear();
             // Save worker ID and name
+            localStorage.setItem('role', 'worker'); 
             localStorage.setItem('workerId', result.workerId);
             localStorage.setItem('workerName', result.name);
+            
             
             // Redirect to Worker Home
             window.location.href = "../Homes/Worker.html"; 
