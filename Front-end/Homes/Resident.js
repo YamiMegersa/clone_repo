@@ -478,8 +478,16 @@ async function loadResidentNotifications(residentId) {
 
         //Create an array of fetch promises for each Ward ID
         const reportPromises = subscribedWards.map(ward => {
-            const wardId = ward.WardId;
-            return fetch(`/api/reports/ward/${wardId}`).then(res => res.json());
+            const wardId = ward.WardID || ward.WardId || ward.wardId;
+            if (!wardId) {
+                throw new Error('Subscription item missing Ward ID');
+            }
+            return fetch(`/api/reports/ward/${wardId}`).then(res => {
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch reports for ward ${wardId}`);
+                }
+                return res.json();
+            });
         });
 
         //Execute all fetch requests concurrently
