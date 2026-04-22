@@ -453,7 +453,6 @@ function renderAlerts(reports) {
         pulseIndicator.classList.remove('opacity-30');
 
         // Generate HTML for each report and append
-        // *Note: Adjust 'ReportType' and 'Description' to match your actual Sequelize model columns*
         const alertsHTML = reports.map(report => createAlertHTML(
             report.Type || 'SYSTEM ALERT', 
             getTimeAgo(report.CreatedAt), 
@@ -479,7 +478,7 @@ async function loadResidentNotifications(residentId) {
 
         //Create an array of fetch promises for each Ward ID
         const reportPromises = subscribedWards.map(ward => {
-            const wardId = ward.wardId;
+            const wardId = ward.WardId;
             return fetch(`/api/reports/ward/${wardId}`).then(res => res.json());
         });
 
@@ -509,8 +508,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clear-alerts-btn').addEventListener('click', () => {
         // Render an empty array to clear the UI immediately
         renderAlerts([]);
-        
-        // Note: If you want to permanently delete these from the database or mark them as "read", 
-        // you would need to add another API call here.
     });
 });
