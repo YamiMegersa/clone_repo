@@ -101,33 +101,18 @@
         <aside class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-l border-white/5 h-fit lg:sticky lg:top-28">
             <header class="mb-10 flex items-center justify-between">
                 <h2 class="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                    <span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
+                    <span id="alert-pulse-indicator" class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
                     Recent Alerts
                 </h2>
-                <button class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
+                <button id="clear-alerts-btn" class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
             </header>
-            <ul class="space-y-6">
-                <li class="group">
-                    <article class="space-y-2">
-                        <header class="flex justify-between items-start">
-                            <span class="text-orange-500 font-black tracking-widest text-[10px]">SANITATION ALERT</span>
-                            <span class="text-[9px] opacity-40">2M AGO</span>
-                        </header>
-                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Sanitation alert for Ward 07: Unscheduled maintenance scheduled for midnight.</p>
-                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-                    </article>
-                </li>
-                <li class="group">
-                    <article class="space-y-2">
-                        <header class="flex justify-between items-start">
-                            <span class="text-orange-500 font-black tracking-widest text-[10px]">STATUS RESOLVED</span>
-                            <span class="text-[9px] opacity-40">14M AGO</span>
-                        </header>
-                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Issue resolved in Ward 14: Streetlight outage at 5th and Main cleared.</p>
-                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-                    </article>
-                </li>
-            </ul>
+            
+            <ul id="alerts-list-container" class="space-y-6">
+                </ul>
+            
+            <div id="empty-alerts-message" class="hidden text-sm opacity-50 py-4">
+                No recent alerts.
+            </div>
         </aside>
     </main>
     <dialog id="custom-modal" class="bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl backdrop:bg-background/80 backdrop:backdrop-blur-sm p-0 w-[90%] max-w-md m-auto focus:outline-none">
