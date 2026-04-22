@@ -147,6 +147,20 @@ function manageNotifications(wardId) {
     // Add your routing logic here
 }
 
+function showReportDetails(report) {
+    const details = `
+        <div style="text-align: left;">
+            <strong>Report ID:</strong> ${report.ReportID}<br>
+            <strong>Type:</strong> ${report.Type}<br>
+            <strong>Ward:</strong> ${report.WardID}<br>
+            <strong>Progress:</strong> ${report.Progress}<br>
+            <strong>Created:</strong> ${new Date(report.CreatedAt).toLocaleString()}<br>
+            <strong>Description:</strong> ${report.Description || 'N/A'}
+        </div>
+    `;
+    showModal('Report Details', details);
+}
+
 // ==========================================
 // MENU ACTIONS
 // ==========================================
@@ -426,7 +440,9 @@ const createAlertHTML = (category, timeAgo, message) => `
     <li class="group">
         <article class="space-y-2">
             <header class="flex justify-between items-start">
-                <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">${category}</span>
+                <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">
+                Ward${wardId} - ${category}
+                </span>
                 <span class="text-[9px] opacity-40 uppercase">${timeAgo}</span>
             </header>
             <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${message}</p>
@@ -454,12 +470,21 @@ function renderAlerts(reports) {
 
         // Generate HTML for each report and append
         const alertsHTML = reports.map(report => createAlertHTML(
+            report.WardID,
             report.Type || 'SYSTEM ALERT', 
             getTimeAgo(report.CreatedAt), 
             report.Progress || 'No details provided.'
         )).join('');
 
         listContainer.innerHTML = alertsHTML;
+
+        // Add click listeners to each alert item
+        const alertItems = listContainer.querySelectorAll('li');
+        alertItems.forEach((item, index) => {
+            item.addEventListener('click', () => {
+                showReportDetails(reports[index]);
+            });
+        });
     }
 }
 
