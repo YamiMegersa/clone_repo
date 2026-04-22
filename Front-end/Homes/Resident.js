@@ -403,70 +403,114 @@ loadProvinces();
 
 //notifications
 
-let notifications = [];
-async function loadNotifications(residentId) {
-  try {
-    // Fetching all reports for the resident's subscribed wards (you may want to optimize this in production)
-    const response = await fetch(`/api/residents/${residentId}/subscriptions`);
-    const subscriptions = await response.json();
+// timestamps
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const seconds = Math.floor((new Date() - date) / 1000);
     
-    for(const subscription of subscriptions) {
-        const response = await fetch(`/api/reports/ward/${subscription.WardID}`);
-        const reports = await response.json();
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "Y AGO";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "MO AGO";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "D AGO";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "H AGO";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "M AGO";
+    
+    return "JUST NOW";
+}
+
+const createAlertHTML = (category, timeAgo, message) => `
+    <li class="group">
+        <article class="space-y-2">
+            <header class="flex justify-between items-start">
+                <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">${category}</span>
+                <span class="text-[9px] opacity-40 uppercase">${timeAgo}</span>
+            </header>
+            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${message}</p>
+            <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
+        </article>
+    </li>
+`;
+
+function renderAlerts(reports) {
+    const listContainer = document.getElementById('alerts-list-container');
+    const emptyMessage = document.getElementById('empty-alerts-message');
+    const pulseIndicator = document.getElementById('alert-pulse-indicator');
+
+    listContainer.innerHTML = '';
+
+    if (!reports || reports.length === 0) {
+        emptyMessage.classList.remove('hidden');
+        pulseIndicator.classList.remove('animate-pulse');
+        pulseIndicator.classList.add('opacity-30'); // Dim it instead of hiding entirely
+    } else {
+        // Hide empty state, ensure pulsing
+        emptyMessage.classList.add('hidden');
+        pulseIndicator.classList.add('animate-pulse');
+        pulseIndicator.classList.remove('opacity-30');
+
+        // Generate HTML for each report and append
+        // *Note: Adjust 'ReportType' and 'Description' to match your actual Sequelize model columns*
+        const alertsHTML = reports.map(report => createAlertHTML(
+            report.Type || 'SYSTEM ALERT', 
+            getTimeAgo(report.CreatedAt), 
+            report.Progress || 'No details provided.'
+        )).join('');
+
+        listContainer.innerHTML = alertsHTML;
     }
-    
-    // Convert your Report data into Notification-style data for the UI
-    notifications = subscriptions.map(subscription => ({
-      id: subscription.SubscriptionID,
-      reportId: subscription.ReportID,
-      // Generate a message based on the subscription data
-      message: `New update available for report: ${subscription.Type}`,
-      type: 'GENERAL_UPDATE',
-      timestamp: new Date(report.CreatedAt) 
-    }));
-
-    renderNotifications();
-  } catch (error) {
-    console.error("Failed to load reports:", error);
-  }
 }
 
-// Call this when the page loads
-loadNotifications();
-
-async function handleNotificationClick(notif) {
-  // 1. Optimistically mark as read in the UI
-  notif.isRead = true;
-  renderNotifications();
-    // 2. Redirect to the specific report page (you'll need to create this page and route)
-  window.location.href = `/ward?openReport=${notif.reportId}`; 
-}
-
-//live updates
-setInterval(async () => {
-  const lastTimestamp = notifications[0]?.timestamp.toISOString() || new Date(0).toISOString();
-  
-  try {
-    // Ask the API for anything newer than our newest notification
-    const response = await fetch(`/api/notifications/updates?since=${lastTimestamp}`);
-    const newUpdates = await response.json();
-
-    if (newUpdates.length > 0) {
-      newUpdates.forEach(update => {
-        // Mute check
-        if (!isMuted) {
-           console.log("PUSH ALERT:", update.message);//sends push notification if not muted
-        }
+async function loadResidentNotifications(residentId) {
+    try {
+        const subRes = await fetch(`/api/residents/${residentId}/subscriptions`);
+        if (!subRes.ok) throw new Error('Failed to fetch subscriptions');
         
-        notifications.unshift({
-          ...update,
-          timestamp: new Date(update.createdAt)
+        const subscribedWards = await subRes.json();
+        
+        // If no subscriptions, render empty state and exit early
+        if (subscribedWards.length === 0) {
+            renderAlerts([]);
+            return;
+        }
+
+        //Create an array of fetch promises for each Ward ID
+        const reportPromises = subscribedWards.map(ward => {
+            const wardId = ward.wardId;
+            return fetch(`/api/reports/ward/${wardId}`).then(res => res.json());
         });
-      });
-      
-      renderNotifications();
+
+        //Execute all fetch requests concurrently
+        const reportsArrays = await Promise.all(reportPromises);
+
+        const allReports = reportsArrays
+            .flat()
+            .sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
+
+        renderAlerts(allReports);
+
+    } catch (error) {
+        console.error("Error loading notifications:", error);
+        // Optional: Render a specific error state in the UI
+        document.getElementById('alerts-list-container').innerHTML = 
+            `<li class="text-sm text-red-500">Failed to load alerts.</li>`;
     }
-  } catch (err) {
-    console.error("Failed to fetch updates");
-  }
-}, 30000); // Check every 30 seconds
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentResidentId = localStorage.getItem('residentId') || 1;
+    // Kick off the fetch
+    loadResidentNotifications(currentResidentId);
+
+    // Wire up the "Clear All" button
+    document.getElementById('clear-alerts-btn').addEventListener('click', () => {
+        // Render an empty array to clear the UI immediately
+        renderAlerts([]);
+        
+        // Note: If you want to permanently delete these from the database or mark them as "read", 
+        // you would need to add another API call here.
+    });
+});
