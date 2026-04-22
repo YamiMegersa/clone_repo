@@ -200,15 +200,47 @@ function formatNumber(num) {
 // 5. INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Existing Timeframe Logic
     const timeRadios = document.querySelectorAll('input[name="timeframe"]');
     timeRadios.forEach(radio => {
         radio.addEventListener('change', fetchDashboardData);
     });
 
-    // Force an initial load
+   // 2. Instantiate the modular map (Starting with Provinces!)
+    const dashboardMap = new CivicMap(
+        'map', 
+        'data/sa_provincial.json', // <-- Removed the leading slash, updated filename
+        (data) => {
+            if (data.wardId) {
+                onMapClick('ward', { wardId: data.wardId, municipalityId: data.muniId });
+            } else if (data.muniId) {
+                onMapClick('municipality', { municipalityId: data.muniId });
+            } else {
+                onMapClick('province', { provinceId: data.provId });
+            }
+        }
+    );
+
+    // 3. Connect the Granularity Radio Buttons
+    const granularityRadios = document.querySelectorAll('input[name="granularity"]');
+    granularityRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const label = e.target.nextElementSibling.textContent.trim().toLowerCase();
+            
+            // Swap the map data based on what they clicked
+            if (label === 'provincial') {
+                dashboardMap.loadNewLayer('data/sa_provincial.json'); // <-- Relative path
+            } else if (label === 'ward') {
+                dashboardMap.loadNewLayer('data/sa_wards.json');      // <-- Relative path
+            } else if (label === 'municipal') {
+                dashboardMap.loadNewLayer('data/sa_municipal.json');  // <-- Relative path
+            }
+        });
+    });
+    document.getElementById('zoom-in-btn').addEventListener('click', () => dashboardMap.zoomIn());
+    document.getElementById('zoom-out-btn').addEventListener('click', () => dashboardMap.zoomOut());
     fetchDashboardData(); 
 });
-
 // ==========================================
 // 7. LEDGER MODAL LOGIC
 // ==========================================

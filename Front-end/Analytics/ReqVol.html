@@ -70,6 +70,9 @@
             }
         }
     </script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
         body { font-family: 'Public Sans', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -107,9 +110,7 @@
 </header>
 <section class="flex flex-col gap-6">
 <article class="relative w-full h-[500px] rounded-xl overflow-hidden bg-surface-container-lowest shadow-2xl group">
-<figure class="absolute inset-0 grayscale contrast-125 opacity-60">
-<img class="object-cover w-full h-full" data-alt="Top-down satellite view of an urban municipal grid at night, dark asphalt tones with glowing orange light tracing the streets" data-location="Chicago" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2pcY0dL2Zpxy6q1oc_RF4bcykmoem8Mk311TxJC7PQUZOTbG-iCTrkW-bAaJJ2wWFuzm2rRHVOp_sVxXA_pZ5sBE7PjLPZ6tGiu003ZIJF9ihC6Y2QUEfUxGei5JefW0TULVneZb4cxPyvJUyaICnwgjmQNOlNB1X2TS2sW-ticgJXgY060jWv00DbA38imLVfQUonkg1dNDST-0aPbODiZr1dcuqGXpZ02iKm3WoNb_XXqU40X2MzrZPCBB4m4GVn2lFgSzcZyo"/>
-</figure>
+<figure id="map" class="absolute inset-0 z-0"></figure>
 <nav class="absolute top-6 left-6 p-1 bg-surface-container-highest/60 backdrop-blur-md rounded-lg flex gap-1 border border-white/10">
 <label class="cursor-pointer group/radio">
 <input checked="" class="hidden peer" name="granularity" type="radio"/>
@@ -125,10 +126,10 @@
 </label>
 </nav>
 <nav class="absolute bottom-6 right-6 flex flex-col gap-2">
-<button class="size-12 bg-surface-container-highest/80 backdrop-blur-md text-on-surface rounded-lg hover:bg-primary-container hover:text-on-primary transition-all border border-white/5 flex items-center justify-center">
+<button id="zoom-in-btn" class="size-12 bg-surface-container-highest/80 backdrop-blur-md text-on-surface rounded-lg hover:bg-primary-container hover:text-on-primary transition-all border border-white/5 flex items-center justify-center">
 <span class="material-symbols-outlined" data-icon="add">add</span>
 </button>
-<button class="size-12 bg-surface-container-highest/80 backdrop-blur-md text-on-surface rounded-lg hover:bg-primary-container hover:text-on-primary transition-all border border-white/5 flex items-center justify-center">
+<button id="zoom-out-btn" class="size-12 bg-surface-container-highest/80 backdrop-blur-md text-on-surface rounded-lg hover:bg-primary-container hover:text-on-primary transition-all border border-white/5 flex items-center justify-center">
 <span class="material-symbols-outlined" data-icon="remove">remove</span>
 </button>
 </nav>
@@ -237,6 +238,6 @@
         </table>
     </div>
 </dialog>
-
+<script src="CivicMap.js"></script>
 <script src="ReqVol.js"></script>
 </body></html>
