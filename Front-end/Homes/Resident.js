@@ -410,23 +410,26 @@ municipalitySelect.addEventListener('change', async (e) => {
 loadProvinces();
 
 //notifications
+
 let notifications = [];
-
-
-async function loadNotifications(wardId) {
+async function loadNotifications(residentId) {
   try {
-    // Hits your: router.get('/ward/:wardId')
-    const response = await fetch(`/api/reports/ward/${wardId}`); 
-    const reports = await response.json();
+    // Fetching all reports for the resident's subscribed wards (you may want to optimize this in production)
+    const response = await fetch(`/api/residents/${residentId}/subscriptions`);
+    const subscriptions = await response.json();
+    
+    for(const subscription of subscriptions) {
+        const response = await fetch(`/api/reports/ward/${subscription.WardID}`);
+        const reports = await response.json();
+    }
     
     // Convert your Report data into Notification-style data for the UI
-    notifications = reports.map(report => ({
-      id: report.ReportID, 
-      reportId: report.ReportID, 
-      // Generate a message based on the report data
-      message: `New issue: ${report.Type} reported at ${report.Latitude}, ${report.Longitude}`,
+    notifications = subscriptions.map(subscription => ({
+      id: subscription.SubscriptionID,
+      reportId: subscription.ReportID,
+      // Generate a message based on the subscription data
+      message: `New update available for report: ${subscription.Type}`,
       type: 'GENERAL_UPDATE',
-      isRead: false, // We can't track this without a DB table, so they are always unread initially
       timestamp: new Date(report.CreatedAt) 
     }));
 
@@ -443,15 +446,7 @@ async function handleNotificationClick(notif) {
   // 1. Optimistically mark as read in the UI
   notif.isRead = true;
   renderNotifications();
-
-  // 2. Tell the database it was read (fire-and-forget)
-  fetch(`/api/notifications/${notif.id}/read`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  }).catch(err => console.error("Failed to update read status", err));
-
-  // 3. Navigate to the ward page and pass the reportId in the URL
-  // Example result: /ward?openReport=rep-101
+    // 2. Redirect to the specific report page (you'll need to create this page and route)
   window.location.href = `/ward?openReport=${notif.reportId}`; 
 }
 
@@ -466,10 +461,9 @@ setInterval(async () => {
 
     if (newUpdates.length > 0) {
       newUpdates.forEach(update => {
-        // Handle AC 3 (Mute check)
+        // Mute check
         if (!isMuted) {
-           console.log("PUSH ALERT:", update.message);
-           // e.g., trigger an actual Toast or Browser Push Notification here
+           console.log("PUSH ALERT:", update.message);//sends push notification if not muted
         }
         
         notifications.unshift({

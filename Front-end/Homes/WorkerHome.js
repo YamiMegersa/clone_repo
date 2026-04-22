@@ -246,7 +246,7 @@ async function updateProgress(reportId, progressText) {
         console.error("Failed to update progress:", err);
     }
 }
-// --- IMAGE LOGIC ---
+// IMAGE LOGIC
 window.handleImageSelect = (event, reportId) => {
     // Initialize array if it doesn't exist for this task
     if (!taskImages[reportId]) {
@@ -288,4 +288,37 @@ function renderPreviews(reportId) {
         };
         reader.readAsDataURL(file);
     });
+}
+
+async function uploadTaskImages(reportId) {
+    const filesToUpload = taskImages[reportId];
+    if (!filesToUpload || filesToUpload.length === 0) {
+        return; 
+    }
+
+    try {
+        for (const file of filesToUpload) {
+            const base64String = await toBase64(file);
+
+            const response = await fetch(`/api/reportImages/report/${reportId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    // IMPORTANT: Change to actual DB column name for image uploading
+                    ImageColumnName: base64String 
+                })
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to upload an image for report ${reportId}`);
+            }
+        }
+
+        taskImages[reportId] = [];
+        renderPreviews(reportId);//clear previews after upload
+        console.log("All images uploaded successfully!");
+
+    } catch (err) {
+        console.error("Error during image upload process:", err);
+    }
 }
