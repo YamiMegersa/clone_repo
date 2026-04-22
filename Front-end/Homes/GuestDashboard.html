@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Groundwork - Public Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131313",
+                        "on-background": "#e2e2e2",
+                        "surface-container-low": "#1b1b1b",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary": "#ffb77d",
+                        "primary-container": "#ff8c00",
+                        "on-surface-variant": "#ddc1ae",
+                        "outline-variant": "#564334"
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Public Sans', sans-serif; background-color: #131313; color: #e2e2e2; }
+    </style>
+</head>
+
+<body class="bg-background text-on-background selection:bg-primary-container selection:text-on-primary-container">
+
+    <header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20">
+        <section class="flex items-center">
+            <span class="text-2xl font-black tracking-tighter text-[#E2E2E2] uppercase">GROUNDWORK</span>
+        </section>
+        <section class="flex items-center gap-6">
+            <a href="../Login/Login.html" class="flex items-center gap-2 text-primary hover:text-primary-container transition-colors font-black uppercase tracking-widest text-xs">
+                <span>Resident Login</span>
+                <span class="material-symbols-outlined text-lg">login</span>
+            </a>
+        </section>
+    </header>
+
+    <main class="pt-28 px-8 pb-12 grid grid-cols-12 gap-8 min-h-screen max-w-7xl mx-auto">
+        
+        <section class="col-span-12 lg:col-span-8 space-y-12">
+            
+            <section aria-labelledby="stats-heading">
+                <header class="mb-6">
+                    <h2 id="stats-heading" class="text-xs font-black uppercase tracking-[0.3em] text-orange-500 mb-2">Public Access Portal</h2>
+                </header>
+                <article class="flex flex-col md:flex-row items-center justify-between bg-surface-container-low p-8 border-l-4 border-orange-600 gap-6">
+                    <section class="flex gap-8 items-center">
+                        <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1;">travel_explore</span>
+                        <header>
+                            <h4 class="text-2xl font-black uppercase italic">CIVIC TRANSPARENCY</h4>
+                            <p class="text-on-surface-variant text-sm uppercase tracking-tighter">View live municipal infrastructure reports across all wards.</p>
+                        </header>
+                    </section>
+                </article>
+            </section>
+
+            <hr class="border-white/5">
+
+            <section aria-labelledby="wards-heading">
+                <header class="mb-8">
+                    <h2 id="wards-heading" class="text-[3.5rem] font-black tracking-tighter leading-none mb-2">Find a Ward</h2>
+                    <p class="text-on-surface-variant max-w-xl font-body leading-relaxed">Select a region below to view an interactive map and all associated public reports.</p>
+                </header>
+
+                <form id="guest-ward-form" class="p-8 space-y-8 bg-surface-container-low border border-white/5 shadow-2xl rounded-xl">
+                    
+                    <fieldset class="group border-none p-0 m-0">
+                        <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-3" for="province">Select Province</label>
+                        <select class="w-full bg-[#0E0E0E] text-white border-0 border-b-2 border-outline-variant focus:border-primary-container focus:ring-0 py-4 px-3 text-lg transition-all rounded-t-md" id="province" name="province" required>
+                            <option disabled selected value="">Choose a province...</option>
+                        </select>
+                    </fieldset>
+
+                    <fieldset class="group border-none p-0 m-0">
+                        <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-3" for="municipality">Select Municipality</label>
+                        <select class="w-full bg-[#0E0E0E] text-white border-0 border-b-2 border-outline-variant focus:border-primary-container focus:ring-0 py-4 px-3 text-lg transition-all rounded-t-md" id="municipality" name="municipality" required disabled>
+                            <option disabled selected value="">Waiting for province...</option>
+                        </select>
+                    </fieldset>
+
+                    <fieldset class="group border-none p-0 m-0">
+                        <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-3" for="ward">Select Ward</label>
+                        <select class="w-full bg-[#0E0E0E] text-white border-0 border-b-2 border-outline-variant focus:border-primary-container focus:ring-0 py-4 px-3 text-lg transition-all rounded-t-md" id="ward" name="ward" required disabled>
+                            <option disabled selected value="">Waiting for municipality...</option>
+                        </select>
+                    </fieldset>
+
+                    <footer class="pt-6">
+                        <button type="submit" class="w-full py-5 text-[#4d2600] font-black text-sm uppercase tracking-widest rounded-lg shadow-lg bg-gradient-to-br from-[#FF8C00] to-[#FFB77D] hover:scale-[1.02] active:scale-[0.98] transition-transform flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" id="submit-btn" disabled>
+                            <span>View Ward Dashboard</span>
+                            <span aria-hidden="true" class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </footer>
+                </form>
+            </section>
+        </section>
+
+        <aside class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-l border-white/5 h-fit lg:sticky lg:top-28 rounded-xl">
+            <header class="mb-10 flex items-center justify-between">
+                <h2 class="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+                    <span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
+                    Live City Stats
+                </h2>
+            </header>
+            
+            <ul class="space-y-6">
+                <li class="group bg-surface-container-lowest p-6 rounded-lg border border-white/5 hover:border-primary/30 transition-colors">
+                    <article class="space-y-2">
+                        <header class="flex justify-between items-center mb-4">
+                            <span class="material-symbols-outlined text-orange-500">warning</span>
+                            <span class="text-[10px] opacity-40 uppercase font-black tracking-widest">Global</span>
+                        </header>
+                        <p class="text-4xl font-black text-on-background" id="global-open-issues">--</p>
+                        <p class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Active Open Issues</p>
+                    </article>
+                </li>
+
+                <li class="group bg-surface-container-lowest p-6 rounded-lg border border-white/5 hover:border-green-500/30 transition-colors">
+                    <article class="space-y-2">
+                        <header class="flex justify-between items-center mb-4">
+                            <span class="material-symbols-outlined text-green-500">check_circle</span>
+                            <span class="text-[10px] opacity-40 uppercase font-black tracking-widest">Global</span>
+                        </header>
+                        <p class="text-4xl font-black text-on-background" id="global-resolved-issues">--</p>
+                        <p class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Issues Resolved</p>
+                    </article>
+                </li>
+            </ul>
+        </aside>
+    </main>
+
+    <dialog id="custom-modal" class="bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl backdrop:bg-background/80 backdrop:backdrop-blur-sm p-0 w-[90%] max-w-md m-auto focus:outline-none">
+        <div class="p-6">
+            <h3 id="modal-title" class="text-xl font-black tracking-widest text-on-background mb-2 uppercase">Alert</h3>
+            <p id="modal-message" class="text-on-surface-variant font-bold text-sm mb-8 leading-relaxed"></p>
+            <div id="modal-actions" class="flex justify-end gap-3 m-0">
+                <button type="button" onclick="document.getElementById('custom-modal').close()" class="px-4 py-2 bg-primary text-[#4d2600] font-bold rounded-md">Close</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="GuestDashboard.js"></script>
+</body>
+</html>
