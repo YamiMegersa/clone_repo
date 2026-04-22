@@ -140,7 +140,7 @@ describe('ReportPage.js Code Coverage Suite', () => {
         await new Promise(r => setTimeout(r, 20));
 
         const payload = JSON.parse(global.fetch.mock.calls[0][1].body);
-        expect(payload.Lattitude).toBe(0);
+        expect(payload.Latitude).toBe(0);
         expect(payload.Longitude).toBe(0);
     });
 

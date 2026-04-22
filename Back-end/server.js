@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- 1. MIDDLEWARE ---
 app.use(cors()); 
-app.use(express.json()); 
+app.use(express.json({ limit: '50mb' })); // Vital for the base64 images
 
 // --- 2. Resident GOOGLE AUTH API ROUTE ---
 
@@ -31,7 +31,7 @@ app.post('/api/auth/google', async (req, res) => {
         const { email, name } = payload; //ticket with user information.
 
         // --- SPECIAL ADMIN CASE ---
-        if (email === "2820314@students.wits.ac.za") {
+        if (email === "2820314@students.wits.ac.za" || email==="2799656@students.wits.ac.za") {
             return res.status(200).json({ 
                 success: true, 
                 role: 'admin', 

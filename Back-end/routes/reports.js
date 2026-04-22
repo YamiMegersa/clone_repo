@@ -2,6 +2,17 @@ const express=require('express');
 const router=express.Router();
 const {Report, ReportImage, Allocation}=require('../models');
 const { Op } = require('sequelize');
+const { MunicipalWorker } = require('../models');
+
+if (Allocation && Report && MunicipalWorker) {
+    Allocation.belongsTo(Report, { foreignKey: 'ReportID' });
+    Report.hasMany(Allocation, { foreignKey: 'ReportID' });
+
+    Allocation.belongsTo(MunicipalWorker, { foreignKey: 'EmployeeID' });
+    MunicipalWorker.hasMany(Allocation, { foreignKey: 'EmployeeID' });
+} else {
+    console.error("CRITICAL: One or more models failed to load. Check your paths and exports.");
+}
 
 //GET: FEtch ALL reports (Useful for the Municipal Dashboard)
 router.get('/',async (req,res)=>{
@@ -101,6 +112,8 @@ router.delete('/:id', async (req,res)=>{
     }
 });
 
+
+
 // Luc stuff. its for claiming reports for workers.
 // A. GET: Fetch reports that have no allocation yet
 router.get('/available/unclaimed', async (req, res) => {
@@ -159,6 +172,21 @@ router.post('/:id/assign', async (req, res) => {
     }
 });
 
+//GET: tracks workers for admins
+router.get('/admin/tracker', async (req, res) => {
+    try {
+        const trackerData = await Allocation.findAll({
+            include: [
+                { model: Report, attributes: ['Type', 'Progress'] },
+                { model: MunicipalWorker, attributes: ['FirstName', 'LastName'] }
+            ]
+        });
+        res.json(trackerData);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 //PUT: Sets priority for reports
 router.put('/:id/priority', async (req, res) => {
     try {
@@ -193,6 +221,32 @@ router.put('/:id/edit', async (req, res) => {
     }
 });
 
+// PUT: Worker declines a task
+// PUT: Worker declines a task
+router.put('/:id/decline', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        const { reason, workerName } = req.body;
+
+        await Allocation.destroy({ where: { ReportID: reportId } });
+
+        await Report.update(
+            { 
+                Status: 'Pending',                                          // ← already correct
+                Progress: `Pending - Declined by ${workerName}: ${reason}` // ← prefix with "Pending"
+            }, 
+            { where: { ReportID: reportId } }
+        );
+
+        
+        res.status(200).json({ message: "Task returned to pool" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
 // GET: Fetch reports assigned to a specific worker
 router.get('/assigned/:workerId', async (req, res) => {
     try {
@@ -200,15 +254,10 @@ router.get('/assigned/:workerId', async (req, res) => {
         const assignments = await Allocation.findAll({ where: { EmployeeID: workerId } });
         const reportIds = assignments.map(a => a.ReportID);
 
+        // We remove the [Op.or] filter so we get EVERYTHING (Active + Fixed)
         const reports = await Report.findAll({
             where: {
-                ReportID: reportIds,
-                // Use Op.or with Op.like to find partial matches
-                [Op.or]: [
-                    { Progress: { [Op.like]: 'Assigned%' } },
-                    { Progress: { [Op.like]: 'In Progress%' } },
-                    { Progress: 'Pending Allocation' }
-                ]
+                ReportID: reportIds
             }
         });
         res.json(reports);
@@ -237,12 +286,11 @@ router.put('/:id/accept', async (req, res) => {
 });
 
 // GET: Fetch all reports for a specific Ward
-// GET: Fetch all reports for a specific Ward
 router.get('/ward/:wardId', async (req, res) => {
     try {
         const reports = await Report.findAll({
-            where: { WardID: req.params.wardId }, // Fixed the 'req.req' typo
-            order: [['CreatedAt', 'DESC']]        // Fixed the column name to match your DB
+            where: { WardID: req.params.wardId }, 
+            order: [['CreatedAt', 'DESC']]        
         });
         res.json(reports);
     } catch (err) {

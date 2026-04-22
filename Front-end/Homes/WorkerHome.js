@@ -23,53 +23,135 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMyAssignedTasks(workerId);
 });
 
+let archivedReports = []; 
+let completedVisible = false;
+
 async function loadMyAssignedTasks(workerId) {
     try {
         const response = await fetch(`/api/reports/assigned/${workerId}`);
-        let reports = await response.json();
+        let allReports = await response.json();
+
+        // 2. Separate into Active and Archived
+        let activeReports = allReports.filter(r => {
+            const p = (r.Progress || "").toLowerCase();
+            return !p.includes('fixed') && !p.includes('resolved') && !p.includes('100%');
+        });
+
+        // Store the ones that ARE fixed into our global archive
+        archivedReports = allReports.filter(r => {
+            const p = (r.Progress || "").toLowerCase();
+            const s = (r.Status || "").toLowerCase();
+            return p.includes('fixed') || p.includes('resolved') || p.includes('100%') || s === 'fixed';
+        });
 
         const container = document.getElementById('active-tasks-container');
-        
-        // Safety check to ensure the container exists
         if (!container) return;
-
         container.innerHTML = ''; 
 
-        // Handle Empty State
-        if (!reports || reports.length === 0) {
+        if (activeReports.length === 0) {
             container.innerHTML = `
                 <section class="py-20 text-center border-2 border-dashed border-outline/20 rounded-3xl">
                     <span class="material-symbols-outlined text-5xl text-outline mb-4">task_alt</span>
-                    <p class="text-on-surface-variant text-xs font-black uppercase tracking-[0.3em]">
-                        Clear Ledger: No Active Assignments
-                    </p>
+                    <p class="text-on-surface-variant text-xs font-black uppercase tracking-[0.3em]">Clear Ledger: No Active Assignments</p>
                 </section>`;
             return;
         }
 
-        // SORTING LOGIC for priority: 1 (Critical) -> 2 (High) -> 3 (Routine)
-        // This ensures the most urgent tasks appear at the top of the worker's feed
-        reports.sort((a, b) => (a.Priority || 3) - (b.Priority || 3));
-
-        // Render the Cards
-        reports.forEach(report => {
-            renderTaskCard(report, container);
-        });
+        activeReports.sort((a, b) => (a.Priority || 3) - (b.Priority || 3));
+        activeReports.forEach(report => renderTaskCard(report, container));
 
     } catch (err) {
-        console.error("Critical failure loading worker ledger:", err);
-        const container = document.getElementById('active-tasks-container');
-        if (container) {
+        console.error("Critical failure:", err);
+    }
+}
+async function toggleCompletedTasks() {
+    const container = document.getElementById('completed-tasks-list');
+    const button = document.querySelector('footer button');
+    
+    // Always pull the ID from localStorage so it matches the logged-in user
+    const workerId = localStorage.getItem('workerId');
+
+    if (completedVisible) {
+        container.innerHTML = '';
+        button.innerHTML = '<span class="material-symbols-outlined text-sm">history</span> Show Completed Tasks';
+        completedVisible = false;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/reports/assigned/${workerId}`);
+        const reports = await response.json();
+
+        // Safer filtering using .includes() to handle "Fixed", "Resolved", or "100%"
+        const completed = reports.filter(r => {
+            const p = (r.Progress || "").toLowerCase();
+            const s = (r.Status || "").toLowerCase();
+            return p.includes('fixed') || p.includes('resolved') || p.includes('100') || s.includes('fixed');
+        });
+
+        if (completed.length === 0) {
             container.innerHTML = `
-                <article class="p-6 bg-red-500/10 border border-red-500/50 rounded-xl">
-                    <p class="text-red-500 text-xs font-bold uppercase tracking-widest">
-                        Sync Error: Unable to reach central command.
-                    </p>
-                </article>`;
+                <div class="py-10 text-center border border-dashed border-outline/20 rounded-xl">
+                    <p class="text-[10px] uppercase tracking-widest text-neutral-600 font-black">No completed operations found.</p>
+                </div>`;
+        } else {
+            container.innerHTML = completed.map(report => `
+                <div class="flex justify-between items-center p-4 bg-surface-container-high/20 border border-outline/10 rounded-xl mb-3">
+                    <section>
+                        <p class="text-[10px] font-mono text-primary/60">#${report.ReportID}</p>
+                        <h4 class="text-sm font-bold text-on-surface">${report.Type}</h4>
+                    </section>
+                    <section class="text-right">
+                        <p class="text-[10px] font-black uppercase text-on-surface-variant">Archived</p>
+                        <p class="text-[9px] text-neutral-600">${report.DateFulfilled ? new Date(report.DateFulfilled).toLocaleDateString() : 'Finalized'}</p>
+                    </section>
+                </div>
+            `).join('');
         }
+
+        button.innerHTML = '<span class="material-symbols-outlined text-sm">expand_less</span> Hide Completed Tasks';
+        completedVisible = true;
+
+    } catch (err) {
+        console.error("Failed to fetch archive:", err);
+        alert("Sync Error: Could not load archive.");
     }
 }
 
+
+
+async function toggleCompletedTasks() {
+    const container = document.getElementById('completed-tasks-list');
+    const button = document.querySelector('footer button');
+    
+    if (completedVisible) {
+        container.innerHTML = '';
+        button.innerHTML = '<span class="material-symbols-outlined text-sm">history</span> Show Completed Tasks';
+        completedVisible = false;
+        return;
+    }
+
+    // Instead of fetching again, we use the data we already stored
+    if (archivedReports.length === 0) {
+        container.innerHTML = '<p class="text-[10px] text-center uppercase tracking-widest text-neutral-600 py-4">No completed operations found.</p>';
+    } else {
+        container.innerHTML = archivedReports.map(report => `
+            <div class="flex justify-between items-center p-4 bg-surface-container-high/20 border border-outline/10 rounded-xl mb-3">
+                <section>
+                    <p class="text-[10px] font-mono text-primary/60 opacity-50">#${report.ReportID}</p>
+                    <h4 class="text-sm font-bold text-on-surface">${report.Type}</h4>
+                </section>
+                <section class="text-right">
+                    <p class="text-[10px] font-black uppercase text-on-surface-variant">Archived</p>
+                    <p class="text-[9px] text-neutral-600">${report.DateFulfilled ? new Date(report.DateFulfilled).toLocaleDateString() : 'Finalized'}</p>
+                </section>
+            </div>
+        `).join('');
+    }
+
+    button.innerHTML = '<span class="material-symbols-outlined text-sm">expand_less</span> Hide Completed Tasks';
+    completedVisible = true;
+}
 //workers can accept tasks 
 async function acceptTask(reportId) {
     try {
@@ -127,10 +209,21 @@ function renderTaskCard(report, container) {
 
             <nav class="flex flex-col gap-4" onclick="event.stopPropagation()">
                 ${isNewTask ? `
-                    <button onclick="acceptTask(${report.ReportID})" 
-                            class="w-full bg-yellow-700/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all shadow-lg">
-                        <span class="material-symbols-outlined text-base">play_arrow</span> Accept Task
-                    </button>
+                    <menu class="flex gap-4 p-0 m-0 list-none">
+        <li class="flex-1">
+            <button type="button" onclick="acceptTask(${report.ReportID})" 
+                    class="w-full bg-yellow-700/80 text-neutral-900 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-yellow-600 transition-all shadow-lg">
+                <span class="material-symbols-outlined text-base">play_arrow</span> Accept
+            </button>
+        </li>
+        
+        <li class="flex-1">
+            <button type="button" onclick="declineTask(${report.ReportID})" 
+                    class="w-full bg-red-900/40 text-red-400 border border-red-500/30 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-red-800/40 transition-all">
+                <span class="material-symbols-outlined text-base">close</span> Decline
+            </button>
+        </li>
+    </menu>
                 ` : `
                     <section class="flex flex-col gap-2 p-4 bg-black/20 rounded-xl border border-white/5" aria-label="Progress Update">
                         <div class="flex justify-between items-center">
@@ -171,6 +264,31 @@ function renderTaskCard(report, container) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
+//workers can decline tasks
+async function declineTask(reportId) {
+    const reason = prompt("Please provide a reason for declining this task (e.g., lack of materials, site inaccessible):");
+    if (reason === null) return; // User cancelled
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}/decline`, {
+            method: 'PUT', // Using PUT because we are updating the state
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                reason, 
+                workerName: localStorage.getItem('workerName') || "A worker" 
+            })
+        });
+
+        if (response.ok) {
+            alert("Task returned to central command. Admin has been notified.");
+            location.reload();
+        }
+    } catch (err) {
+        console.error("Error declining task:", err);
+    }
+}
+
+
 //Moves task to final 'Resolved' state.Sends 'Fixed' status to trigger the backend logic for DateFulfilled.
 async function resolveTask(reportId) {
     if(!confirm("Are you sure this job is finished?")) return;
@@ -202,24 +320,44 @@ async function showTaskDetails(reportId) {
         const response = await fetch(`/api/reports/${reportId}`);
         const report = await response.json();
 
-        // Map database fields to the Modal IDs in your HTML
-        document.getElementById('detail-type').textContent = report.Type;
+        // Populate fields
         document.getElementById('detail-id').textContent = `Task Reference: #${report.ReportID}`;
-        document.getElementById('detail-description').textContent = report.Description || "No additional briefing provided by the resident.";
+        document.getElementById('detail-type').textContent = report.Type;
+        document.getElementById('detail-description').textContent = report.Description || "No additional briefing provided.";
         document.getElementById('detail-ward').textContent = `Ward ${report.WardID}`;
-        
-        // Use Progress here because that's where "Pending Allocation" is stored
         document.getElementById('detail-status').textContent = report.Progress;
 
-        // Show the Modal
-        document.getElementById('task-detail-modal').classList.remove('hidden');
+        const modal = document.getElementById('task-detail-modal');
+        
+        // NATIVE DIALOG TRIGGER
+        modal.style.display = 'flex'; // Ensure the flex centering works
+        modal.showModal(); 
+        
     } catch (err) {
         console.error("Error showing details:", err);
     }
 }
 
 function closeModal() {
-    document.getElementById('task-detail-modal').classList.add('hidden');
+    const modal = document.getElementById('task-detail-modal');
+    if (modal) {
+        // Native dialog close
+        modal.close(); 
+        
+        // Tailwind/CSS reset to ensure the flex overlay disappears
+        modal.style.display = 'none'; 
+        
+        // Clean up classes just in case
+        modal.classList.add('hidden');
+    }
+}
+
+
+const modal = document.getElementById('task-detail-modal');
+if (modal) {
+    modal.addEventListener('cancel', (event) => {
+        modal.style.display = 'none';
+    });
 }
 
 //This updates the 'Progress' field in the DB so Admins/Residents can see live status.

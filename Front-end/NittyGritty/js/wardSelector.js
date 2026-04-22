@@ -2,86 +2,9 @@
  * wardSelector.js
  *
  * Three-level cascading dropdown: Province → Municipality → Ward
- * Reads directly from the wards.csv file hosted on GitHub.
- *
- * Usage: call initWardSelector() once the DOM is ready.
+ * Fetches geography data dynamically from the database API using IDs.
  */
 
-// ---------------------------------------------------------------------------
-// Config — URL to actual GitHub repo path
-// ---------------------------------------------------------------------------
-
-const CSV_URL =
-  './data/wards.csv';
-
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
-
-/** @type {WardRow[]} */
-let allWards = [];
-
-/**
- * @typedef {Object} WardRow
- * @property {string} province
- * @property {string} municipality
- * @property {string} catB
- * @property {string} wardNo
- * @property {string} district
- * @property {string} districtCode
- * @property {string} wardId
- * @property {string} wardLabel
- */
-
-// ---------------------------------------------------------------------------
-// CSV loader + parser
-// ---------------------------------------------------------------------------
-
-/**
- * Fetches and parses the wards CSV from GitHub.
- * Cached after first load — subsequent calls return immediately.
- * @returns {Promise<WardRow[]>}
- */
-async function loadWards() {
-  if (allWards.length) return allWards;
-
-  const res = await fetch(CSV_URL);
-  if (!res.ok) throw new Error(`Could not load wards CSV: ${res.status}`);
-
-  const text = await res.text();
-
-  // Strip UTF-8 BOM if present (common with Excel/GIS exports)
-  const clean = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-  const lines = clean.split(/\r?\n/).filter(Boolean);
-
-  // Skip header row (index 0)
-  allWards = lines.slice(1).map((line) => {
-    const c = line.split(',');
-    return {
-      province:     c[1]?.trim() ?? '',
-      municipality: c[2]?.trim() ?? '',
-      catB:         c[3]?.trim() ?? '',
-      wardNo:       c[4]?.trim() ?? '',
-      district:     c[5]?.trim() ?? '',
-      districtCode: c[6]?.trim() ?? '',
-      wardId:       c[8]?.trim() ?? '',
-      wardLabel:    c[9]?.trim() ?? '',
-    };
-  }).filter((r) => r.wardId); // drop any blank trailing lines
-
-  return allWards;
-}
-
-// ---------------------------------------------------------------------------
-// Dropdown helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Replaces a <select>'s options with a placeholder + new entries.
- * @param {HTMLSelectElement} select
- * @param {Array<{value: string, label: string}>} items
- * @param {string} placeholder
- */
 function setOptions(select, items, placeholder) {
   select.innerHTML = '';
   const def = new Option(placeholder, '', true, true);
@@ -90,123 +13,120 @@ function setOptions(select, items, placeholder) {
   items.forEach(({ value, label }) => select.appendChild(new Option(label, value)));
 }
 
-/**
- * Resets a <select> to a disabled placeholder and optionally disables it.
- * @param {HTMLSelectElement} select
- * @param {string} placeholder
- * @param {boolean} [disabled=true]
- */
 function resetSelect(select, placeholder, disabled = true) {
   select.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
   select.disabled = disabled;
 }
 
-// ---------------------------------------------------------------------------
-// Main initialiser
-// ---------------------------------------------------------------------------
-
-/**
- * Wires up the three cascading dropdowns.
- * Expects these IDs in the DOM:
- *   #province-select, #municipality-select, #ward-select
- *
- * Dispatches a 'ward:selected' CustomEvent on document when a ward is chosen:
- *   event.detail = { wardId, wardNo, wardLabel, municipality, province, catB, district }
- */
 export async function initWardSelector() {
+  console.log("Ward Selector Script Started!"); // Debug check
+
   const provinceEl     = document.getElementById('province-select');
   const municipalityEl = document.getElementById('municipality-select');
   const wardEl         = document.getElementById('ward-select');
 
   if (!provinceEl || !municipalityEl || !wardEl) {
-    console.error('[wardSelector] Missing one or more select elements in the DOM.');
+    console.error('Missing one or more select elements in the DOM.');
     return;
   }
 
-  // Show loading state while CSV fetches
+  // Set initial loading state
   provinceEl.disabled = true;
-  provinceEl.innerHTML = '<option value="" disabled selected>Loading wards…</option>';
+  provinceEl.innerHTML = '<option value="" disabled selected>Loading provinces…</option>';
   resetSelect(municipalityEl, 'Select a municipality…');
-  resetSelect(wardEl,         'Select a ward…');
+  resetSelect(wardEl, 'Select a ward…');
 
-  let wards;
+  // ── 1. Populate Provinces ────────────────────────────────────────────────
   try {
-    wards = await loadWards();
+    const res = await fetch('/api/geography/provinces');
+    if (!res.ok) throw new Error('Failed to load provinces from DB');
+    
+    const provinces = await res.json(); 
+    console.log("Provinces from Database:", provinces); // See actual column names
+
+    setOptions(
+      provinceEl,
+      provinces.map((p) => ({ 
+        value: p.ProvinceID || p.id, 
+        label: p.ProvinceName || p.Province || p.name || 'Unknown Province'
+      })),
+      'Select a province…'
+    );
+    provinceEl.disabled = false;
   } catch (err) {
-    console.error('[wardSelector] Failed to load wards:', err);
-    provinceEl.innerHTML = '<option value="" disabled selected>Failed to load — check CSV URL</option>';
+    console.error('Province Fetch Error:', err);
+    provinceEl.innerHTML = '<option value="" disabled selected>Failed to load database</option>';
     return;
   }
 
-  // ── Populate provinces ───────────────────────────────────────────────────
-  const provinces = [...new Set(wards.map((w) => w.province))].sort();
-  setOptions(
-    provinceEl,
-    provinces.map((p) => ({ value: p, label: p })),
-    'Select a province…'
-  );
-  provinceEl.disabled = false;
+  // ── 2. Province → Municipality ───────────────────────────────────────────
+  provinceEl.addEventListener('change', async () => {
+    const selectedProvinceId = provinceEl.value; 
 
-  // ── Province → Municipality ──────────────────────────────────────────────
-  provinceEl.addEventListener('change', () => {
-    const selectedProvince = provinceEl.value;
+    resetSelect(municipalityEl, 'Loading municipalities…', true);
+    resetSelect(wardEl, 'Select a ward…', true);
 
-    const municipalities = [
-      ...new Set(
-        wards
-          .filter((w) => w.province === selectedProvince)
-          .map((w) => w.municipality)
-      ),
-    ].sort();
+    try {
+      const res = await fetch(`/api/geography/provinces/${selectedProvinceId}/municipalities`);
+      if (!res.ok) throw new Error('Failed to load municipalities');
+      
+      const municipalities = await res.json(); 
+      console.log("Municipalities from Database:", municipalities);
 
-    setOptions(
-      municipalityEl,
-      municipalities.map((m) => ({ value: m, label: m })),
-      'Select a municipality…'
-    );
-    municipalityEl.disabled = false;
-
-    // Reset ward level
-    resetSelect(wardEl, 'Select a ward…');
+      setOptions(
+        municipalityEl,
+        municipalities.map((m) => ({ 
+          value: m.MunicipalityID || m.id, 
+          label: m.MunicipalityName || m.Municipality || m.name || 'Unknown Municipality'
+        })),
+        'Select a municipality…'
+      );
+      municipalityEl.disabled = false;
+    } catch (err) {
+      console.error('Municipality Fetch Error:', err);
+      resetSelect(municipalityEl, 'Error loading municipalities');
+    }
   });
 
-  // ── Municipality → Ward ──────────────────────────────────────────────────
-  municipalityEl.addEventListener('change', () => {
-    const selectedMunic = municipalityEl.value;
+  // ── 3. Municipality → Ward ───────────────────────────────────────────────
+  municipalityEl.addEventListener('change', async () => {
+    const selectedMunicipId = municipalityEl.value; 
 
-    const municipalityWards = wards
-      .filter((w) => w.municipality === selectedMunic)
-      .sort((a, b) => Number(a.wardNo) - Number(b.wardNo)); // sort numerically
+    resetSelect(wardEl, 'Loading wards…', true);
 
-    setOptions(
-      wardEl,
-      municipalityWards.map((w) => ({
-        value: w.wardId,
-        label: `Ward ${w.wardNo}`,
-      })),
-      'Select a ward…'
-    );
-    wardEl.disabled = false;
+    try {
+      const res = await fetch(`/api/geography/municipalities/${selectedMunicipId}/wards`);
+      if (!res.ok) throw new Error('Failed to load wards');
+      
+      const wards = await res.json(); 
+      console.log("Wards from Database:", wards);
+
+      setOptions(
+        wardEl,
+        wards.map((w) => ({
+          value: w.WardID || w.id,
+          label: `Ward ${w.WardID || w.WardNo || '?'}`
+        })),
+        'Select a ward…'
+      );
+      wardEl.disabled = false;
+    } catch (err) {
+       console.error('Ward Fetch Error:', err);
+       resetSelect(wardEl, 'Error loading wards');
+    }
   });
 
-  // ── Ward selected — fire event ────────────────────────────────────────────
-  wardEl.addEventListener('change', () => {
-    const ward = wards.find((w) => w.wardId === wardEl.value);
-    if (!ward) return;
-
-    document.dispatchEvent(
-      new CustomEvent('ward:selected', {
-        detail: {
-          wardId:       ward.wardId,
-          wardNo:       ward.wardNo,
-          wardLabel:    ward.wardLabel,
-          municipality: ward.municipality,
-          province:     ward.province,
-          catB:         ward.catB,
-          district:     ward.district,
-          districtCode: ward.districtCode,
-        },
-      })
-    );
+  // ── 4. Ward selected — Fire Custom Event ─────────────────────────────────
+  wardEl.addEventListener('change', async () => {
+    const selectedWardId = wardEl.value;
+    try {
+        const res = await fetch(`/api/geography/wards/${selectedWardId}`);
+        if (res.ok) {
+            const wardData = await res.json();
+            document.dispatchEvent(new CustomEvent('ward:selected', { detail: wardData }));
+        }
+    } catch(err) {
+         console.error('Event Dispatcher Error:', err);
+    }
   });
 }
