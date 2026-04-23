@@ -1,11 +1,33 @@
+
+
+
 // ==========================================
 // 1. GLOBAL STATE
 // ==========================================
 let currentSelection = { type: 'province', ids: { provinceId: 1 } }; 
 let currentFilteredReports = []; // Stores the reports currently matching the date filter
+let MunicipalityMap={};
+
+
+
+
 // ==========================================
 // 2. THE MAP CLICK HANDLER
 // ==========================================
+
+const provinceFullNameToId = {
+    'Gauteng': 1, 
+    'Western Cape': 2, 
+    'Eastern Cape': 3,
+    'Northern Cape': 4,
+    'Nothern Cape':4, //Can't fucking beleive this
+    'Free State': 5,
+    'KwaZulu-Natal': 6, 
+    'North West': 7,
+    'Mpumalanga': 8, 
+    'Limpopo': 9
+};
+
 function onMapClick(type, ids) {
     currentSelection = { type, ids };
     
@@ -40,6 +62,18 @@ function getDateRange() {
         end: endDate.toISOString().split('T')[0]
     };
 }
+async function buildMunicipalityMapOuter(){
+    MunicipalityMap= await buildMunicipalityMap();
+
+    // 2. Count how many items are in it
+    const mapSize = Object.keys(MunicipalityMap).length;
+    
+    // 3. Print the results!
+    console.log(`✅ Dictionary Loaded! Found ${mapSize} municipalities.`);
+    
+    // 4. Draw the actual data as a table
+    console.table(MunicipalityMap);
+}
 
 async function fetchDashboardData() {
     const { start, end } = getDateRange();
@@ -59,6 +93,7 @@ async function fetchDashboardData() {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const reports = await response.json();
+        console.log(reports);
         updateUI(reports,start,end);
     } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
@@ -196,27 +231,64 @@ function formatNumber(num) {
     return num;
 }
 
+
+
+
+const normalizeName = (name) => {
+    if (!name) return "";
+    return name.toLowerCase()
+        .replace(/ metropolitan municipality/g, '')
+        .replace(/ local municipality/g, '')
+        .replace(/ district municipality/g, '')
+        .replace(/-/g, ' ') 
+        .trim();
+};
+// 2. Initialize the empty Map
+
+async function buildMunicipalityMap() {
+    try {
+        const response = await fetch('/api/sandbox/municipality-map');
+        console.log(response.body);
+        if (!response.ok) throw new Error("Failed to fetch map");
+        
+        const mapData = await response.json();
+        return mapData;
+    } catch (error) {
+        console.error("Error loading municipality map:", error);
+        return {};
+    }
+}
+
 // ==========================================
 // 5. INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Existing Timeframe Logic
+   buildMunicipalityMapOuter();
     const timeRadios = document.querySelectorAll('input[name="timeframe"]');
     timeRadios.forEach(radio => {
         radio.addEventListener('change', fetchDashboardData);
     });
 
    // 2. Instantiate the modular map (Starting with Provinces!)
+   //Fetches only from data from provincial.json I think but then why does it work?
+   //THIS DOES NOT FUCKING WORK
+
     const dashboardMap = new CivicMap(
         'map', 
         'data/sa_provincial.json', // <-- Removed the leading slash, updated filename
         (data) => {
             if (data.wardId) {
-                onMapClick('ward', { wardId: data.wardId, municipalityId: data.muniId });
+                //Municipality Require mapping
+                console.log(data);
+                onMapClick('ward', { wardId: data.wardId, municipalityId: MunicipalityMap[normalizeName(data.muniId)]});
             } else if (data.muniId) {
-                onMapClick('municipality', { municipalityId: data.muniId });
+                console.log(MunicipalityMap);//GivesBackName, needs mapping
+                onMapClick('municipality', { municipalityId: MunicipalityMap[normalizeName(data.muniId)] });
             } else {
-                onMapClick('province', { provinceId: data.provId });
+                console.log(data.name);
+                console.log(provinceFullNameToId[data.name]);
+                onMapClick('province', { provinceId: provinceFullNameToId[data.name] });
             }
         }
     );
@@ -297,7 +369,10 @@ function renderLedgerTable(reports) {
         const formattedDate = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
 
         const tr = document.createElement('tr'); 
-        tr.className = 'hover:bg-surface-container-high transition-colors';
+        
+        // 🚨 NEW PART 1: Added 'cursor-pointer' so the mouse turns into a hand when hovering
+        tr.className = 'hover:bg-surface-container-high transition-colors group cursor-pointer';
+        
         tr.innerHTML = `
             <td class="px-8 py-4">
                 <span class="flex items-center gap-3">
@@ -312,6 +387,38 @@ function renderLedgerTable(reports) {
             <td class="px-8 py-4 text-right font-mono text-on-surface-variant text-sm">${formattedDate}</td>
         `;
         
+        // 🚨 NEW PART 2: We are ADDING the click handler right here!
+        // When this specific row is clicked, it feeds its data to the CivicModal class
+        tr.onclick = () => {
+            openIssueModal(report.ReportID);
+        };
+        
         tbody.appendChild(tr);
+    });
+}
+
+//ModalView
+// 1. Initialize the modal manager at the top of your file
+const issueViewer = new CivicModal();
+
+// 2. Call it in your row click handler
+function openIssueModal(reportId) {
+    const report = currentFilteredReports.find(r => r.ReportID === reportId);
+    if (!report) return;
+    let muniName = Object.keys(MunicipalityMap).find(key => MunicipalityMap[key] === report.MunicipalityID);
+    if (muniName) {
+        muniName = muniName.replace(/\b\w/g, letter => letter.toUpperCase());
+    } else {
+        muniName = 'Unknown';
+    }
+    // 🚨 This is the critical block! Ensure ward and municipality are included.
+    issueViewer.open({
+        id: report.ReportID,
+        type: report.Type,
+        description: report.Description,
+        date: report.CreatedAt,
+        status: report.Progress,
+        ward: report.WardID || report.wardId || 'Unknown', // Catches both possible spellings
+        municipality: muniName
     });
 }

@@ -22,7 +22,7 @@ constructor(containerId, geoJsonPath, onClickCallback) {
 
         this.fetchAndDraw(this.geoJsonPath);
     }
-    
+
     zoomIn() {
         if (this.map) this.map.zoomIn();
     }
@@ -65,9 +65,20 @@ constructor(containerId, geoJsonPath, onClickCallback) {
             },
             onEachFeature: (feature, layer) => {
                 const wardId = feature.properties.WardNo;
-                const muniId = feature.properties.MAP_TITLE;
+                const muniId = feature.properties.MAP_TITLE || feature.properties.Municipali; 
                 const provId = feature.properties.adm1_name; 
-                const areaName = provId || muniId || `Ward ${wardId}`;
+
+                // 🚨 THE FIX: Reverse the priority! 
+                let areaName = "Unknown Region";
+                if (wardId) {
+                    // If you want just the ward: areaName = `Ward ${wardId}`;
+                    // If you want both (recommended!):
+                    areaName = `Ward ${wardId}`; 
+                } else if (muniId) {
+                    areaName = muniId;
+                } else if (provId) {
+                    areaName = provId;
+                }
 
                 layer.bindTooltip(`<b>${areaName}</b>`, { sticky: true });
 
@@ -113,7 +124,10 @@ constructor(containerId, geoJsonPath, onClickCallback) {
                         if (this.onClickCallback) {
                             this.onClickCallback({ wardId, muniId, provId, name: areaName });
                         }
+                        
                     }
+
+
                 });
             }
         }).addTo(this.map);

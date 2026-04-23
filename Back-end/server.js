@@ -166,11 +166,17 @@ app.get('/', (req, res) => {
 });
 
 // --- 5. DATABASE & START ---
+// --- 5. DATABASE & START ---
 async function startServer() {
     try {
         // Test if we can actually talk to the SQL server
         await sequelize.authenticate();
         console.log('✅ Database connection established.');
+
+        // 🚨 ADD THIS: Synchronize the models with the database
+        // { alter: true } will update existing tables or create them if they are missing
+        await sequelize.sync({ alter: true});
+        console.log('✅ Database synchronized. All tables are ready!');
 
         // Start the server
         app.listen(PORT, () => {
