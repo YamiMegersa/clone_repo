@@ -1,3 +1,6 @@
+// Global variable to store loaded reports for modal access
+let loadedReports = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     // For testing, replace '1' with your actual logic to get the logged-in user's ID
     const residentId = localStorage.getItem('residentId');
@@ -403,70 +406,292 @@ loadProvinces();
 
 //notifications
 
-let notifications = [];
-async function loadNotifications(residentId) {
-  try {
-    // Fetching all reports for the resident's subscribed wards (you may want to optimize this in production)
-    const response = await fetch(`/api/residents/${residentId}/subscriptions`);
-    const subscriptions = await response.json();
+// timestamps
+
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const seconds = Math.floor((new Date() - date) / 1000);
     
-    for(const subscription of subscriptions) {
-        const response = await fetch(`/api/reports/ward/${subscription.WardID}`);
-        const reports = await response.json();
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "Y AGO";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "MO AGO";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "D AGO";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "H AGO";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "M AGO";
+    
+    return "JUST NOW";
+}
+
+// Updated to pass the full report object and an index, and added cursor-pointer
+const createAlertHTML = (report, index) => `
+    <li class="group cursor-pointer hover:bg-white/5 p-3 -mx-3 rounded-lg transition-colors" data-index="${index}">
+        <article class="space-y-2 pointer-events-none"> <header class="flex justify-between items-start">
+                <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">
+                Ward ${report.WardID} - ${report.Type || 'SYSTEM ALERT'}
+                </span>
+                <span class="text-[9px] opacity-40 uppercase">${getTimeAgo(report.CreatedAt)}</span>
+            </header>
+            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${report.Progress || 'No details provided.'}</p>
+            <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
+        </article>
+    </li>
+`;
+
+function renderAlerts(reports) {
+    const listContainer = document.getElementById('alerts-list-container');
+    const emptyMessage = document.getElementById('empty-alerts-message');
+    const pulseIndicator = document.getElementById('alert-pulse-indicator');
+
+    // Save to our global variable for modal lookup
+    loadedReports = reports;
+    listContainer.innerHTML = '';
+
+    if (!reports || reports.length === 0) {
+        emptyMessage.classList.remove('hidden');
+        pulseIndicator.classList.remove('animate-pulse');
+        pulseIndicator.classList.add('opacity-30');
+    } else {
+        emptyMessage.classList.add('hidden');
+        pulseIndicator.classList.add('animate-pulse');
+        pulseIndicator.classList.remove('opacity-30');
+
+        // Pass the whole report object and its array index
+        const alertsHTML = reports.map((report, index) => createAlertHTML(report, index)).join('');
+        listContainer.innerHTML = alertsHTML;
     }
-    
-    // Convert your Report data into Notification-style data for the UI
-    notifications = subscriptions.map(subscription => ({
-      id: subscription.SubscriptionID,
-      reportId: subscription.ReportID,
-      // Generate a message based on the subscription data
-      message: `New update available for report: ${subscription.Type}`,
-      type: 'GENERAL_UPDATE',
-      timestamp: new Date(report.CreatedAt) 
-    }));
-
-    renderNotifications();
-  } catch (error) {
-    console.error("Failed to load reports:", error);
-  }
 }
 
-// Call this when the page loads
-loadNotifications();
+// Modal Control Functions
+function openReportModal(index) {
+    const report = loadedReports[index];
+    if (!report) return;
 
-async function handleNotificationClick(notif) {
-  // 1. Optimistically mark as read in the UI
-  notif.isRead = true;
-  renderNotifications();
-    // 2. Redirect to the specific report page (you'll need to create this page and route)
-  window.location.href = `/ward?openReport=${notif.reportId}`; 
+    const modal = document.getElementById('report-modal');
+    const modalContent = document.getElementById('modal-content');
+
+    // Populate the modal with the specific report's data
+    // Feel free to adjust report.Description/report.Status to match your DB schema
+    modalContent.innerHTML = `
+        <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Ward</span>
+                <span class="font-bold">${report.WardID}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Type</span>
+                <span class="font-bold">${report.Type || 'System Alert'}</span>
+            </div>
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <span class="text-xs uppercase tracking-widest opacity-50">Date Logged</span>
+                <span class="font-bold">${new Date(report.CreatedAt).toLocaleDateString()} ${new Date(report.CreatedAt).toLocaleTimeString()}</span>
+            </div>
+            
+            <div class="mt-6 pt-4">
+                <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Latest Progress / Details</span>
+                <div class="bg-black/20 p-4 rounded-lg text-sm font-medium leading-relaxed">
+                    ${report.Progress || report.Description || 'No further details have been provided for this report.'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
 }
 
-//live updates
-setInterval(async () => {
-  const lastTimestamp = notifications[0]?.timestamp.toISOString() || new Date(0).toISOString();
-  
-  try {
-    // Ask the API for anything newer than our newest notification
-    const response = await fetch(`/api/notifications/updates?since=${lastTimestamp}`);
-    const newUpdates = await response.json();
+function closeReportModal() {
+    document.getElementById('report-modal').classList.add('hidden');
+}
 
-    if (newUpdates.length > 0) {
-      newUpdates.forEach(update => {
-        // Mute check
-        if (!isMuted) {
-           console.log("PUSH ALERT:", update.message);//sends push notification if not muted
-        }
+async function loadResidentNotifications(residentId) {
+    try {
+        const subRes = await fetch(`/api/residents/${residentId}/subscriptions`);
+        if (!subRes.ok) throw new Error('Failed to fetch subscriptions');
         
-        notifications.unshift({
-          ...update,
-          timestamp: new Date(update.createdAt)
+        const subscribedWards = await subRes.json();
+        
+        if (subscribedWards.length === 0) {
+            renderAlerts([]);
+            return;
+        }
+
+        const reportPromises = subscribedWards.map(ward => {
+            const wardId = ward.WardID || ward.WardId || ward.wardId;
+            if (!wardId) throw new Error('Subscription item missing Ward ID');
+            
+            return fetch(`/api/reports/ward/${wardId}`).then(res => {
+                if (!res.ok) throw new Error(`Failed to fetch reports for ward ${wardId}`);
+                return res.json();
+            });
         });
-      });
-      
-      renderNotifications();
+
+        const reportsArrays = await Promise.all(reportPromises);
+        const allReports = reportsArrays
+            .flat()
+            .sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
+
+        renderAlerts(allReports);
+
+    } catch (error) {
+        console.error("Error loading notifications:", error);
+        document.getElementById('alerts-list-container').innerHTML = 
+            `<li class="text-sm text-red-500">Failed to load alerts.</li>`;
     }
-  } catch (err) {
-    console.error("Failed to fetch updates");
-  }
-}, 30000); // Check every 30 seconds
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentResidentId = localStorage.getItem('residentId') || 1;
+    loadResidentNotifications(currentResidentId);
+
+    document.getElementById('clear-alerts-btn').addEventListener('click', () => {
+        renderAlerts([]);
+    });
+
+    document.getElementById('alerts-list-container').addEventListener('click', (e) => {
+        // Find the nearest list item that was clicked
+        const clickedItem = e.target.closest('li[data-index]');
+        if (clickedItem) {
+            const index = clickedItem.getAttribute('data-index');
+            openReportModal(index);
+        }
+    });
+
+    // Listen for close button click
+    const closeBtn = document.getElementById('close-modal-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeReportModal);
+    }
+
+    // Close the modal if the user clicks the dark background outside the modal
+    const modal = document.getElementById('report-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeReportModal();
+            }
+        });
+    }
+
+    //notifications settings logic
+const bellBtn = document.getElementById('notification-bell-btn');
+const muteModal = document.getElementById('mute-settings-modal');
+const closeMuteIcon = document.getElementById('close-mute-modal-icon');
+const closeMuteBtn = document.getElementById('close-mute-modal-btn');
+const muteForm = document.getElementById('mute-settings-form');
+const muteAllCheckbox = document.getElementById('mute-all');
+const specificWardsFieldset = document.getElementById('specific-wards-fieldset');
+const muteWardSelect = document.getElementById('mute-ward-select');
+
+// Open the Modal
+if(bellBtn) {
+    bellBtn.addEventListener('click', async () => {
+        const residentId = localStorage.getItem('residentId');
+        if (!residentId) {
+            console.error('No resident ID found');
+            return;
+        }
+
+        try {
+            // Fetch subscribed wards to populate the select
+            const response = await fetch(`/api/residents/${residentId}/subscriptions`);
+            if (!response.ok) throw new Error('Failed to fetch subscriptions');
+
+            const wards = await response.json();
+
+            // Clear existing options
+            muteWardSelect.innerHTML = '';
+
+            // Populate with subscribed wards
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = ward.WardID;
+                option.textContent = `Ward ${ward.WardID}`;
+                muteWardSelect.appendChild(option);
+            });
+
+            // Show the modal
+            muteModal.showModal();
+        } catch (error) {
+            console.error('Error loading wards for mute settings:', error);
+            // Optionally show an error message to the user
+        }
+    });
+}
+
+//Close Modal Handlers
+const closeMuteModal = () => muteModal.close();
+if(closeMuteIcon) closeMuteIcon.addEventListener('click', closeMuteModal);
+if(closeMuteBtn) closeMuteBtn.addEventListener('click', closeMuteModal);
+
+// Close the modal if the user clicks the darkened background outside the modal
+if (muteModal) {
+    muteModal.addEventListener('click', (e) => {
+        if (e.target === muteModal) {
+            closeMuteModal();
+        }
+    });
+}
+
+// If "Mute All" is checked, disable the specific ward select
+muteAllCheckbox.addEventListener('change', (e) => {
+    if(e.target.checked) {
+        muteWardSelect.disabled = true;
+        specificWardsFieldset.classList.add('opacity-30', 'pointer-events-none');
+    } else {
+        muteWardSelect.disabled = false;
+        specificWardsFieldset.classList.remove('opacity-30', 'pointer-events-none');
+    }
+});
+
+// Form Submission Logic
+muteForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const isMutedAll = muteAllCheckbox.checked;
+    
+    // Get an array of the values the user selected
+    const mutedWards = Array.from(muteWardSelect.selectedOptions).map(opt => opt.value);
+
+    // This is the payload you will send to your Express backend
+    const notificationPreferences = {
+        muteAll: isMutedAll,
+        // If mute all is true, it overrides specific wards, so we pass an empty array
+        mutedWards: isMutedAll ? [] : mutedWards 
+    };
+
+    console.log("Sending preferences to backend:", notificationPreferences);
+
+    try {
+        // You will need to create a PUT/POST route on your backend to accept this data
+        // Example API call:
+        /*
+        const response = await fetch(`/api/residents/${currentResidentId}/notifications/settings`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(notificationPreferences)
+        });
+
+        if (!response.ok) throw new Error('Failed to update settings');
+        */
+
+        // For now, close the modal and maybe show a toast notification
+        alert("Alert preferences saved successfully!");
+        closeMuteModal();
+    
+        const modal = document.getElementById('report-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeReportModal();
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Error saving notification settings:", error);
+        alert("Failed to save settings. Please try again.");
+    }
+});
+});

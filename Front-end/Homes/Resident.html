@@ -43,7 +43,7 @@
                 <span class="material-symbols-outlined text-sm">add</span>
                 New Report
             </a>
-            <button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
+            <button id="notification-bell-btn" class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">notifications</span>
             </button>
             <button class="text-[#E2E2E2] opacity-70 hover:opacity-100 transition-opacity">
@@ -101,33 +101,18 @@
         <aside class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-l border-white/5 h-fit lg:sticky lg:top-28">
             <header class="mb-10 flex items-center justify-between">
                 <h2 class="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                    <span class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
+                    <span id="alert-pulse-indicator" class="w-2 h-2 bg-primary animate-pulse rounded-full"></span>
                     Recent Alerts
                 </h2>
-                <button class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
+                <button id="clear-alerts-btn" class="text-[10px] font-bold uppercase text-primary border-b border-primary/30">Clear All</button>
             </header>
-            <ul class="space-y-6">
-                <li class="group">
-                    <article class="space-y-2">
-                        <header class="flex justify-between items-start">
-                            <span class="text-orange-500 font-black tracking-widest text-[10px]">SANITATION ALERT</span>
-                            <span class="text-[9px] opacity-40">2M AGO</span>
-                        </header>
-                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Sanitation alert for Ward 07: Unscheduled maintenance scheduled for midnight.</p>
-                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-                    </article>
-                </li>
-                <li class="group">
-                    <article class="space-y-2">
-                        <header class="flex justify-between items-start">
-                            <span class="text-orange-500 font-black tracking-widest text-[10px]">STATUS RESOLVED</span>
-                            <span class="text-[9px] opacity-40">14M AGO</span>
-                        </header>
-                        <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">Issue resolved in Ward 14: Streetlight outage at 5th and Main cleared.</p>
-                        <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
-                    </article>
-                </li>
-            </ul>
+            
+            <ul id="alerts-list-container" class="space-y-6">
+                </ul>
+            
+            <div id="empty-alerts-message" class="hidden text-sm opacity-50 py-4">
+                <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">No recent alerts.</p>
+            </div>
         </aside>
     </main>
     <dialog id="custom-modal" class="bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl backdrop:bg-background/80 backdrop:backdrop-blur-sm p-0 w-[90%] max-w-md m-auto focus:outline-none">
@@ -184,6 +169,62 @@
             </footer>
         </form>
     </dialog>
+
+    <div id="report-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-surface-container-low p-8 rounded-xl max-w-md w-full border border-white/10 shadow-2xl relative m-4">
+            <header class="flex justify-between items-start mb-6">
+                <h3 class="text-xl font-black uppercase tracking-widest text-orange-500">
+                    Report Details
+                </h3>
+                <button id="close-modal-btn" class="text-white/40 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </header>
+            
+            <div id="modal-content" class="space-y-4">
+            </div>
+        </div>
+    </div>
+
+    <dialog id="mute-settings-modal" class="bg-surface border border-white/5 shadow-2xl rounded-lg overflow-hidden w-[90%] max-w-md p-0 backdrop:bg-background/80 backdrop:backdrop-blur-sm focus:outline-none m-auto">
+    
+    <header class="w-full px-6 py-4 flex items-center justify-between bg-[#1B1B1B] shadow-2xl">
+        <h1 class="text-[#FFB77D] font-black tracking-tight uppercase leading-none text-xl">Alert Settings</h1>
+        <button id="close-mute-modal-icon" type="button" class="text-[#E2E2E2] hover:bg-[#353535] transition-colors active:scale-95 duration-150 p-2 rounded-full">
+            <i aria-hidden="true" class="material-symbols-outlined">close</i>
+            <span class="sr-only">Close menu</span>
+        </button>
+    </header>
+
+    <form id="mute-settings-form" class="p-8 space-y-8 bg-surface-container-lowest">
+        
+        <fieldset class="flex items-center justify-between border-b border-white/10 pb-6 m-0">
+            <div>
+                <label for="mute-all" class="block font-bold text-sm uppercase tracking-widest text-[#E2E2E2]">Mute All Alerts</label>
+                <p class="text-[10px] text-on-surface-variant uppercase mt-1">Pause all push and email notifications</p>
+            </div>
+            <input type="checkbox" id="mute-all" class="w-6 h-6 rounded border-outline-variant bg-surface-container-high text-orange-500 focus:ring-orange-500 focus:ring-offset-background cursor-pointer transition-all">
+        </fieldset>
+
+        <fieldset id="specific-wards-fieldset" class="group border-none p-0 m-0 transition-opacity">
+            <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-2" for="mute-ward-select">Mute Specific Wards</label>
+            <p class="text-[10px] text-on-surface-variant uppercase mb-3">Hold Ctrl/Cmd to select multiple</p>
+            
+            <select multiple class="w-full bg-[#0E0E0E] text-white border border-outline-variant focus:border-primary-container focus:ring-0 py-3 px-3 text-sm rounded-lg transition-all" id="mute-ward-select" name="mute-ward-select">
+            </select>
+        </fieldset>
+
+        <footer class="pt-4 flex flex-col space-y-4">
+                <button type="submit" class="w-full py-4 text-[#4d2600] font-black text-sm uppercase tracking-widest rounded-lg shadow-lg bg-gradient-to-br from-[#FF8C00] to-[#FFB77D] hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                    Save Preferences
+                </button>
+                <button id="close-mute-modal-btn" type="button" class="w-full py-3 text-on-surface-variant font-bold uppercase tracking-widest hover:text-primary transition-colors active:translate-y-px">
+                    Cancel
+                </button>
+            </footer>
+        </form>
+    </dialog>
+
     <script src="Resident.js"></script>
 </body>
 </html>

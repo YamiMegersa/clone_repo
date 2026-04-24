@@ -4,6 +4,37 @@ const {Report, ReportImage, Allocation,Notification}=require('../models');
 const { Op } = require('sequelize');
 const { MunicipalWorker } = require('../models');
 
+const nodemailer = require('nodemailer');
+
+// Update your transporter setup:
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        // This is the critical part to fix the "self-signed certificate" error
+        rejectUnauthorized: false 
+    }
+});
+
+const ADMIN_EMAIL = '2820314@students.wits.ac.za';
+
+// ─── Email helper 
+async function sendEmail(to, subject, html) {
+    try {
+        await transporter.sendMail({
+            from: `"Civic Ledger Alerts" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            html
+        });
+        console.log(`[Email] Sent to ${to}: ${subject}`);
+    } catch (err) {
+        console.error('[Email] Failed to send:', err.message);
+    }
+}
 
 async function notify(recipientId, type, title, message, reportId = null) {
     try {
@@ -63,6 +94,24 @@ router.post('/', async (req, res) => {
             `New ${newReport.Type} Report`,
             `A new fault has been logged in Ward ${newReport.WardID || 'N/A'}. Report #${newReport.ReportID} is pending assignment.`,
             newReport.ReportID
+        );
+         // ── Email admin
+        await sendEmail(
+            ADMIN_EMAIL,
+            `🔔 New Report: ${newReport.Type}`,
+            `
+            <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#1a1a1a;color:#e2e2e2;padding:32px;border-radius:12px;">
+                <h2 style="color:#ff8c00;margin:0 0 8px;">New Fault Reported</h2>
+                <p style="color:#a3a3a3;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Civic Ledger Alert</p>
+                <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                <p><strong>Type:</strong> ${newReport.Type}</p>
+                <p><strong>Ward:</strong> ${newReport.WardID || 'N/A'}</p>
+                <p><strong>Report ID:</strong> #${newReport.ReportID}</p>
+                <p><strong>Status:</strong> Pending Assignment</p>
+                <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                <p style="color:#737373;font-size:11px;">Log in to the Admin Dashboard to assign this report to a field operative.</p>
+            </div>
+            `
         );
  
         res.status(201).json({ message: 'Report logged successfully', report: newReport });
@@ -197,6 +246,29 @@ router.post('/:id/assign', async (req, res) => {
             `You have been assigned a new task in ${ward}. Report #${ReportID} is ready for acceptance.`,
             ReportID
         );
+
+         // ── Look up worker email then send
+        const worker = await MunicipalWorker.findByPk(EmployeeID);
+        if (worker && worker.Email) {
+            await sendEmail(
+                worker.Email,
+                `📌 New Task Assigned: ${taskType}`,
+                `
+                <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#1a1a1a;color:#e2e2e2;padding:32px;border-radius:12px;">
+                    <h2 style="color:#22d3ee;margin:0 0 8px;">New Task Assigned</h2>
+                    <p style="color:#a3a3a3;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Civic Ledger Field Operations</p>
+                    <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                    <p>Hi <strong>${worker.FirstName}</strong>,</p>
+                    <p>You have been assigned a new field task. Please log in to accept or decline.</p>
+                    <p><strong>Task Type:</strong> ${taskType}</p>
+                    <p><strong>Location:</strong> ${ward}</p>
+                    <p><strong>Report ID:</strong> #${ReportID}</p>
+                    <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                    <p style="color:#737373;font-size:11px;">Log in to the Worker Dashboard to accept this task and begin work.</p>
+                </div>
+                `
+            );
+        }
  
         res.status(200).json({ success: true });
     } catch (err) {
@@ -275,6 +347,25 @@ router.put('/:id/decline', async (req, res) => {
             `Task #${reportId} Declined`,
             `${workerName} declined Report #${reportId}. Reason: "${reason}". The task needs reassignment.`,
             reportId
+        );
+
+         // Email admin
+        await sendEmail(
+            ADMIN_EMAIL,
+            `⚠️ Task #${reportId} Declined — Reassignment Needed`,
+            `
+            <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#1a1a1a;color:#e2e2e2;padding:32px;border-radius:12px;">
+                <h2 style="color:#ef4444;margin:0 0 8px;">Task Declined</h2>
+                <p style="color:#a3a3a3;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Civic Ledger Alert</p>
+                <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                <p><strong>Report ID:</strong> #${reportId}</p>
+                <p><strong>Declined By:</strong> ${workerName}</p>
+                <p><strong>Reason:</strong> ${reason}</p>
+                <p><strong>Action Required:</strong> Reassignment needed</p>
+                <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                <p style="color:#737373;font-size:11px;">Log in to the Admin Dashboard to reassign this task to another operative.</p>
+            </div>
+            `
         );
  
         console.log(`[ALERT] Report #${reportId} was declined by ${workerName}. Reason: ${reason}`);
