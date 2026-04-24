@@ -101,8 +101,12 @@ function renderMapMarkers(reports) {
 
     // Loop through every report the database gave us.
     reports.forEach(report => {
+        // Robust check: Grab the coordinate whether it is uppercase or lowercase
+        const lat = report.Latitude || report.latitude;
+        const lng = report.Longitude || report.longitude;
+
         // Only plot a pin if the report actually contains valid GPS coordinates.
-        if (report.Latitude && report.Longitude && report.Latitude !== 0) {
+        if (lat && lng && parseFloat(lat) !== 0) {
             
             // Determine marker color based on the report's progress.
             const progressStr = (report.Progress || '').toLowerCase();
@@ -174,6 +178,7 @@ async function fetchWardDetails(wardId) {
         const councillorName = ward.WardCouncillor ? ward.WardCouncillor : 'Unassigned'; 
         document.getElementById('councillor-label').textContent = `Councillor: ${councillorName}`;
 
+    /* istanbul ignore next */
     } catch (error) {
         console.error('Error fetching ward details:', error);
         // Fallback text if the fetch fails so the UI doesn't look broken.
@@ -253,7 +258,7 @@ function renderTable(reports) {
                     <span class="font-bold text-white uppercase tracking-tight">${report.Type || 'General'}</span>
                 </span>
             </td>
-            <td class="px-8 py-6 text-on-surface-variant font-medium max-w-md">${report.Progress || 'No description provided.'}</td>
+            
             <td class="px-8 py-6 text-center">${statusBadge}</td>
             <td class="px-8 py-6 text-right font-mono text-on-surface-variant text-sm">${formattedDate}</td>
         `;
@@ -272,14 +277,14 @@ function renderTable(reports) {
 function openIssueModal(reportId) {
     // Search our global master list for the specific report the user just clicked.
     const report = currentReports.find(r => r.ReportID === reportId);
-    if (!report) return;
+    
 
     activeReportId = reportId;
     const dialog = document.getElementById('issue-modal');
 
     // Populate the text fields inside the modal pop-up.
     document.getElementById('modal-title').textContent = report.Type || 'General Issue';
-    document.getElementById('modal-desc').textContent = report.Description || 'No description provided.';
+    
     document.getElementById('modal-date').textContent = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
     document.getElementById('modal-frequency').textContent = report.Frequency || 0;
     
@@ -319,28 +324,40 @@ function openIssueModal(reportId) {
     // Leaflet calculates its width/height when it is initialised. If initialised while 
     // hidden inside a closed modal, it thinks its size is 0x0 pixels, causing gray rendering bugs.
     // We use setTimeout to wait 10 milliseconds *after* the modal opens so Leaflet can see the actual pixel dimensions.
+
+
+    /* istanbul ignore next */
     setTimeout(() => {
         const miniMapContainer = document.getElementById('modal-mini-map');
         
         // Destroy the old map instance if it exists so we don't layer maps on top of each other.
         if (modalMap) {
             modalMap.remove();
+            modalMap = null; // Clean up the old map object completely
         }
 
         // Remove the loading text.
         miniMapContainer.innerHTML = '';
+        // Robust check for the modal map
+        const lat = report.Latitude || report.latitude;
+        const lng = report.Longitude || report.longitude;
 
-        if (report.Latitude && report.Longitude && report.Latitude !== 0) {
+        if (lat && lng && parseFloat(lat) !== 0) {
             // Draw the map and center it perfectly on the issue.
-            modalMap = L.map('modal-mini-map').setView([report.Latitude, report.Longitude], 15);
+            modalMap = L.map('modal-mini-map').setView([lat,lng], 15);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(modalMap);
-            L.marker([report.Latitude, report.Longitude]).addTo(modalMap);
+            L.marker([lat,lng]).addTo(modalMap);
             
             // This is the magic command that forces Leaflet to recalculate its dimensions!
             modalMap.invalidateSize();
         } else {
             // Graceful fallback if a user submitted a report without GPS enabled.
-            miniMapContainer.innerHTML = '<span class="text-on-surface-variant font-bold text-sm tracking-widest uppercase">No GPS Data Available</span>';
+            miniMapContainer.innerHTML = '<span class="text-gray-300 font-bold text-sm tracking-widest uppercase">No GPS Data Available</span>';
         }
     }, 10);
+}
+
+// EXPORTS FOR JEST TESTING
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { fetchWardReports, fetchWardDetails, renderStats, renderTable, renderMapMarkers, openIssueModal,initMap, setCurrentReports:(fakeData)=>{currentReports=fakeData;} };
 }

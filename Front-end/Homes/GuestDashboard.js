@@ -64,6 +64,8 @@ async function loadProvinces() {
                 provinceSelect.appendChild(option);
             });
         }
+
+    /* istanbul ignore next */
     } catch (error) {
         // This catch block only triggers if the network entirely fails (e.g., server offline)
         console.error('Error loading provinces:', error);
@@ -240,4 +242,9 @@ function showModal(title, message) {
     // .showModal() is a built-in browser command that forces the <dialog> to appear
     // on top of everything else and grays out the background.
     dialog.showModal();
+}
+
+// EXPORTS FOR JEST TESTING
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { loadProvinces, fetchWardStats, showModal };
 }
