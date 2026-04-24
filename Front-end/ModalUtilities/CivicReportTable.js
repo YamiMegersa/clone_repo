@@ -13,14 +13,18 @@ class CivicTable {
     }
 
     // Standardizes the status badges
-    getBadgeHTML(statusStr) {
+getBadgeHTML(statusStr) {
         const progressStr = (statusStr || '').toLowerCase(); 
+        
+        // 🚨 ADDED: 'whitespace-nowrap' and 'inline-block' to prevent text wrapping!
+        const baseClasses = "px-3 py-1 text-[10px] font-black uppercase rounded-full whitespace-nowrap inline-block";
+
         if (progressStr === 'resolved') {
-            return `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
+            return `<span class="bg-surface-container-highest text-on-surface-variant ${baseClasses}">Resolved</span>`;
         } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
-            return `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
+            return `<span class="bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 ${baseClasses}">In Progress</span>`;
         } else {
-            return `<span class="px-3 py-1 bg-[#FF8C00] text-[#4d2600] text-[10px] font-black uppercase rounded-full">Active</span>`;
+            return `<span class="bg-[#FF8C00] text-[#4d2600] ${baseClasses}">Active</span>`;
         }
     }
 

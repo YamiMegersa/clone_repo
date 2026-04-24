@@ -62,6 +62,11 @@ class CivicModal {
                         </dl>
                         
                         <p id="${this.modalId}-desc" class="text-on-surface-variant font-medium leading-relaxed mb-8 text-sm"></p>
+                        <section id="${this.modalId}-personnel-section" class="mt-4 border-t border-white/5 pt-6 hidden">
+                             <h3 class="text-[10px] uppercase font-bold tracking-widest text-primary mb-4">Assigned Personnel</h3>
+                                <div id="${this.modalId}-workers" class="flex flex-col gap-3">
+                                </div>
+                        </section>
                     </main>
                 </section>
             </article>
@@ -123,7 +128,33 @@ class CivicModal {
                 </li>
             `;
         });
-
+        const personnelSection = document.getElementById(`${this.modalId}-personnel-section`);
+        const workersContainer = document.getElementById(`${this.modalId}-workers`);
+        
+        // If the old code calls this without passing workers, keep it hidden!
+        if (data.workers === undefined) {
+            personnelSection.classList.add('hidden');
+        } else {
+            // Workers array was provided, so show the section
+            personnelSection.classList.remove('hidden');
+            
+            if (data.workers.length > 0) {
+                workersContainer.innerHTML = data.workers.map(w => {
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(w.Name)}&background=353535&color=FF8C00&bold=true`;
+                    return `
+                        <article class="flex items-center p-3 bg-surface-container-high rounded-lg border border-white/5">
+                            <img src="${avatarUrl}" alt="${w.Name}" class="w-8 h-8 rounded-full mr-4 opacity-90" />
+                            <section>
+                                <p class="text-sm font-bold text-white m-0 leading-tight">${w.Name}</p>
+                                <p class="text-[9px] text-primary uppercase font-bold tracking-widest m-0">${w.EmployeeID}</p>
+                            </section>
+                        </article>
+                    `;
+                }).join('');
+            } else {
+                workersContainer.innerHTML = '<p class="text-xs text-on-surface/40 italic m-0">No personnel currently allocated to this task.</p>';
+            }
+        }
         this.dialog.showModal();
     }
 }

@@ -76,6 +76,8 @@
             },
         }
     </script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
         body { background-color: #131313; color: #e2e2e2; font-family: 'Public Sans', sans-serif; margin: 0; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -94,143 +96,10 @@
 <body class="flex min-h-screen">
 <!-- MAIN CONTENT CANVAS -->
 <main class="flex-grow flex flex-col p-8 space-y-8 bg-[#131313]">
-<!-- MUNICIPAL GRID MAP -->
-<section class="bg-[#0E0E0E] border border-outline-variant/10 rounded-lg overflow-hidden flex flex-col">
-<header class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
-<section>
-<h1 class="text-2xl font-black tracking-tighter uppercase text-on-surface">Municipal Grid Explorer</h1>
-<p class="text-on-surface-variant/60 text-[0.7rem] uppercase tracking-widest font-bold mt-1">Live Telemetry: Region 04-A (Gauteng)</p>
-</section>
-<nav class="flex space-x-2">
-<button class="bg-[#1B1B1B] p-2 hover:bg-[#353535] text-primary transition-colors">
-<span class="material-symbols-outlined">zoom_in</span>
-</button>
-<button class="bg-[#1B1B1B] p-2 hover:bg-[#353535] text-primary transition-colors">
-<span class="material-symbols-outlined">zoom_out</span>
-</button>
-<button class="bg-[#1B1B1B] p-2 hover:bg-[#353535] text-primary transition-colors">
-<span class="material-symbols-outlined">layers</span>
-</button>
-</nav>
-</header>
-<figure class="h-[400px] w-full relative grid-map overflow-hidden flex items-center justify-center m-0">
-<svg class="absolute inset-0 w-full h-full opacity-30" viewbox="0 0 800 400">
-<path d="M50,50 L200,30 L350,80 L400,200 L300,350 L100,300 Z" fill="none" stroke="#FF8C00" stroke-width="2"></path>
-<path d="M400,200 L550,150 L700,200 L750,350 L500,380 Z" fill="none" stroke="#FF8C00" stroke-width="2"></path>
-</svg>
-<button class="absolute top-1/4 left-1/3 group cursor-pointer border-none bg-transparent p-0">
-<span class="material-symbols-outlined text-[#FF8C00] text-4xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
-<aside class="hidden group-hover:block absolute top-10 left-0 bg-[#1B1B1B] p-3 border border-[#FF8C00] w-48 z-10 text-left">
-<p class="text-[0.6rem] uppercase font-bold text-primary">Ward 102</p>
-<p class="text-xs text-on-surface">94% Efficiency Average</p>
-</aside>
-</button>
-<button class="absolute bottom-1/3 right-1/4 group cursor-pointer border-none bg-transparent p-0">
-<span class="material-symbols-outlined text-[#FF8C00]/40 text-4xl" style="font-variation-settings: 'FILL' 1;">location_on</span>
-</button>
-<figcaption class="absolute flex flex-col items-center">
-<p class="text-[0.65rem] uppercase font-bold tracking-[0.4em] text-on-surface/20">Interactive Grid Interface</p>
-</figcaption>
-</figure>
-</section>
-<!-- BENTO GRID METRICS -->
-<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<!-- Overall Efficiency -->
-<article class="bg-[#1B1B1B] p-8 flex flex-col justify-between">
-<header>
-<h2 class="text-[0.75rem] uppercase font-bold tracking-[0.2em] text-primary mb-4">Overall Efficiency</h2>
-<p class="text-6xl font-black tracking-tighter text-on-surface">94.2<span class="text-primary">%</span></p>
-</header>
-<section class="mt-8 relative flex items-center justify-center">
-<svg class="w-48 h-48 transform -rotate-90">
-<circle cx="96" cy="96" fill="transparent" r="80" stroke="#353535" stroke-width="12"></circle>
-<circle cx="96" cy="96" fill="transparent" r="80" stroke="#FF8C00" stroke-dasharray="502.4" stroke-dashoffset="29.1" stroke-linecap="butt" stroke-width="12"></circle>
-</svg>
-<section class="absolute flex flex-col items-center">
-<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
-<span class="text-[0.65rem] uppercase font-bold tracking-widest text-on-surface/40 mt-1">High Intensity</span>
-</section>
-</section>
-<footer class="mt-8 border-t border-outline-variant/10 pt-4">
-<p class="text-sm text-on-surface/60">+2.4% from last audit</p>
-</footer>
-</article>
-<!-- Average Response Time -->
-<article class="bg-[#1B1B1B] p-8 flex flex-col justify-between">
-<header>
-<h2 class="text-[0.75rem] uppercase font-bold tracking-[0.2em] text-primary mb-4">Average Response Time</h2>
-<p class="text-6xl font-black tracking-tighter text-on-surface">14.5<span class="text-sm text-on-surface/40 uppercase ml-2 tracking-widest">min</span></p>
-</header>
-<figure class="mt-8 flex flex-col space-y-4 m-0">
-<section class="flex justify-between items-end h-40">
-<span class="bg-primary-container w-8 h-24 rounded-sm"></span>
-<span class="bg-primary-container w-8 h-32 rounded-sm"></span>
-<span class="bg-primary-container w-8 h-16 rounded-sm"></span>
-<span class="bg-primary w-8 h-40 rounded-sm"></span>
-<span class="bg-primary-container w-8 h-28 rounded-sm"></span>
-<span class="bg-primary-container w-8 h-36 rounded-sm"></span>
-</section>
-<figcaption class="flex justify-between text-[0.6rem] uppercase tracking-tighter font-bold text-on-surface/30">
-<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-</figcaption>
-</figure>
-<footer class="mt-8 border-t border-outline-variant/10 pt-4 flex justify-between items-center">
-<p class="text-sm text-on-surface/60">Target: 20.0min</p>
-<span class="text-primary text-xs font-bold uppercase tracking-widest">Optimal</span>
-</footer>
-</article>
-<!-- Tasks Resolved -->
-<article class="bg-[#1B1B1B] p-8 flex flex-col">
-<header class="flex justify-between items-start mb-8">
-<section>
-<h2 class="text-[0.75rem] uppercase font-bold tracking-[0.2em] text-primary mb-2">Tasks Resolved</h2>
-<p class="text-4xl font-black tracking-tighter text-on-surface">1,842</p>
-</section>
-<aside class="text-right">
-<span class="block text-[0.6rem] uppercase font-bold tracking-widest text-on-surface/40">Current Period</span>
-<span class="text-primary font-black">JUL - AUG</span>
-</aside>
-</header>
-<section class="flex-grow flex flex-col space-y-6">
-<section class="flex flex-col space-y-2">
-<header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
-<span class="text-on-surface/60">Sanitation</span>
-<span class="text-on-surface">820</span>
-</header>
-<meter class="h-2 w-full appearance-none bg-[#0E0E0E]" max="1000" min="0" value="820"></meter>
-<style>
-                            meter::-webkit-meter-bar { background: #0E0E0E; border: none; }
-                            meter::-webkit-meter-optimum-value { background: #ff8c00; }
-                        </style>
-<section class="h-2 w-full bg-[#0E0E0E]">
-<section class="h-full bg-primary-container" style="width: 82%;"></section>
-</section>
-</section>
-<section class="flex flex-col space-y-2">
-<header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
-<span class="text-on-surface/60">Infrastructure</span>
-<span class="text-on-surface">412</span>
-</header>
-<section class="h-2 w-full bg-[#0E0E0E]">
-<section class="h-full bg-primary-container" style="width: 41%;"></section>
-</section>
-</section>
-<section class="flex flex-col space-y-2">
-<header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
-<span class="text-on-surface/60">Utilities</span>
-<span class="text-on-surface">610</span>
-</header>
-<section class="h-2 w-full bg-[#0E0E0E]">
-<section class="h-full bg-primary-container" style="width: 61%;"></section>
-</section>
-</section>
-</section>
-</article>
-</section>
-<!-- SEARCH REGISTRY & EMPLOYEE PROFILE -->
-<section class="bg-[#1B1B1B] flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-outline-variant/10">
-<!-- Search & Results Side -->
-<section class="lg:w-1/3 p-8 space-y-8">
+<!-- TOP ROW: REGISTRY & GRID EXPLORER -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- SEARCH REGISTRY PANEL (TOP LEFT) -->
+<section class="lg:col-span-3 bg-[#1B1B1B] p-8 space-y-8 flex flex-col min-h-[500px]">
 <header>
 <h2 class="text-xl font-black tracking-tighter uppercase text-on-surface mb-2">Search Registry</h2>
 <p class="text-[0.6rem] uppercase tracking-widest text-on-surface/40 font-bold">Querying 4,209 Active Records</p>
@@ -240,61 +109,85 @@
 <input class="w-full bg-[#0E0E0E] border border-outline-variant/20 text-on-surface text-sm p-4 pl-12 focus:ring-0 focus:border-[#FF8C00] placeholder:text-on-surface/20" id="employee-search" placeholder="Enter Employee ID or Name..." type="text"/>
 <span class="material-symbols-outlined absolute left-4 top-3.5 text-primary">search</span>
 </form>
-<nav class="flex flex-col space-y-2">
-<button class="flex items-center p-3 bg-[#FF8C00]/10 border-l-4 border-[#FF8C00] text-on-surface text-left">
-<img alt="Thabo Hendricks" class="w-8 h-8 rounded-full mr-3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZwJLkYyvAoZVACbpATRocJIdLl7P1znB0z_TjM30r12WakGh_WA-AsquoM-37nF3zvxJgQBJKF--hcm7qZEkzLEkwteICHzoJrtrFfVXg4GiC4TQnhOC11ZpmfvFcY9t-78wXsaKPznhQTRm7_kkeV5qXu9veuCa0y6X9W_e7tb1CSg4UIJ9EJb7CszDo4FXvrLiBWUAfWikMB-dmMWW3nhWd6KxahmA4BGo0TWgW1uZPrE--WhCsDQDL1PdhOtoyBJeEiKXWkNU"/>
+<nav id="employee-list" class="flex flex-col space-y-2 flex-grow overflow-y-auto">
+<button class="flex items-center p-4 bg-[#FF8C00]/10 border-l-4 border-[#FF8C00] text-on-surface text-left">
+<img alt="Thabo Hendricks" class="w-10 h-10 rounded-full mr-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZwJLkYyvAoZVACbpATRocJIdLl7P1znB0z_TjM30r12WakGh_WA-AsquoM-37nF3zvxJgQBJKF--hcm7qZEkzLEkwteICHzoJrtrFfVXg4GiC4TQnhOC11ZpmfvFcY9t-78wXsaKPznhQTRm7_kkeV5qXu9veuCa0y6X9W_e7tb1CSg4UIJ9EJb7CszDo4FXvrLiBWUAfWikMB-dmMWW3nhWd6KxahmA4BGo0TWgW1uZPrE--WhCsDQDL1PdhOtoyBJeEiKXWkNU"/>
 <section>
-<p class="text-xs font-bold">Thabo Hendricks</p>
-<p class="text-[0.6rem] text-primary uppercase">EMP-90210-G</p>
+<p class="text-sm font-bold">Thabo Hendricks</p>
+<p class="text-[0.65rem] text-primary uppercase font-bold tracking-wider">EMP-90210-G</p>
 </section>
 </button>
-<button class="flex items-center p-3 hover:bg-[#353535]/20 text-on-surface/60 text-left transition-colors">
-<img alt="Sarah Mkhize" class="w-8 h-8 rounded-full mr-3 opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWgEcuk3ERSFw9eR_jP_HfNMoTfb9BGfvB08T8neE2lE4U3SVOeMZ1UYsAMxCHga4SWTqe4bo3NeTPuV3R03BNuhaahz1jwAaRMVRcZBofv4tWoNmJi45BGcRW0DvXlOjWM4oM0KlJYkSrX5hiNjfLHkg3mQCl-tDtbHAbm0kaw9LaTfCsF4l9Qi_xOk0f7MogKiRRgLqvhEb0pSGvZzN3c_Fe9cVm69dn1A9yP_zJBPTFU7hPi52dpFS9nOqpmbRIYW0lYv7viXQ"/>
+<button class="flex items-center p-4 hover:bg-[#353535]/20 text-on-surface/60 text-left transition-colors">
+<img alt="Sarah Mkhize" class="w-10 h-10 rounded-full mr-4 opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWgEcuk3ERSFw9eR_jP_HfNMoTfb9BGfvB08T8neE2lE4U3SVOeMZ1UYsAMxCHga4SWTqe4bo3NeTPuV3R03BNuhaahz1jwAaRMVRcZBofv4tWoNmJi45BGcRW0DvXlOjWM4oM0KlJYkSrX5hiNjfLHkg3mQCl-tDtbHAbm0kaw9LaTfCsF4l9Qi_xOk0f7MogKiRRgLqvhEb0pSGvZzN3c_Fe9cVm69dn1A9yP_zJBPTFU7hPi52dpFS9nOqpmbRIYW0lYv7viXQ"/>
 <section>
-<p class="text-xs font-bold">Sarah Mkhize</p>
-<p class="text-[0.6rem] uppercase">EMP-88432-J</p>
+<p class="text-sm font-bold">Sarah Mkhize</p>
+<p class="text-[0.65rem] uppercase font-bold tracking-wider">EMP-88432-J</p>
 </section>
 </button>
 </nav>
 </section>
-<!-- Individual Employee Profile Detail -->
-<article class="flex-grow p-8">
+<!-- MUNICIPAL GRID MAP (ADJACENT) -->
+<section class="lg:col-span-9 bg-[#0E0E0E] border border-outline-variant/10 rounded-lg overflow-hidden flex flex-col">
+    <header class="p-6 border-b border-outline-variant/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <section>
+            <h1 class="text-2xl font-black tracking-tighter uppercase text-on-surface">Live Deployments</h1>
+            <p class="text-on-surface-variant/60 text-[0.7rem] uppercase tracking-widest font-bold mt-1">Worker GPS & Active Tickets</p>
+        </section>
+        
+        <fieldset class="flex bg-[#1B1B1B] p-1 border border-outline-variant/20 rounded-md">
+            <legend class="sr-only">Timeframe</legend>
+            <label class="cursor-pointer">
+                <input class="hidden peer" name="timeframe" type="radio" value="24h">
+                <span class="px-4 py-1.5 rounded text-[0.6rem] font-black uppercase tracking-widest block peer-checked:bg-primary-container peer-checked:text-on-primary-container transition-all text-on-surface/40 hover:text-on-surface">24h</span>
+            </label>
+            <label class="cursor-pointer">
+                <input class="hidden peer" name="timeframe" type="radio" value="7 Days" checked>
+                <span class="px-4 py-1.5 rounded text-[0.6rem] font-black uppercase tracking-widest block peer-checked:bg-primary-container peer-checked:text-on-primary-container transition-all text-on-surface/40 hover:text-on-surface">7 Days</span>
+            </label>
+            <label class="cursor-pointer">
+                <input class="hidden peer" name="timeframe" type="radio" value="30 Days">
+                <span class="px-4 py-1.5 rounded text-[0.6rem] font-black uppercase tracking-widest block peer-checked:bg-primary-container peer-checked:text-on-primary-container transition-all text-on-surface/40 hover:text-on-surface">30 Days</span>
+            </label>
+        </fieldset>
+    </header>
+    
+    <figure id="map" class="h-[500px] w-full relative z-0 bg-[#0E0E0E]"></figure>
+</section>
+</section>
+<!-- EMPLOYEE PROFILE DETAIL (MOVED UP) -->
+<article class="bg-[#1B1B1B] p-8 w-full">
 <header class="flex flex-col md:flex-row md:items-center justify-between mb-10">
 <section class="flex items-center space-x-6">
-<img alt="Thabo Hendricks" class="w-24 h-24 rounded-full border-4 border-[#FF8C00]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZwJLkYyvAoZVACbpATRocJIdLl7P1znB0z_TjM30r12WakGh_WA-AsquoM-37nF3zvxJgQBJKF--hcm7qZEkzLEkwteICHzoJrtrFfVXg4GiC4TQnhOC11ZpmfvFcY9t-78wXsaKPznhQTRm7_kkeV5qXu9veuCa0y6X9W_e7tb1CSg4UIJ9EJb7CszDo4FXvrLiBWUAfWikMB-dmMWW3nhWd6KxahmA4BGo0TWgW1uZPrE--WhCsDQDL1PdhOtoyBJeEiKXWkNU"/>
+<img id="profile-avatar" alt="Profile" class="w-24 h-24 rounded-full border-4 border-[#FF8C00]" src="https://ui-avatars.com/api/?name=Select+Worker&background=353535&color=FF8C00"/>
 <section>
-<h2 class="text-3xl font-black tracking-tighter uppercase text-on-surface">Thabo Hendricks</h2>
-<p class="text-primary font-bold tracking-widest text-sm">SENIOR TECHNICIAN | INFRASTRUCTURE</p>
-<p class="text-on-surface/40 font-mono text-xs mt-1">Registry ID: EMP-90210-G</p>
+<h2 id="profile-name" class="text-3xl font-black tracking-tighter uppercase text-on-surface">Select a Worker</h2>
+<p id="profile-registry" class="text-on-surface/40 font-mono text-xs mt-1">Registry ID: ---</p>
 </section>
 </section>
-<aside class="mt-6 md:mt-0 text-right">
-<span class="px-6 py-2 bg-[#FF8C00]/20 text-[#FF8C00] text-xs font-bold uppercase tracking-[0.2em] rounded-full border border-[#FF8C00]/40">Elite Status</span>
-</aside>
 </header>
 <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
 <!-- Efficiency Stats -->
 <section class="space-y-6">
-<h3 class="text-[0.7rem] uppercase font-bold tracking-[0.3em] text-primary border-b border-outline-variant/10 pb-2">Current Efficiency Rating</h3>
-<section class="flex items-end space-x-4">
-<p class="text-6xl font-black tracking-tighter text-on-surface">98.4<span class="text-primary">%</span></p>
-<aside class="pb-2">
-<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">trending_up</span>
-<span class="text-[0.6rem] text-primary font-bold uppercase block">+0.8%</span>
-</aside>
-</section>
-<section class="h-4 w-full bg-[#0E0E0E] rounded-full overflow-hidden">
-<section class="h-full bg-gradient-to-r from-primary-container to-[#FF8C00]" style="width: 98.4%;"></section>
-</section>
-<blockquote class="text-xs text-on-surface/60 italic m-0">
-                            "Consistently exceeds municipal response time targets for grid infrastructure repairs."
-                        </blockquote>
+    <h3 class="text-[0.7rem] uppercase font-bold tracking-[0.3em] text-primary border-b border-outline-variant/10 pb-2">Current Efficiency Rating</h3>
+    <section class="flex items-end space-x-4">
+        <p id="efficiency-rate-text" class="text-6xl font-black tracking-tighter text-on-surface">0.0<span class="text-primary">%</span></p>
+        <aside class="pb-2">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+            <span class="text-[0.6rem] text-primary font-bold uppercase block">Active</span>
+        </aside>
+    </section>
+    <section class="h-4 w-full bg-[#0E0E0E] rounded-full overflow-hidden">
+        <section id="efficiency-rate-bar" class="h-full bg-gradient-to-r from-primary-container to-[#FF8C00]" style="width: 0%; transition: width 0.8s ease-out;"></section>
+    </section>
+    <blockquote class="text-xs text-on-surface/60 italic m-0">
+        "Ratio of fully resolved tasks against total accepted allocations."
+    </blockquote>
 </section>
 <!-- Recent Resolution History -->
 <section class="space-y-6">
 <h3 class="text-[0.7rem] uppercase font-bold tracking-[0.3em] text-primary border-b border-outline-variant/10 pb-2">Recent Resolution History</h3>
 <table class="w-full text-[0.7rem] uppercase font-bold tracking-wider">
-<tbody class="divide-y divide-outline-variant/5">
+<tbody id="recent-history-body" class="divide-y divide-outline-variant/5">
 <tr>
 <td class="py-3 text-on-surface/40">Aug 24</td>
 <td class="py-3 text-on-surface">Grid Node 882 Repair</td>
@@ -312,14 +205,93 @@
 </tr>
 </tbody>
 </table>
-<button class="w-full py-2 bg-[#0E0E0E] text-on-surface/40 hover:text-primary transition-colors text-[0.6rem] uppercase tracking-widest border border-outline-variant/10">View Full History</button>
+<button id="view-history-btn" class="w-full py-2 bg-[#0E0E0E] text-on-surface/40 hover:text-primary transition-colors text-[0.6rem] uppercase tracking-widest border border-outline-variant/10">View Full History</button>
 </section>
+</section>
+</article>
+<!-- BENTO GRID METRICS (MOVED DOWN) -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+<!-- Task Acceptance Rate -->
+<article class="bg-[#1B1B1B] p-8 flex flex-col justify-between">
+<header>
+<h2 class="text-[0.75rem] uppercase font-bold tracking-[0.2em] text-primary mb-4">Task Acceptance Rate</h2>
+<p id="acceptance-rate-text" class="text-6xl font-black tracking-tighter text-on-surface">88.5<span class="text-primary">%</span></p>
+</header>
+<section class="mt-8 relative flex items-center justify-center">
+<!-- Pie Chart Style -->
+<svg class="w-48 h-48 transform -rotate-90">
+<circle cx="96" cy="96" fill="transparent" r="84" stroke="#353535" stroke-width="24"></circle>
+<circle id="acceptance-rate-circle" cx="96" cy="96" fill="transparent" r="84" stroke="#FF8C00" stroke-dasharray="527.78" stroke-dashoffset="60.69" stroke-linecap="butt" stroke-width="24"></circle>
+</svg>
+<section class="absolute flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+<span class="text-[0.65rem] uppercase font-bold tracking-widest text-on-surface/40 mt-1">Acceptance</span>
+</section>
+</section>
+<footer class="mt-8 border-t border-outline-variant/10 pt-4 flex justify-between items-center text-[0.65rem] font-bold uppercase tracking-widest">
+<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>Accepted</span>
+<span class="flex items-center gap-2 text-on-surface/40"><span class="w-2 h-2 rounded-full bg-[#353535]"></span>Declined</span>
+</footer>
+</article>
+<!-- Tasks Resolved -->
+<article class="bg-[#1B1B1B] p-8 flex flex-col">
+<header class="flex justify-between items-start mb-8">
+<section>
+<h2 class="text-[0.75rem] uppercase font-bold tracking-[0.2em] text-primary mb-2">Tasks Resolved</h2>
+<p id="tasks-total" class="text-4xl font-black tracking-tighter text-on-surface">0</p>
+</section>
+<aside class="text-right">
+<span class="block text-[0.6rem] uppercase font-bold tracking-widest text-on-surface/40">Current Period</span>
+<span id="current-period" class="text-primary font-black">JUL - AUG</span>
+</aside>
+</header>
+<section class="flex-grow flex flex-col space-y-6">
+    <section class="flex flex-col space-y-2">
+        <header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
+            <span id="bar-one" class="text-on-surface/60">N/A</span>
+            <span id="bar-one-count" class="text-on-surface">0</span>
+        </header>
+        <section class="h-2 w-full bg-[#0E0E0E]">
+            <section id="bar-one-fill" class="h-full bg-primary-container" style="width: 0%; transition: width 0.5s ease;"></section>
+        </section>
+    </section>
+    
+    <section class="flex flex-col space-y-2">
+        <header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
+            <span id="bar-two" class="text-on-surface/60">N/A</span>
+            <span id="bar-two-count" class="text-on-surface">0</span>
+        </header>
+        <section class="h-2 w-full bg-[#0E0E0E]">
+            <section id="bar-two-fill" class="h-full bg-primary-container" style="width: 0%; transition: width 0.5s ease;"></section>
+        </section>
+    </section>
+    
+    <section class="flex flex-col space-y-2">
+        <header class="flex justify-between text-[0.65rem] font-bold uppercase tracking-widest">
+            <span id="bar-three" class="text-on-surface/60">N/A</span>
+            <span id="bar-three-count" class="text-on-surface">0</span>
+        </header>
+        <section class="h-2 w-full bg-[#0E0E0E]">
+            <section id="bar-three-fill" class="h-full bg-primary-container" style="width: 0%; transition: width 0.5s ease;"></section>
+        </section>
+    </section>
 </section>
 </article>
 </section>
 </main>
-<!-- QUICK ACTION BUTTON -->
-<button aria-label="Add Chart" class="fixed bottom-10 right-10 bg-primary-container text-on-primary-container p-5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.4)] hover:scale-110 active:scale-95 transition-all z-50 border-none cursor-pointer">
-<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">add_chart</span>
-</button>
+
+<dialog id="ledger-modal" class="bg-[#131313] border border-white/5 shadow-2xl rounded-xl overflow-hidden w-[95%] max-w-5xl p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm focus:outline-none m-auto z-40">
+        <header class="px-8 py-6 border-b border-[#FF8C00]/20 flex justify-between items-center bg-surface-container-low">
+            <h2 class="text-xl font-bold uppercase tracking-widest text-white italic">Worker History Ledger</h2>
+            <button id="close-ledger-btn" class="text-on-surface-variant hover:text-white transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </header>
+        <div id="worker-ledger-container"></div>
+    </dialog>
+
+<script src="../ModalUtilities/CivicModal.js"></script>
+<script src="../ModalUtilities/CivicReportTable.js"></script>
+<script src="CivicMap.js"></script>
+<script src="WorkerPerform.js"></script>
 </body></html>

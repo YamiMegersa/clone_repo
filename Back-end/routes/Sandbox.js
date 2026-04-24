@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { MockReport, Geography, MockWard, Municipality } = require('../models');
-
+const { MockReport, Geography, MockWard, Municipality, Allocation, MunicipalWorker } = require('../models');
 // Helper function to build the date filter
 const buildDateFilter = (startDate, endDate) => {
     let dateFilter = {};
@@ -111,25 +110,37 @@ router.get('/ward/:municipalityId/:wardId', async (req, res) => {
     }
 });
 
-// GET /api/reports/municipality/:municipalityId?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
-router.get('/municipality/:municipalityId', async (req, res) => {
+// GET /api/sandbox/municipality/:muniId?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+router.get('/municipality/:muniId', async (req, res) => {
     try {
-        const { municipalityId } = req.params;
-        const { startDate, endDate } = req.query;
+        const { muniId } = req.params;
+        const { startDate, endDate } = req.query; // 🚨 1. Grab the dates from the URL
 
-        const whereClause = { MunicipalityID: municipalityId };
+        // 2. Start building your query rules
+        const whereClause = {
+            MunicipalityID: muniId
+        };
 
-        const dateFilter = buildDateFilter(startDate, endDate);
-        if (Object.keys(dateFilter).length > 0) {
-            whereClause.CreatedAt = dateFilter;
+        // 🚨 3. THE FIX: Apply the Date Filter if the frontend sent dates!
+        if (startDate && endDate) {
+            whereClause.CreatedAt = {
+                [Op.gte]: new Date(startDate),
+                // Add 23:59:59 to capture the entire final day!
+                [Op.lte]: new Date(`${endDate}T23:59:59.999Z`) 
+            };
         }
 
-        const reports = await MockReport.findAll({ where: whereClause });
+        // 4. Fetch the data using our combined rules
+        const reports = await MockReport.findAll({
+            where: whereClause,
+            raw: true
+        });
+
         res.status(200).json(reports);
 
     } catch (error) {
-        console.error('Error fetching municipality reports:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error("Error fetching municipality reports:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
@@ -190,6 +201,153 @@ router.get('/municipality-map', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to build map' });
+    }
+});
+
+// GET /api/sandbox/worker/:workerId/reports?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+router.get('/worker/:workerId/reports', async (req, res) => {
+    try {
+        const { workerId } = req.params;
+        const { startDate, endDate } = req.query;
+
+        // 🚨 1. Fetch ONLY Accepted Allocations for this worker
+        const workerAllocations = await Allocation.findAll({
+            where: { 
+                EmployeeID: workerId,
+                Accepted: true // THIS IS THE NEW LINE! It only pulls accepted tasks.
+            },
+            attributes: ['ReportID'], // We only need the ReportID now
+            raw: true
+        });
+
+        const reportIdsArray = workerAllocations.map(a => a.ReportID);
+        
+        // If they have no accepted tasks, exit early
+        if (reportIdsArray.length === 0) return res.status(200).json([]);
+
+        // 2. Build the Sequelize Query to fetch the report details
+        const whereClause = { 
+            ReportID: { [Op.in]: reportIdsArray } 
+        };
+
+        // 3. Apply the Date Filter (Working perfectly from our last step!)
+        if (startDate && endDate) {
+            whereClause.CreatedAt = {
+                [Op.gte]: new Date(startDate),
+                [Op.lte]: new Date(`${endDate}T23:59:59.999Z`) 
+            };
+        }
+
+        // 4. Fetch the filtered reports
+        const reports = await MockReport.findAll({ 
+            where: whereClause, 
+            raw: true 
+        });
+        
+        // 5. Attach the Accepted boolean (We hardcode to true, since we filtered them above)
+        const reportsWithAcceptance = reports.map(report => ({
+            ...report,
+            Accepted: true 
+        }));
+
+        res.status(200).json(reportsWithAcceptance);
+
+    } catch (error) {
+        console.error(`Error fetching reports:`, error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// GET /api/sandbox/workers
+router.get('/workers', async (req, res) => {
+    try {
+        // 1. Fetch the raw data from your database
+        const dbWorkers = await MunicipalWorker.findAll({
+            attributes: ['EmployeeID', 'FirstName', 'LastName'],
+            raw: true
+        });
+
+        // 2. Combine FirstName and LastName into a single "Name" property 
+        // so the frontend doesn't break!
+        const workers = dbWorkers.map(worker => ({
+            EmployeeID: worker.EmployeeID,
+            Name: `${worker.FirstName || ''} ${worker.LastName || ''}`.trim() || 'Unknown Worker',
+            //Role: 'Municipal Worker' // Optional: Hardcoded since your model doesn't have a Role column
+        }));
+        
+        res.status(200).json(workers);
+    } catch (error) {
+        console.error('Error fetching workers:', error);
+        res.status(500).json({ error: 'Internal Server Error fetching workers' });
+    }
+});
+
+// GET /api/sandbox/report/:reportId/workers
+router.get('/report/:reportId/workers', async (req, res) => {
+    try {
+        const { reportId } = req.params;
+
+        // 1. Find all allocations for this specific report
+        const allocations = await Allocation.findAll({ 
+            where: { ReportID: reportId }, 
+            attributes: ['EmployeeID'],
+            raw: true 
+        });
+
+        const workerIds = allocations.map(a => a.EmployeeID);
+
+        // If no one is assigned, exit early
+        if (workerIds.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        // 2. Fetch the actual worker details
+        const dbWorkers = await MunicipalWorker.findAll({
+            where: { EmployeeID: { [Op.in]: workerIds } }, // Use the Op.in operator you set up earlier!
+            attributes: ['EmployeeID', 'FirstName', 'LastName'],
+            raw: true
+        });
+
+        // 3. Format them for the frontend
+        const workers = dbWorkers.map(w => ({
+            EmployeeID: w.EmployeeID,
+            Name: `${w.FirstName || ''} ${w.LastName || ''}`.trim() || 'Unknown Worker'
+        }));
+        
+        res.status(200).json(workers);
+
+    } catch (error) {
+        console.error(`Error fetching workers for report ${req.params.reportId}:`, error);
+        res.status(500).json({ error: 'Internal Server Error fetching allocated workers' });
+    }
+});
+
+// GET /api/sandbox/worker/:workerId/acceptance
+router.get('/worker/:workerId/acceptance', async (req, res) => {
+    try {
+        const { workerId } = req.params;
+
+        // Fetch ONLY the Accepted column from the Allocation table
+        const allocations = await Allocation.findAll({
+            where: { EmployeeID: workerId },
+            attributes: ['Accepted'],
+            raw: true
+        });
+
+        const total = allocations.length;
+        
+        // MySQL occasionally returns booleans as 1/0, so we check for both
+        const acceptedCount = allocations.filter(a => a.Accepted === true || a.Accepted === 1).length;
+
+        // Send back a perfectly clean math package!
+        res.status(200).json({ 
+            total: total, 
+            accepted: acceptedCount 
+        });
+
+    } catch (error) {
+        console.error(`Error fetching acceptance stats for ${req.params.workerId}:`, error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

@@ -25,7 +25,12 @@ const ReportImage = sequelize.define('ReportImage', {
 const Allocation = sequelize.define('Allocation', {
     AllocationID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     ReportID: { type: DataTypes.INTEGER },
-    EmployeeID: { type: DataTypes.INTEGER }
+    EmployeeID: { type: DataTypes.INTEGER },
+    Accepted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true, // Handles all FUTURE records automatically
+        allowNull: false
+    }
 }, { tableName: 'Allocation', timestamps: false });
 
 module.exports = { Report, ReportImage, Allocation };
