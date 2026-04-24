@@ -7,6 +7,8 @@
 let currentSelection = { type: 'province', ids: { provinceId: 1 } }; 
 let currentFilteredReports = []; // Stores the reports currently matching the date filter
 let MunicipalityMap={};
+let dashboardMap = null;   // 🚨 NEW: Global map instance
+let pinLayerGroup = null;  // 🚨 NEW: Stores the pins so we can clear them easily
 
 
 
@@ -153,6 +155,8 @@ function updateUI(reports, startDateStr, endDateStr) {
     
     // Update Bar Charts
     updateBarCharts(reports, startDateStr, endDateStr);
+
+    drawPinsOnMap(currentFilteredReports);
 }
 // ==========================================
 // 6. BAR CHART GENERATOR
@@ -274,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
    //Fetches only from data from provincial.json I think but then why does it work?
    //THIS DOES NOT FUCKING WORK
 
-    const dashboardMap = new CivicMap(
+    dashboardMap = new CivicMap(
         'map', 
         'data/sa_provincial.json', // <-- Removed the leading slash, updated filename
         (data) => {
@@ -307,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (label === 'municipal') {
                 dashboardMap.loadNewLayer('data/sa_municipal.json');  // <-- Relative path
             }
+            dashboardMap.map.removeLayer(pinLayerGroup);
         });
     });
     document.getElementById('zoom-in-btn').addEventListener('click', () => dashboardMap.zoomIn());
@@ -420,5 +425,44 @@ function openIssueModal(reportId) {
         status: report.Progress,
         ward: report.WardID || report.wardId || 'Unknown', // Catches both possible spellings
         municipality: muniName
+    });
+}
+
+function drawPinsOnMap(reports) {
+    if (!dashboardMap || !dashboardMap.map) return;
+
+    // 1. Clear existing pins so they don't pile up on top of each other
+    if (pinLayerGroup) {
+        dashboardMap.map.removeLayer(pinLayerGroup);
+    }
+    pinLayerGroup = L.layerGroup().addTo(dashboardMap.map);
+
+    // 2. Loop through the currently filtered reports
+    reports.forEach(report => {
+        // Skip reports that don't have GPS coordinates
+        if (!report.Latitude || !report.Longitude) return;
+
+        // Gray for Resolved, Orange for Active
+        const isResolved = (report.Progress || '').toLowerCase() === 'resolved';
+        const pinColor = isResolved ? '#808080' : '#FF8C00'; 
+
+        // Create the Leaflet circle marker
+        const marker = L.circleMarker([report.Latitude, report.Longitude], {
+            radius: 8,
+            fillColor: pinColor,
+            color: "#FFFFFF",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(pinLayerGroup);
+
+        // Add a nice hover tooltip
+        marker.bindTooltip(`<b>${report.Type || 'Issue'}</b><br/>${report.Progress || 'Active'}`, { direction: 'top' });
+
+        // 🚨 Make the pin clickable!
+        // We can completely reuse the openIssueModal function you built for the table!
+        marker.on('click', () => {
+            openIssueModal(report.ReportID);
+        });
     });
 }
