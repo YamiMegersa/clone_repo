@@ -148,6 +148,7 @@ const allocationRoutes = require('./routes/allocations');
 const reportImageRoutes = require('./routes/reportImages');
 const grievanceRoutes = require('./routes/grievances');
 const notificationRoutes =  require('./routes/notifications');
+const PublicRoutes=require('./routes/public');
 
 
 app.use('/api/workers', workerRoutes);
@@ -158,6 +159,7 @@ app.use('/api/allocations', allocationRoutes);
 app.use('/api/report-images', reportImageRoutes);
 app.use('/api/grievances', grievanceRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/public',PublicRoutes);
 
 // --- 4. STATIC FILES & FRONTEND ---
 const frontendPath = path.resolve(__dirname, '..', 'Front-end');
