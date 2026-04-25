@@ -476,3 +476,14 @@ setInterval(async () => {
     console.error("Failed to fetch updates");
   }
 }, 30000); // Check every 30 seconds
+
+
+// Closes account when clicking outside
+document.addEventListener('click', (event) => {
+    const detailsElement = document.querySelector('nav details');
+    
+    // Check if the click was outside the dropdown menu
+    if (detailsElement && !detailsElement.contains(event.target)) {
+        detailsElement.removeAttribute('open');
+    }
+});
