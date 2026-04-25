@@ -1,11 +1,11 @@
 // ==========================================
-// 1. INITIALIZATION
+// 1. INITIALISATION
 // ==========================================
 // 'DOMContentLoaded' ensures the browser has fully read and built the HTML page
 // before we try to attach any JavaScript to it. If we didn't wait, JS might try 
 // to grab a dropdown menu that hasn't been drawn yet, causing a crash.
 document.addEventListener('DOMContentLoaded', () => {
-    // Unlike your Resident.js, there is absolutely no localStorage auth check here.
+    // Unlike Resident.js, there is absolutely no localStorage auth check here.
     // This explicitly allows anyone on the internet to load the page.
     
     // As soon as the page is ready, we fire the function to go get the provinces from the database.
@@ -45,7 +45,7 @@ const resetDropdown = (selectElement, defaultText) => {
 // and we need to 'await' the server's reply before moving on.
 async function loadProvinces() {
     try {
-        // Send a GET request to your public Express route
+        // Send a GET request to public Express route
         const response = await fetch('/api/geography/provinces');
         
         if (response.ok) {
@@ -165,7 +165,7 @@ guestForm.addEventListener('submit', (e) => {
     if (selectedWardId) {
         // We aren't saving anything to the database here.
         // Instead, we simply redirect the user to the next HTML page.
-        // We append '?wardId=123' to the URL so the next page knows what data to load!
+        // We append '?wardId=123' to the URL so the next page knows what data to load
         window.location.href = `PublicWardView.html?wardId=${selectedWardId}`;
     }
 });
@@ -190,7 +190,7 @@ async function fetchWardStats(wardId) {
         
         const reports = await response.json();
         
-        // Initialize our tally counters
+        // Initialise our tally counters
         let openCount = 0;
         let resolvedCount = 0;
         
@@ -208,7 +208,7 @@ async function fetchWardStats(wardId) {
         resolvedIssuesDisplay.textContent = resolvedCount;
         
         // A clever UI trick: find all elements that say "GLOBAL" and dynamically 
-        // change them to say "WARD X" so the user knows the stats are localized.
+        // change them to say "WARD X" so the user knows the stats are localised.
         document.querySelectorAll('.uppercase.font-black.tracking-widest').forEach(el => {
             if (el.textContent === 'GLOBAL') el.textContent = `WARD ${wardId}`;
         });
