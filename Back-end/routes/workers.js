@@ -16,7 +16,7 @@ router.get('/pending', async (req, res) => {
     }
 });
 
-// GET: Fetch all validated (Active) workers ---
+// GET: Fetch all validated (Active) workers 
 router.get('/active', async (req, res) => {
     try {
         const active = await MunicipalWorker.findAll({ 

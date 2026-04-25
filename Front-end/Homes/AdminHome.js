@@ -404,7 +404,10 @@ document.getElementById('assign-task-form').addEventListener('submit', async (e)
     try {
         const response = await fetch(`/api/reports/${reportId}/assign`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-notif-paused': localStorage.getItem('notifPaused') || 'false'
+            },
             body: JSON.stringify({ EmployeeID: workerId })
         });
 

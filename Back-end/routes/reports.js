@@ -86,17 +86,17 @@ router.get('/resident/:residentId', async (req,res)=>{
 router.post('/', async (req, res) => {
     try {
         const newReport = await Report.create(req.body);
- 
-        // Notify all admins about the new report
-        await notify(
-            'admin',
-            'NEW_REPORT',
+        const paused = req.headers['x-notif-paused'] === 'true';
+
+        await notify('admin', 'NEW_REPORT',
             `New ${newReport.Type} Report`,
             `A new fault has been logged in Ward ${newReport.WardID || 'N/A'}. Report #${newReport.ReportID} is pending assignment.`,
             newReport.ReportID
         );
-         // ── Email admin
-        await sendEmail(
+
+        // Only email if not paused
+        if (!paused) {
+             await sendEmail(
             ADMIN_EMAIL,
             `🔔 New Report: ${newReport.Type}`,
             `
@@ -113,7 +113,10 @@ router.post('/', async (req, res) => {
             </div>
             `
         );
- 
+        } else {
+            console.log('[Email] Skipped — notifications paused by user');
+        }
+
         res.status(201).json({ message: 'Report logged successfully', report: newReport });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -226,31 +229,28 @@ router.post('/:id/assign', async (req, res) => {
     try {
         const { EmployeeID } = req.body;
         const ReportID = req.params.id;
- 
+        const paused = req.headers['x-notif-paused'] === 'true';
+
         await Allocation.create({ ReportID, EmployeeID });
         await Report.update(
             { Status: 'Assigned', Progress: 'Assigned to Field Staff' },
-            { where: { ReportID: ReportID } }
+            { where: { ReportID } }
         );
- 
-        // ── Look up the report type for a richer notification 
+
         const report = await Report.findByPk(ReportID);
         const taskType = report ? report.Type : 'a task';
         const ward = report ? `Ward ${report.WardID}` : 'your area';
- 
-        // ── Notify the assigned worker 
-        await notify(
-            EmployeeID,
-            'TASK_ASSIGNED',
+
+        await notify(EmployeeID, 'TASK_ASSIGNED',
             `New Assignment: ${taskType}`,
             `You have been assigned a new task in ${ward}. Report #${ReportID} is ready for acceptance.`,
             ReportID
         );
 
-         // ── Look up worker email then send
-        const worker = await MunicipalWorker.findByPk(EmployeeID);
-        if (worker && worker.Email) {
-            await sendEmail(
+        if (!paused) {
+            const worker = await MunicipalWorker.findByPk(EmployeeID);
+            if (worker && worker.Email) {
+                await sendEmail(
                 worker.Email,
                 `📌 New Task Assigned: ${taskType}`,
                 `
@@ -268,8 +268,11 @@ router.post('/:id/assign', async (req, res) => {
                 </div>
                 `
             );
+            }
+        } else {
+            console.log('[Email] Skipped — notifications paused by user');
         }
- 
+
         res.status(200).json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -330,27 +333,22 @@ router.put('/:id/decline', async (req, res) => {
     try {
         const reportId = req.params.id;
         const { reason, workerName } = req.body;
- 
+        const paused = req.headers['x-notif-paused'] === 'true';
+
         await Allocation.destroy({ where: { ReportID: reportId } });
         await Report.update(
-            {
-                Status: 'Pending',
-                Progress: `Pending - Declined by ${workerName}: ${reason}`
-            },
+            { Status: 'Pending', Progress: `Pending - Declined by ${workerName}: ${reason}` },
             { where: { ReportID: reportId } }
         );
- 
-        // Notify admin of the declined task 
-        await notify(
-            'admin',
-            'TASK_DECLINED',
+
+        await notify('admin', 'TASK_DECLINED',
             `Task #${reportId} Declined`,
             `${workerName} declined Report #${reportId}. Reason: "${reason}". The task needs reassignment.`,
             reportId
         );
 
-         // Email admin
-        await sendEmail(
+        if (!paused) {
+            await sendEmail(
             ADMIN_EMAIL,
             `⚠️ Task #${reportId} Declined — Reassignment Needed`,
             `
@@ -367,14 +365,15 @@ router.put('/:id/decline', async (req, res) => {
             </div>
             `
         );
- 
-        console.log(`[ALERT] Report #${reportId} was declined by ${workerName}. Reason: ${reason}`);
+        } else {
+            console.log('[Email] Skipped — notifications paused by user');
+        }
+
         res.status(200).json({ message: 'Task returned to pool' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
 
 
 // GET: Fetch reports assigned to a specific worker

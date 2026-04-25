@@ -267,13 +267,16 @@ function renderTaskCard(report, container) {
 
 //workers can decline tasks
 async function declineTask(reportId) {
-    const reason = prompt("Please provide a reason for declining this task (e.g., lack of materials, site inaccessible):");
-    if (reason === null) return; // User cancelled
+    const reason = prompt("Please provide a reason for declining this task:");
+    if (reason === null) return;
 
     try {
         const response = await fetch(`/api/reports/${reportId}/decline`, {
-            method: 'PUT', // Using PUT because we are updating the state
-            headers: { 'Content-Type': 'application/json' },
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-notif-paused': localStorage.getItem('notifPaused') || 'false'
+            },
             body: JSON.stringify({ 
                 reason, 
                 workerName: localStorage.getItem('workerName') || "A worker" 

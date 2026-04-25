@@ -1,37 +1,45 @@
 
 (() => {
-    // ─── Config ──────────────────────────────────────────────────────────────
+    // Config 
     const POLL_INTERVAL_MS = 30_000; // Poll every 30 seconds
     let pollTimer = null;
     let isPaused = false;
     let currentRecipientId = null;
 
-    // ─── Bootstrap: runs after DOM is ready ──────────────────────────────────
+    //Bootstrap: runs after DOM is ready 
     function init() {
-        // Detect role & ID
-        const role = localStorage.getItem('role'); // 'admin' or 'worker'
-        const workerId = localStorage.getItem('workerId');
-      
-            // Strictly check role first, ignore workerId if role is admin
+    const role = localStorage.getItem('role');
+    const workerId = localStorage.getItem('workerId');
+
     if (role === 'admin') {
         currentRecipientId = 'admin';
     } else if (role === 'worker' && workerId) {
         currentRecipientId = workerId;
     } else {
-        // Role is missing or unrecognised — don't load anything
-        console.warn('[Notifications] No valid role found in localStorage. Not initialising.');
         return;
     }
 
-    console.log('[Notifications] Starting for:', currentRecipientId);
+    // Restore paused state from previous session
+    isPaused = localStorage.getItem('notifPaused') === 'true';
 
-        injectStyles();
-        renderNotificationShell();
-        fetchAndRender();
-        startPolling();
-    }
+    injectStyles();
+    renderNotificationShell();
 
-    // ─── Polling ─────────────────────────────────────────────────────────────
+    // Sync the button state if paused
+    setTimeout(() => {
+        const btn = document.getElementById('notif-pause-btn');
+        const dot = document.getElementById('notif-live-dot');
+        if (isPaused) {
+            if (btn) btn.textContent = '▶ Resume';
+            if (dot) dot.classList.add('notif-dot-paused');
+        }
+    }, 100);
+
+    fetchAndRender();
+    startPolling();
+}
+
+    //Polling
     function startPolling() {
         if (pollTimer) clearInterval(pollTimer);
         pollTimer = setInterval(() => {
@@ -46,7 +54,7 @@
         }
     }
 
-    // ─── Fetch notifications from backend ────────────────────────────────────
+    // Fetch notifications from backend 
     async function fetchAndRender() {
         try {
             const res = await fetch(`/api/notifications/${currentRecipientId}`);
@@ -59,7 +67,7 @@
         }
     }
 
-    // ─── Render the notification list ────────────────────────────────────────
+    // Render the notification list 
     function renderList(notifications) {
         const list = document.getElementById('notif-list');
         if (!list) return;
@@ -97,7 +105,7 @@
         }).join('');
     }
 
-    // ─── Badge count ─────────────────────────────────────────────────────────
+    // Badge count
     function updateBadge(count) {
         const badge = document.getElementById('notif-badge');
         if (!badge) return;
@@ -109,7 +117,7 @@
         }
     }
 
-    // ─── Toggle panel open/close ─────────────────────────────────────────────
+    // Toggle panel open/close 
     function togglePanel() {
         const panel = document.getElementById('notif-panel');
         if (!panel) return;
@@ -132,7 +140,7 @@
         }
     }
 
-    // ─── Mark single as read ─────────────────────────────────────────────────
+    // Mark single as read 
     async function markRead(notifId) {
         try {
             await fetch(`/api/notifications/${notifId}/read`, { method: 'PUT' });
@@ -145,7 +153,7 @@
         }
     }
 
-    // ─── Mark all read ───────────────────────────────────────────────────────
+    // Mark all read 
     async function markAllRead() {
         try {
             await fetch(`/api/notifications/${currentRecipientId}/read-all`, { method: 'PUT' });
@@ -156,7 +164,7 @@
         }
     }
 
-    // ─── Delete one notification ──────────────────────────────────────────────
+    // Delete one notification 
     async function deleteOne(notifId) {
         try {
             await fetch(`/api/notifications/${notifId}`, { method: 'DELETE' });
@@ -176,7 +184,7 @@
         }
     }
 
-    // ─── Clear all notifications ──────────────────────────────────────────────
+    // Clear all notifications 
     async function clearAll() {
         if (!confirm('Clear all notifications? This cannot be undone.')) return;
         try {
@@ -188,17 +196,20 @@
         }
     }
 
-    // ─── Pause / Resume polling ───────────────────────────────────────────────
+    //  Pause / Resume polling 
     function togglePause() {
-        isPaused = !isPaused;
-        const btn = document.getElementById('notif-pause-btn');
-        if (btn) {
-            btn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
-            btn.title = isPaused ? 'Resume live alerts' : 'Pause live alerts';
-        }
-        const indicator = document.getElementById('notif-live-dot');
-        if (indicator) indicator.classList.toggle('notif-dot-paused', isPaused);
+    isPaused = !isPaused;
+    // Save pause state so other pages and the backend know
+    localStorage.setItem('notifPaused', isPaused ? 'true' : 'false');
+    
+    const btn = document.getElementById('notif-pause-btn');
+    if (btn) {
+        btn.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+        btn.title = isPaused ? 'Resume live alerts' : 'Pause live alerts';
     }
+    const indicator = document.getElementById('notif-live-dot');
+    if (indicator) indicator.classList.toggle('notif-dot-paused', isPaused);
+}
 
   function renderNotificationShell() {
     // Remove old notification elements if present
@@ -260,7 +271,7 @@
     `;
 }
 
-    // ─── CSS injection ────────────────────────────────────────────────────────
+    //  CSS injection 
     function injectStyles() {
         if (document.getElementById('notif-styles')) return;
         const style = document.createElement('style');
@@ -648,7 +659,7 @@
         document.head.appendChild(style);
     }
 
-    // ─── Toast popup for real-time feel ──────────────────────────────────────
+    // Toast popup for real-time feel
     let lastKnownIds = new Set();
     let isFirstFetch = true;
 
@@ -696,7 +707,7 @@
         }, 6000);
     }
 
-    // ─── Helpers ─────────────────────────────────────────────────────────────
+    //  Helpers 
     function typeIcon(type) {
         const icons = {
             'TASK_DECLINED': '⚠',
@@ -736,7 +747,7 @@
             .replace(/"/g, '&quot;');
     }
 
-    // ─── Public API ───────────────────────────────────────────────────────────
+    // Public API 
     window._notifModule = {
         toggle: togglePanel,
         markRead,
@@ -748,7 +759,7 @@
         stop: stopPolling
     };
 
-    // ─── Start ────────────────────────────────────────────────────────────────
+    // Start 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
