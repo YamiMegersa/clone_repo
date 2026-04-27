@@ -78,6 +78,7 @@
     </script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
         body { background-color: #131313; color: #e2e2e2; font-family: 'Public Sans', sans-serif; margin: 0; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -109,7 +110,11 @@
 <section class="lg:col-span-3 bg-[#1B1B1B] p-8 space-y-8 flex flex-col min-h-[500px]">
 <header>
 <h2 class="text-xl font-black tracking-tighter uppercase text-on-surface mb-2">Search Registry</h2>
-<p class="text-[0.6rem] uppercase tracking-widest text-on-surface/40 font-bold">Querying 4,209 Active Records</p>
+<p class="text-[0.6rem] uppercase tracking-widest text-on-surface/40 font-bold">Querying 4,209 Active Records</p>    
+    <button id="export-pdf-btn" class="bg-surface-container-highest border border-surface-variant py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary-container hover:text-on-primary transition-all flex items-center gap-2 text-on-surface">
+        <span class="material-symbols-outlined text-[1.2rem]">download</span>
+        Export Report
+    </button>
 </header>
 <form class="relative">
 <label class="sr-only" for="employee-search">Search Employee</label>

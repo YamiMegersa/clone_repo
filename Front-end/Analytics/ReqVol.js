@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('zoom-in-btn').addEventListener('click', () => dashboardMap.zoomIn());
     document.getElementById('zoom-out-btn').addEventListener('click', () => dashboardMap.zoomOut());
     fetchDashboardData(); 
+    const pdfExporter = new DashboardExporter('export-pdf-btn', 'main', 'Request_Volume_Report');
 });
 // ==========================================
 // 7. LEDGER MODAL LOGIC

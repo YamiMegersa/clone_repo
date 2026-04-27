@@ -163,6 +163,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('close-ledger-btn').addEventListener('click', () => {
         modal.close();
     });
+
+    const pdfExporter = new DashboardExporter('export-pdf-btn', 'main', 'Worker_Performance_Report');
 }); // End of DOMContentLoaded
 
 // ==========================================

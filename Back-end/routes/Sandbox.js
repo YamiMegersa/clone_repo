@@ -83,22 +83,23 @@ router.get('/request-volume', async (req, res) => {
     }
 });
 
-// GET /api/reports/ward/:municipalityId/:wardId?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+// GET /api/reports/ward/:municipalityId/:wardId
 router.get('/ward/:municipalityId/:wardId', async (req, res) => {
     try {
         const { municipalityId, wardId } = req.params;
         const { startDate, endDate } = req.query;
 
-        // Base query conditions
         const whereClause = {
             MunicipalityID: municipalityId,
             WardID: wardId
         };
 
-        // Append date filter if provided
-        const dateFilter = buildDateFilter(startDate, endDate);
-        if (Object.keys(dateFilter).length > 0) {
-            whereClause.CreatedAt = dateFilter;
+        // 🚨 Standardized Date Filter (No Object.keys trap!)
+        if (startDate && endDate) {
+            whereClause.CreatedAt = {
+                [Op.gte]: new Date(startDate),
+                [Op.lte]: new Date(`${endDate}T23:59:59.999Z`) 
+            };
         }
 
         const reports = await MockReport.findAll({ where: whereClause });
@@ -144,7 +145,7 @@ router.get('/municipality/:muniId', async (req, res) => {
     }
 });
 
-// GET /api/reports/province/:provinceId?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+// GET /api/reports/province/:provinceId
 router.get('/province/:provinceId', async (req, res) => {
     try {
         const { provinceId } = req.params;
@@ -152,20 +153,20 @@ router.get('/province/:provinceId', async (req, res) => {
 
         const whereClause = {};
 
-        const dateFilter = buildDateFilter(startDate, endDate);
-        if (Object.keys(dateFilter).length > 0) {
-            whereClause.CreatedAt = dateFilter;
+        // 🚨 Standardized Date Filter
+        if (startDate && endDate) {
+            whereClause.CreatedAt = {
+                [Op.gte]: new Date(startDate),
+                [Op.lte]: new Date(`${endDate}T23:59:59.999Z`) 
+            };
         }
-        //whereClause={};
 
         const reports = await MockReport.findAll({
             where: whereClause,
             include: [{
                 model: Municipality,
-                // This forces an INNER JOIN. It only returns reports where the 
-                // linked Municipality belongs to the specified ProvinceID
                 where: { ProvinceID: provinceId }, 
-                attributes: [] // We don't necessarily need to return the municipality data, just filter by it
+                attributes: [] 
             }]
         });
 

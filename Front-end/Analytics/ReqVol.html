@@ -73,6 +73,7 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
         body { font-family: 'Public Sans', sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -107,6 +108,13 @@
                         Custom <span class="material-symbols-outlined text-sm" data-icon="calendar_month">calendar_month</span>
 </button>
 </fieldset>
+
+
+    
+    <button id="export-pdf-btn" class="bg-surface-container-highest border border-surface-variant py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary-container hover:text-on-primary transition-all flex items-center gap-2 text-on-surface">
+        <span class="material-symbols-outlined text-[1.2rem]">download</span>
+        Export Report
+    </button>
 </header>
 <section class="flex flex-col gap-6">
 <article class="relative w-full h-[500px] rounded-xl overflow-hidden bg-surface-container-lowest shadow-2xl group">
@@ -241,4 +249,5 @@
 <script src="../ModalUtilities/CivicModal.js"></script>
 <script src="CivicMap.js"></script>
 <script src="ReqVol.js"></script>
+<script src="../ModalUtilities/DashboardExporter.js"></script>
 </body></html>
