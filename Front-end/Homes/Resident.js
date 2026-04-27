@@ -695,3 +695,14 @@ muteForm.addEventListener('submit', async (e) => {
     }
 });
 });
+
+
+// Closes account when clicking outside
+document.addEventListener('click', (event) => {
+    const detailsElement = document.querySelector('nav details');
+    
+    // Check if the click was outside the dropdown menu
+    if (detailsElement && !detailsElement.contains(event.target)) {
+        detailsElement.removeAttribute('open');
+    }
+});

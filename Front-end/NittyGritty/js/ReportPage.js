@@ -74,10 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
             Latitude: window.mapLat || 0,
             Longitude: window.mapLng || 0,
             Status: 'Pending',
-            Date: new Date().toISOString(),
+            CreatedAt: new Date().toISOString().split('T')[0],
+            Brief: getVal('description'),
             Type: getVal('pothole-type'),
             Frequency: getVal('frequency'),
-            Description: getVal('description'),
             Images: base64Array 
         };
 

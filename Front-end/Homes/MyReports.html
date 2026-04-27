@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>My Reports | GroundWorks</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <style>
+        body { background-color: #131313; font-family: 'Public Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+
+<body class="text-on-background min-h-screen bg-background">
+    <header class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl flex justify-between items-center px-8 h-20 border-b border-white/5">
+        <nav class="flex items-center gap-4">
+            <a href="Resident.html" class="hover:bg-[#353535]/50 transition-colors p-2 rounded-full text-[#FFB77D]">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <h1 class="text-xl font-black tracking-tighter text-[#FFB77D] uppercase">My Reports</h1>
+        </nav>
+    </header>
+
+    <main class="pt-28 px-8 max-w-5xl mx-auto space-y-12">
+        <section>
+            <header class="mb-8">
+                <h2 class="text-[3.5rem] font-black tracking-tighter leading-none mb-2 text-white">History</h2>
+                <p class="text-white/70 max-w-xl leading-relaxed">Review the status and progress of infrastructure issues you have logged in the system.</p>
+            </header>
+
+            <section id="reports-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-full py-20 text-center opacity-30">
+                    <span class="material-symbols-outlined text-6xl mb-4">inventory_2</span>
+                    <p class="uppercase tracking-[0.3em] text-xs font-black text-white">Retrieving Ledger...</p>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <!-- User Feedback popup -->
+    <dialog id="feedback-modal" class="bg-[#1b1b1b] border border-white/10 shadow-2xl rounded-2xl p-0 backdrop:bg-black/80 backdrop:backdrop-blur-sm m-auto w-[90%] max-w-md overflow-hidden">
+        <button id="close-feedback-x" class="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+        
+        <div class="p-8 text-center space-y-6">
+            <h2 class="text-2xl font-black uppercase italic tracking-tighter text-white">Give your feedback</h2>
+            
+            <div class="flex justify-center gap-2 group/stars">
+                <button class="star-btn transition-transform active:scale-90" data-value="1">
+                    <span class="material-symbols-outlined text-4xl text-white/20 hover:text-primary cursor-pointer transition-transform hover:scale-110">star</span>
+                </button>
+                <button class="star-btn transition-transform active:scale-90" data-value="2">
+                    <span class="material-symbols-outlined text-4xl text-white/20 hover:text-primary cursor-pointer transition-transform hover:scale-110">star</span>
+                </button>
+                <button class="star-btn transition-transform active:scale-90" data-value="3">
+                    <span class="material-symbols-outlined text-4xl text-white/20 hover:text-primary cursor-pointer transition-transform hover:scale-110">star</span>
+                </button>
+                <button class="star-btn transition-transform active:scale-90" data-value="4">
+                    <span class="material-symbols-outlined text-4xl text-white/20 hover:text-primary cursor-pointer transition-transform hover:scale-110">star</span>
+                </button>
+                <button class="star-btn transition-transform active:scale-90" data-value="5">
+                    <span class="material-symbols-outlined text-4xl text-white/20 hover:text-primary cursor-pointer transition-transform hover:scale-110">star</span>
+                </button>
+            </div>
+
+            <div class="flex justify-between px-2">
+                <span class="text-[10px] font-black uppercase tracking-widest text-white/60">Bad</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-white/60">Excellent</span>
+            </div>
+
+            <button id="submit-feedback" class="w-full py-4 bg-primary border border-[#FF8C00] text-white font-black uppercase tracking-[0.2em] text-xs rounded-lg transition-all active:scale-[0.98] shadow-lg shadow-primary/20">
+                Submit Feedback
+            </button>
+        </div>
+    </dialog> 
+    <!-- =================== -->
+
+
+    <script src="MyReports.js"></script>
+</body>
+</html>
