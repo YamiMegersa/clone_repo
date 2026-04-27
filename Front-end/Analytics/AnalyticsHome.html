@@ -3,6 +3,12 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<nav id="dynamic-nav" class="flex items-center text-[0.65rem] font-bold uppercase tracking-widest text-on-surface/40 -mb-4">
+    <a id="home-link" href="ResidentHome.html" class="flex items-center hover:text-primary transition-colors cursor-pointer group">
+        <span class="material-symbols-outlined mr-2 text-lg group-hover:-translate-x-1 transition-transform">arrow_back</span>
+        <span id="home-link-text">Return to Dashboard</span>
+    </a>
+</nav>
 <title>CIVIC LEDGER | Operational Health</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
@@ -89,6 +95,7 @@
 <p class="text-neutral-500 font-body text-xl max-w-3xl">Real-time telemetry from the municipal grid. All data points are verified through the decentralized ledger protocol.</p>
 </header>
 <section class="px-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
+
 <!-- Request Volume -->
 <article onclick="window.location.href='ReqVol.html'" class="bg-surface-container-low p-8 rounded-lg group cursor-pointer hover:bg-surface-container-high transition-all duration-300 flex flex-col h-full relative overflow-hidden">
     <header class="flex justify-between items-start mb-12">
