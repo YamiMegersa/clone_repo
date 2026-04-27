@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const ADMIN_EMAIL = '2820314@students.wits.ac.za';
+const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za';
 
 // ─── Email helper 
 async function sendEmail(to, subject, html) {
@@ -446,6 +446,26 @@ router.put('/:id/bump', async (req, res) => {
         res.json({ message: 'Issue bumped successfully', newFrequency: report.Frequency });
     } catch (err) {
         console.error('Error bumping report:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET: Fetch all images for a specific report as base64
+router.get('/report/:reportId', async (req, res) => {
+    try {
+        const images = await ReportImage.findAll({
+            where: { ReportID: req.params.reportId }
+        });
+
+        // Convert BLOB to base64 so the frontend can display them
+        const formatted = images.map(img => ({
+            ImageID: img.ImageID,
+            Type: img.Type || 'image/jpeg',
+            base64: img.Image ? img.Image.toString('base64') : null
+        }));
+
+        res.json(formatted);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });

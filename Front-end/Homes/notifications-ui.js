@@ -93,7 +93,7 @@
                 <div class="notif-icon-wrap ${accentClass}">
                     <span>${icon}</span>
                 </div>
-                <div class="notif-body" onclick="window._notifModule.markRead(${n.NotificationID})">
+                <div class="notif-body" onclick="window._notifModule.markRead(${n.NotificationID}, ${n.ReportID || 'null'})">
                     <p class="notif-title">${escHtml(n.Title)}</p>
                     <p class="notif-msg">${escHtml(n.Message)}</p>
                     <p class="notif-time">${time}</p>
@@ -104,6 +104,14 @@
             </li>`;
         }).join('');
     }
+
+    function openImageFullscreen(src) {
+    const viewer = document.createElement('div');
+    viewer.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.97);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    viewer.innerHTML = `<img src="${src}" style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px;" />`;
+    viewer.onclick = () => viewer.remove();
+    document.body.appendChild(viewer);
+}
 
     // Badge count
     function updateBadge(count) {
@@ -141,17 +149,22 @@
     }
 
     // Mark single as read 
-    async function markRead(notifId) {
-        try {
-            await fetch(`/api/notifications/${notifId}/read`, { method: 'PUT' });
-            const item = document.querySelector(`[data-id="${notifId}"]`);
-            if (item) item.classList.remove('notif-unread');
-            const unreadCount = document.querySelectorAll('.notif-unread').length;
-            updateBadge(unreadCount);
-        } catch (err) {
-            console.warn('[Notifications] markRead failed:', err);
+    async function markRead(notifId, reportId) {
+    try {
+        await fetch(`/api/notifications/${notifId}/read`, { method: 'PUT' });
+        const item = document.querySelector(`[data-id="${notifId}"]`);
+        if (item) item.classList.remove('notif-unread');
+        const unreadCount = document.querySelectorAll('.notif-unread').length;
+        updateBadge(unreadCount);
+
+        // If this notification links to a report, open the detail modal
+        if (reportId) {
+            openNotifReportModal(reportId);
         }
+    } catch (err) {
+        console.warn('[Notifications] markRead failed:', err);
     }
+}
 
     // Mark all read 
     async function markAllRead() {
@@ -747,6 +760,149 @@
             .replace(/"/g, '&quot;');
     }
 
+    async function openNotifReportModal(reportId) {
+    // Close the notification panel first
+    const panel = document.getElementById('notif-panel');
+    if (panel) panel.classList.remove('notif-panel-open');
+
+    // Create dialog if it doesn't exist
+    let dialog = document.getElementById('notif-report-modal');
+    if (!dialog) {
+        dialog = document.createElement('dialog');
+        dialog.id = 'notif-report-modal';
+        // Add minimal reset styles for the <dialog> element itself
+        dialog.style.cssText = 'border:none; background:transparent; padding:0; margin:0; width:100vw; height:100vh; max-width:none; max-height:none;';
+        document.body.appendChild(dialog);
+    }
+
+    // Show native dialog backdrop
+    dialog.showModal();
+
+    // Show loading state
+    dialog.innerHTML = `
+        <section style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;">
+            <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:680px;padding:40px;">
+                <p style="color:#737373;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;text-align:center;">Loading report details...</p>
+            </div>
+        </section>`;
+
+    try {
+        const [reportRes, imagesRes] = await Promise.all([
+            fetch(`/api/reports/${reportId}`),
+            fetch(`/api/report-images/report/${reportId}`)
+        ]);
+
+        const report = await reportRes.json();
+        const images = await imagesRes.json();
+
+        const priorityMap = { 1: { text: 'Critical', color: '#ef4444' }, 2: { text: 'High', color: '#f97316' }, 3: { text: 'Routine', color: '#3b82f6' } };
+        const priority = priorityMap[report.Priority] || priorityMap[3];
+
+        // Semantic Gallery using <figure> and <section>
+        const galleryHtml = images.length > 0 ? `
+            <section aria-label="Attached Evidence" style="margin-top:24px;">
+                <header>
+                    <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#737373;margin-bottom:12px;">
+                        Attached Evidence (${images.length} photo${images.length > 1 ? 's' : ''})
+                    </p>
+                </header>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">
+                    ${images.map(img => `
+                        <figure style="margin:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:#111;border:1px solid rgba(255,255,255,0.06);cursor:pointer;" 
+                                onclick="window._notifModule.openImageFullscreen('data:${img.Type};base64,${img.base64}')">
+                            <img src="data:${img.Type};base64,${img.base64}" 
+                                 style="width:100%;height:100%;object-fit:cover;" 
+                                 alt="Evidence for report #${report.ReportID}" />
+                        </figure>
+                    `).join('')}
+                </div>
+            </section>` : `
+            <aside style="margin-top:24px;padding:20px;border:1px dashed rgba(255,255,255,0.08);border-radius:10px;text-align:center;">
+                <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">No photos attached</p>
+            </aside>`;
+
+        dialog.innerHTML = `
+            <section style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;">
+                <article style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;padding:40px;position:relative;">
+                    
+                    <header>
+                        <button onclick="window._notifModule.closeReportModal()" 
+                                aria-label="Close modal"
+                                style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#9ca3af;width:32px;height:32px;cursor:pointer;">
+                            ✕
+                        </button>
+                        <p style="font-size:10px;font-family:monospace;color:#ff8c00;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 6px;">Report #${report.ReportID}</p>
+                        <h2 style="font-size:28px;font-weight:900;color:#e2e2e2;margin:0 0 8px;letter-spacing:-0.02em;">${report.Type}</h2>
+                        
+                        <nav style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <mark style="padding:3px 10px;border-radius:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:10px;font-weight:800;text-transform:uppercase;color:#a3a3a3;">
+                                Ward ${report.WardID || 'N/A'}
+                            </mark>
+                            <mark style="padding:3px 10px;border-radius:6px;font-size:10px;font-weight:800;text-transform:uppercase;color:${priority.color};background:${priority.color}20;border:1px solid ${priority.color}40;">
+                                ${priority.text}
+                            </mark>
+                            <mark style="padding:3px 10px;border-radius:6px;background:rgba(255,140,0,0.1);border:1px solid rgba(255,140,0,0.3);font-size:10px;font-weight:800;text-transform:uppercase;color:#ff8c00;">
+                                ${report.Progress || 'Pending'}
+                            </mark>
+                        </nav>
+                    </header>
+
+                    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.06);margin:24px 0;">
+
+                    <section aria-labelledby="briefing-title">
+                        <h3 id="briefing-title" style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#737373;margin-bottom:8px;">Situation Briefing</h3>
+                        <p style="color:#d4d4d4;font-size:14px;line-height:1.7;margin:0;">${report.Description || 'No additional briefing provided.'}</p>
+                    </section>
+
+                    <footer style="margin-top:24px;">
+                        <dl style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:16px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid rgba(255,255,255,0.05);margin:0 0 24px 0;">
+                            <div>
+                                <dt style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#4b5563;margin-bottom:4px;">Location</dt>
+                                <dd style="font-size:13px;font-weight:700;color:#e2e2e2;margin:0;">Ward ${report.WardID || 'N/A'}</dd>
+                            </div>
+                            <div>
+                                <dt style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#4b5563;margin-bottom:4px;">Logged</dt>
+                                <dd style="font-size:13px;font-weight:700;color:#e2e2e2;margin:0;">${report.CreatedAt ? new Date(report.CreatedAt).toLocaleDateString() : 'N/A'}</dd>
+                            </div>
+                            <div>
+                                <dt style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.12em;color:#4b5563;margin-bottom:4px;">Resolved</dt>
+                                <dd style="font-size:13px;font-weight:700;color:#e2e2e2;margin:0;">${report.DateFulfilled ? new Date(report.DateFulfilled).toLocaleDateString() : '—'}</dd>
+                            </div>
+                        </dl>
+
+                        ${galleryHtml}
+
+                        <div style="margin-top:28px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+                            <button onclick="window._notifModule.closeReportModal()" 
+                                    style="width:100%;padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#9ca3af;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;cursor:pointer;">
+                                Close
+                            </button>
+                        </div>
+                    </footer>
+                </article>
+            </section>`;
+
+    } catch (err) {
+        console.error('[Notif Modal] Error:', err);
+        dialog.innerHTML = `
+            <section style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;">
+                <article style="background:#1a1a1a;border-radius:16px;padding:40px;text-align:center;">
+                    <h2 style="color:#ef4444;font-size:12px;font-weight:700;text-transform:uppercase;">Error</h2>
+                    <p style="color:#9ca3af; margin-top:8px;">Failed to load report details</p>
+                    <button onclick="window._notifModule.closeReportModal()" style="margin-top:16px;padding:10px 24px;background:#333;border:none;border-radius:8px;color:#e2e2e2;cursor:pointer;">Close</button>
+                </article>
+            </section>`;
+    }
+}
+
+function closeReportModal() {
+    const dialog = document.getElementById('notif-report-modal');
+    if (dialog) {
+        dialog.close(); // Close the native dialog
+        dialog.innerHTML = '';
+    }
+}
+
     // Public API 
     window._notifModule = {
         toggle: togglePanel,
@@ -756,7 +912,10 @@
         clearAll,
         togglePause,
         refresh: fetchAndRender,
-        stop: stopPolling
+        stop: stopPolling,
+        openNotifReportModal,   
+        closeReportModal,       
+        openImageFullscreen 
     };
 
     // Start 

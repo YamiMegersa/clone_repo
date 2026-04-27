@@ -106,37 +106,10 @@
 <section class="p-10 md:p-12">
 <header class="mb-10 text-center">
 <h2 class="text-3xl font-black text-on-surface tracking-tight mb-2">Secure Access</h2>
-<p class="text-on-surface-variant text-sm tracking-wide font-medium uppercase opacity-70">Enter your credentials to continue</p>
+<p class="text-on-surface-variant text-sm tracking-wide font-medium uppercase opacity-70">Please login via Google</p>
 </header>
 <form id="ResidentLoginForm" class="space-y-6">
-<!-- Username Field -->
-<fieldset class="space-y-2 border-none p-0 m-0">
-<label class="block text-xs font-bold text-on-surface uppercase tracking-widest ml-1" for="username">Username</label>
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-transparent focus:border-primary-container focus:ring-0 text-on-surface p-4 text-base transition-all placeholder:text-on-surface/20 rounded-lg" id="username" placeholder="j_smith@city.gov" type="text"/>
-</fieldset>
-<!-- Password Field -->
-<fieldset class="space-y-2 border-none p-0 m-0">
-<nav class="flex justify-between items-end">
-<label class="block text-xs font-bold text-on-surface uppercase tracking-widest ml-1" for="password">Password</label>
-<a class="text-xs font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-widest" href="#">forgot password?</a>
-</nav>
-<input class="w-full bg-surface-container-lowest border-none border-b-2 border-transparent focus:border-primary-container focus:ring-0 text-on-surface p-4 text-base transition-all placeholder:text-on-surface/20 rounded-lg" id="password" placeholder="********" type="password"/>
-</fieldset>
-<!-- Login Button -->
-<button class="w-full bg-primary-container hover:bg-primary text-white font-black uppercase tracking-widest py-4 px-6 flex justify-center items-center gap-3 transition-all transform active:scale-[0.98] mt-8 group rounded-lg" type="submit">
-<span>login</span>
-<span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</form>
-<p id="error" class="hidden text-red-500 text-[10px] font-bold mt-1 uppercase tracking-tighter">
-                ID is required to continue.
-</p>
-<!-- Divider -->
-<section class="relative flex items-center my-10">
-<hr class="flex-grow border-t border-on-surface/5"/>
-<span class="flex-shrink mx-4 text-[10px] font-bold text-on-surface/30 uppercase tracking-widest">or</span>
-<hr class="flex-grow border-t border-on-surface/5"/>
-</section>
+
 <!-- Social Logins (suppose to let google render it itself) -->
 <section class="space-y-4">
     <section id="google-login-btn" class="flex justify-center w-full"></section>
@@ -147,7 +120,7 @@
   Municipal worker login
 </a>
 <span class="w-1 h-1 bg-on-surface/20 rounded-full"></span>
-<a class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]" href="#">Sign Up</a>
+
 <span class="w-1 h-1 bg-on-surface/20 rounded-full"></span>
 <a href="../Homes/GuestDashboard.html" class="text-xs font-bold text-primary-container hover:underline transition-all uppercase tracking-[0.2em]">
      👤 View as Guest
