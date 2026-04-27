@@ -344,19 +344,19 @@
         const formData = new FormData(reportForm);
         
         // Combine standard fields with the cascading dropdown values
-        const reportData = {
-          hazardType: formData.get('hazardType'),
-          recurrence: formData.get('recurrence'),
-          briefing: formData.get('briefing'),
-          province: formData.get('province'),
-          municipality: formData.get('municipality'),
-          wardId: formData.get('wardId'),
-          latitude: currentLat,
-          longitude: currentLng,
-          timestamp: new Date().toISOString(),
-          // Add coordinates from your map marker if available
-          location: marker.getLatLng() 
-        };
+        // const reportData = {
+        //   hazardType: formData.get('hazardType'),
+        //   recurrence: formData.get('recurrence'),
+        //   briefing: formData.get('briefing'),
+        //   province: formData.get('province'),
+        //   municipality: formData.get('municipality'),
+        //   wardId: formData.get('wardId'),
+        //   latitude: currentLat,
+        //   longitude: currentLng,
+        //   timestamp: new Date().toISOString(),
+        //   // Add coordinates from your map marker if available
+        //   location: marker.getLatLng() 
+        // };
 
         // Store locally (Great for PWA offline capability)
         localStorage.setItem('lastSavedReport', JSON.stringify(reportData));

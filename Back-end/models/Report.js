@@ -12,7 +12,9 @@ const Report = sequelize.define('Report', {
     Frequency: { type: DataTypes.INTEGER }, // Changed to INTEGER
     CreatedAt: { type: DataTypes.DATE }, // Changed from 'Date'
     DateFulfilled: { type: DataTypes.DATE, allowNull: true },
-    Priority: { type: DataTypes.INTEGER } // Added this column
+    Priority: { type: DataTypes.INTEGER }, // Added this column
+    Brief: { type: DataTypes.TEXT, allowNull: true},
+    Rating: { type: DataTypes.INTEGER, allowNull: true, validate: {min: 1, max: 5} }
 }, { tableName: 'Reports', timestamps: false });
 
 const ReportImage = sequelize.define('ReportImage', {

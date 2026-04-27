@@ -450,6 +450,33 @@ router.put('/:id/bump', async (req, res) => {
     }
 });
 
+// PUT: Update the rating of a specific report
+router.put('/:id/Rating', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        const { rating } = req.body;
+
+        // Validation: Ensure rating is between 1 and 5
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ error: "Invalid rating. Must be between 1 and 5." });
+        }
+
+        const [updatedRows] = await Report.update(
+            { Rating: rating }, 
+            { where: { ReportID: reportId } }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({ message: 'Report not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Rating submitted successfully' });
+    } catch (err) {
+        console.error("Rating Submission Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET: Fetch all images for a specific report as base64
 router.get('/report/:reportId', async (req, res) => {
     try {
