@@ -171,11 +171,17 @@ app.get('/', (req, res) => {
 });
 
 // --- 5. DATABASE & START ---
+// --- 5. DATABASE & START ---
 async function startServer() {
     try {
         // Test if we can actually talk to the SQL server
         await sequelize.authenticate();
         console.log('✅ Database connection established.');
+
+        // 🚨 ADD THIS: Synchronize the models with the database
+        // { alter: true } will update existing tables or create them if they are missing
+        await sequelize.sync({ alter: true});
+        console.log('✅ Database synchronized. All tables are ready!');
 
         // Start the server
         app.listen(PORT, () => {
@@ -185,6 +191,11 @@ async function startServer() {
         console.error('❌ Unable to connect to the database:', error);
     }
 }
+
+const sandboxRoutes = require('./routes/Sandbox');
+
+// Mount it to the /api/sandbox base path
+app.use('/api/sandbox', sandboxRoutes);
 
 startServer();
     //this file is the main entry point for the back-end server. It sets up the Express app, connects to the database, defines API routes, and handles Google authentication for both residents and municipal workers. The server serves static files for the front-end and listens on a specified port.

@@ -50,6 +50,27 @@ Grievance.belongsTo(Resident, { foreignKey: 'ResidentID' });
 MunicipalWorker.hasMany(Grievance, { foreignKey: 'MunicipalID' }); // [cite: 7, 20, 21]
 Grievance.belongsTo(MunicipalWorker, { foreignKey: 'MunicipalID' });
 
+const MockWard = require('./MockWard')(sequelize);
+const MockReport = require('./MockReport')(sequelize);
+
+// index.js
+
+// Define the relationship WITHOUT strict database-level constraints
+MockWard.hasMany(MockReport, {
+    foreignKey: 'WardID',
+    sourceKey: 'WardID',
+    constraints: false // 🚨 Tells SQL not to panic about the missing composite key
+});
+
+MockReport.belongsTo(MockWard, {
+    foreignKey: 'WardID',
+    targetKey: 'WardID',
+    constraints: false // 🚨 Tells SQL not to panic about the missing composite key
+});
+
+Municipality.hasMany(MockReport, { foreignKey: 'MunicipalityID' });
+MockReport.belongsTo(Municipality, { foreignKey: 'MunicipalityID' });
+
 // 3. Export everything
 module.exports = {
     sequelize,
@@ -63,5 +84,7 @@ module.exports = {
     Allocation,
     Subscription,
     Grievance,
+    MockWard,
+    MockReport,
     Notification
 };
