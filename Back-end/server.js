@@ -28,13 +28,15 @@ app.post('/api/auth/google', async (req, res) => {
         });
         
         const payload = ticket.getPayload();
-        const { email, name } = payload; //ticket with user information.
+        const { email, name, picture } = payload; // Added picture here //ticket with user information.
 
         // --- SPECIAL ADMIN CASE ---
         if (email === "2820314@students.wits.ac.za" || email==="2799656@students.wits.ac.za") {
             return res.status(200).json({ 
                 success: true, 
                 role: 'admin', 
+                name: name,
+                pictureUrl: picture,
                 message: "Admin recognized" 
             });
         }
@@ -44,6 +46,7 @@ app.post('/api/auth/google', async (req, res) => {
             defaults: {
                 Username: name || email,
                 Email: email,
+                ProfilePicture: picture,
                 CellphoneNumber: `G-${Date.now().toString().slice(-8)}`,
                 BlackListed: false
             }
@@ -55,7 +58,8 @@ app.post('/api/auth/google', async (req, res) => {
 
         res.status(200).json({ 
             success: true, 
-            residentId: resident.ResidentID 
+            residentId: resident.ResidentID,
+            pictureUrl: resident.ProfilePicture
         });
 
     } catch (error) {
@@ -73,7 +77,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
-        const { email, family_name, given_name } = payload;
+        const { email, family_name, given_name, picture } = payload;
 
         // FIXED: Using PascalCase to match your MunicipalWorker model
         const [worker, created] = await MunicipalWorker.findOrCreate({
@@ -83,6 +87,7 @@ app.post('/api/auth/worker/google', async (req, res) => {
                 FirstName: given_name,
                 LastName: family_name,
                 Email: email,
+                ProfilePicture: picture,
                 Validated: false, 
                 Blacklisted: false
             }

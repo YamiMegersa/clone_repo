@@ -106,8 +106,14 @@
 <section class="flex items-center gap-4">
     <div id="notif-shell" class="notif-shell"></div>
     <button class="material-symbols-outlined text-neutral-400 hover:text-orange-500 transition-transform active:scale-95">settings</button>
-    <figure class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high">
-        <img alt="Admin Profile Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgc3M10u8mWqC-KcCYU3S-gy1pevh0zteIiTqeR9mLPZSfgNksMiu4wbb7OEyoCQLQ6qw6xbWUQAsaFSjk1jQcUdbn74p5kaUTy4BAIy-Qjmi46qsP4ohclkIiC3jy1pLRZtJvYLUj3fdTmnq7S-xPYVOHqNBR5xmFuZeI4zpYdCfoTovBq-jXg-7UPp3hdcjgmzjUhFPx_9kfHalx9iLwUIQa31BUugvoP6lD701jG1CnoZZ-IfYGrd8a3nv6aJpLQrn0GJZe0Iu2">
+    
+    <figure class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border border-orange-500/30 hover:border-orange-500 cursor-pointer transition-all" 
+            onclick="window._profileModal.open()" 
+            title="Edit Admin Profile">
+        <img id="admin-profile-pic" 
+             alt="Admin Profile Avatar" 
+             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgc3M10u8mWqC-KcCYU3S-gy1pevh0zteIiTqeR9mLPZSfgNksMiu4wbb7OEyoCQLQ6qw6xbWUQAsaFSjk1jQcUdbn74p5kaUTy4BAIy-Qjmi46qsP4ohclkIiC3jy1pLRZtJvYLUj3fdTmnq7S-xPYVOHqNBR5xmFuZeI4zpYdCfoTovBq-jXg-7UPp3hdcjgmzjUhFPx_9kfHalx9iLwUIQa31BUugvoP6lD701jG1CnoZZ-IfYGrd8a3nv6aJpLQrn0GJZe0Iu2"
+             class="w-full h-full object-cover">
     </figure>
 </section>
 </figure>
@@ -264,4 +270,5 @@
     </section>
 </article>
 <script src="notifications-ui.js" defer></script>
+<script src="profile-modal.js" defer></script>
 </body></html>

@@ -24,7 +24,10 @@ const Resident = sequelize.define('Resident', {
   BlackListed: { 
     type: DataTypes.BOOLEAN, 
     defaultValue: false 
-  }
+  },
+  ProfilePicture: { 
+    type: DataTypes.TEXT('long'),
+     allowNull: true }
 }, {
   tableName: 'Residents', // Matches your SQL script
   timestamps: false       // Prevents Sequelize from looking for 'createdAt' columns

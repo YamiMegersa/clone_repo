@@ -189,4 +189,46 @@ async function resolveTask(reportId) {
     }
 }
 
+// GET: Fetch a worker's profile
+router.get('/:id/profile', async (req, res) => {
+    try {
+        const worker = await MunicipalWorker.findByPk(req.params.id, {
+            attributes: ['EmployeeID', 'FirstName', 'LastName', 'Email', 'Cell', 'ProfilePicture']
+        });
+        if (!worker) return res.status(404).json({ message: 'Worker not found' });
+
+        const data = worker.toJSON();
+        // Convert BLOB to base64 for frontend
+        if (data.ProfilePicture) {
+            data.ProfilePicture = `data:image/jpeg;base64,${Buffer.from(data.ProfilePicture).toString('base64')}`;
+        }
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Update worker profile
+router.put('/:id/profile', async (req, res) => {
+    try {
+        const { FirstName, LastName, Cell, Email, ProfilePicture } = req.body;
+        const updateData = { FirstName, LastName, Cell, Email };
+
+        // Convert base64 image to BLOB if provided
+        if (ProfilePicture && ProfilePicture.startsWith('data:image')) {
+            const base64Data = ProfilePicture.split(',')[1];
+            updateData.ProfilePicture = Buffer.from(base64Data, 'base64');
+        }
+
+        const [updated] = await MunicipalWorker.update(updateData, {
+            where: { EmployeeID: req.params.id }
+        });
+
+        if (updated === 0) return res.status(404).json({ message: 'Worker not found' });
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports=router;

@@ -125,4 +125,44 @@ router.delete('/unsubscribe', async (req, res) => {
     }
 });
 
+// GET: Fetch resident profile
+router.get('/:id/profile', async (req, res) => {
+    try {
+        const resident = await Resident.findByPk(req.params.id, {
+            attributes: ['ResidentID', 'Username', 'Email', 'CellphoneNumber', 'ProfilePicture']
+        });
+        if (!resident) return res.status(404).json({ message: 'Resident not found' });
+
+        const data = resident.toJSON();
+        if (data.ProfilePicture) {
+            data.ProfilePicture = `data:image/jpeg;base64,${Buffer.from(data.ProfilePicture).toString('base64')}`;
+        }
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT: Update resident profile  
+router.put('/:id/profile', async (req, res) => {
+    try {
+        const { Username, CellphoneNumber, ProfilePicture } = req.body;
+        const updateData = { Username, CellphoneNumber };
+
+        if (ProfilePicture && ProfilePicture.startsWith('data:image')) {
+            const base64Data = ProfilePicture.split(',')[1];
+            updateData.ProfilePicture = Buffer.from(base64Data, 'base64');
+        }
+
+        const [updated] = await Resident.update(updateData, {
+            where: { ResidentID: req.params.id }
+        });
+
+        if (updated === 0) return res.status(404).json({ message: 'Resident not found' });
+        res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

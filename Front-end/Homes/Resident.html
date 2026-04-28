@@ -75,14 +75,30 @@
                         <span class="sr-only">Account Menu</span>
                     </summary>
 
-                    <ul class="absolute right-0 mt-2 w-48 bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl py-2 z-[60] list-none">
-                        <li>
-                            <a href="MyReports.html" class="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors">
-                                <span class="material-symbols-outlined mr-3 text-lg">description</span>
-                                My Reports
-                            </a>
-                        </li>
-                    </ul>
+                    <ul class="absolute right-0 mt-2 w-56 bg-surface-container-high border border-outline-variant rounded-xl shadow-2xl py-2 z-[60] list-none">
+    <li>
+        <a href="MyReports.html" class="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors">
+            <span class="material-symbols-outlined mr-3 text-lg">description</span>
+            My Reports
+        </a>
+    </li>
+    
+    <li>
+        <button onclick="window._profileModal.open()" class="w-full flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors">
+            <span class="material-symbols-outlined mr-3 text-lg">person_edit</span>
+            Edit Profile
+        </button>
+    </li>
+
+    <hr class="border-white/5 my-1">
+
+    <li>
+        <a href="../index.html" onclick="localStorage.clear()" class="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors">
+            <span class="material-symbols-outlined mr-3 text-lg">logout</span>
+            Sign Out
+        </a>
+    </li>
+</ul>
                 </details>
             </nav>
             <!-- ======================= -->
@@ -263,5 +279,6 @@
     </dialog>
 
     <script src="Resident.js"></script>
+    <script src="profile-modal.js" defer></script>
 </body>
 </html>
