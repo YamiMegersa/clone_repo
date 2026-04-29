@@ -82,7 +82,7 @@ async function handleCredentialResponse(response) {
                 localStorage.setItem('role', 'admin');
                 localStorage.removeItem('residentId');
                 localStorage.setItem('workerId', 'admin-001'); 
-                localStorage.setItem('profilePic', data.pictureUrl);
+                localStorage.setItem('profilePic', result.pictureUrl);
                 window.location.href = "../Homes/Admin.html";
             } else { //if not admin, normal resident
                 localStorage.clear();
