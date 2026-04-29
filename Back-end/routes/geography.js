@@ -99,15 +99,43 @@ router.get('/wards/:id', async(req,res)=>{
     }
 });
 
-// GET: Fetch all Residents subscribed to a SPECIFIC Ward (For emergency broadcasts)
-router.get('/wards/:id/subscribers', async (req, res) => {
+router.get('/wards/:muniId/:wardId', async (req, res) => {
     try {
-        const { Ward, Resident } = require('../models'); // Import Resident model locally for this route
+        const { muniId, wardId } = req.params;
 
-        const wardWithSubscribers = await Ward.findByPk(req.params.id, {
+        const ward = await Ward.findOne({
+            where: {
+                WardID: wardId,
+                MunicipalityID: muniId
+            },
+            // 🚨 Include Municipality so the Ward Page gets the name, not just the ID
+            include: [{ 
+                model: Municipality,
+                attributes: ['MunicipalityName'] 
+            }]
+        });
+
+        if (!ward) {
+            return res.status(404).json({ message: 'Ward not found in this municipality' });
+        }
+        res.json(ward);
+    } catch (err) {
+        console.error("Geography Fetch Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET: Fetch all Residents subscribed to a SPECIFIC Ward (Updated for Composite Keys)
+router.get('/wards/:muniId/:wardId/subscribers', async (req, res) => {
+    try {
+        const { Ward, Resident } = require('../models'); 
+        const { muniId, wardId } = req.params;
+
+        const wardWithSubscribers = await Ward.findOne({
+            where: { WardID: wardId, MunicipalityID: muniId },
             include: [{
                 model: Resident,
-                through: { attributes: [] } // Hides the junction table data to keep the JSON clean
+                through: { attributes: [] } 
             }]
         });
 
@@ -115,7 +143,6 @@ router.get('/wards/:id/subscribers', async (req, res) => {
             return res.status(404).json({ message: 'Ward not found' });
         }
 
-        // Return the array of residents subscribed to this ward
         res.json(wardWithSubscribers.Residents);
     } catch (err) {
         console.error(err);

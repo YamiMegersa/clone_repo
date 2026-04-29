@@ -44,9 +44,9 @@ router.get('/:id', async (req, res) => {
 // =======================
 
 // POST: Upload a new image for a specific report
+// POST: Upload a new image for a specific report
 router.post('/report/:reportId', async (req, res) => {
     try {
-        // We grab the ReportID from the URL, and the image data from the body
         const reportId = req.params.reportId;
         
         // Ensure the report actually exists before attaching an image to it
@@ -55,17 +55,40 @@ router.post('/report/:reportId', async (req, res) => {
             return res.status(404).json({ message: 'Cannot attach image. Report not found.' });
         }
 
-        // Create the image record
-        // The frontend will send the image data (either a Base64 string or a file path) in the req.body
-        const newImage = await ReportImage.create({
-            ReportID: reportId,
-            ...req.body 
-        });
+        // Check if the frontend sent the Base64 string in req.body.Image
+        if (req.body.Image && typeof req.body.Image === 'string') {
+            // Extract the MIME type and the raw Base64 data
+            const matches = req.body.Image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
 
-        res.status(201).json({ message: "Image uploaded successfully!", image: newImage });
+            if (matches && matches.length === 3) {
+                const mimeType = matches[1]; // e.g., 'image/jpeg'
+                const base64Data = matches[2]; // The raw alphanumeric string
+
+                // Convert the Base64 string into a raw binary Buffer
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+
+                // Create the image record with the proper binary format
+                const newImage = await ReportImage.create({
+                    ReportID: reportId,
+                    Type: mimeType, 
+                    Image: imageBuffer
+                });
+
+                // Return just the ID, avoiding sending the whole BLOB back in the response
+                return res.status(201).json({ 
+                    message: "Image uploaded successfully!", 
+                    image: { ImageID: newImage.ImageID } 
+                });
+            } else {
+                return res.status(400).json({ error: 'Invalid image format. Expected a valid Base64 data URI.' });
+            }
+        }
+
+        return res.status(400).json({ error: 'No valid image data provided.' });
+
     } catch (err) {
-        console.error(err);
-        res.status(400).json({ error: err.message });
+        console.error("Single image upload error:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -56,6 +56,10 @@ async function renderSubscribedWards(residentId) {
             const muniResponse = await fetch(`/api/geography/municipalities/${ward.MunicipalityID}`);
             const municipalityData = await muniResponse.json();
             const MunicipalityName=municipalityData.MunicipalityName.toUpperCase();
+            const councillorName = (ward.Ward && ward.Ward.WardCouncillor) 
+                           ? ward.Ward.WardCouncillor 
+                           : 'Unassigned';
+            console.log(ward);
             card.innerHTML = `
             <nav aria-label="Ward management options" class="absolute top-6 right-6 z-20">
                 <button aria-haspopup="menu" aria-expanded="false" aria-controls="menu-${ward.WardID}" class="menu-btn text-on-surface-variant hover:text-primary transition-colors" data-ward="${ward.WardID}">
@@ -87,7 +91,7 @@ async function renderSubscribedWards(residentId) {
             <dl class="flex items-end justify-between m-0">
                 <div class="flex flex-col">
                     <dt class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Councillor</dt>
-                    <dd class="text-3xl font-black text-primary m-0">${ward.WardCouncillor}</dd>
+                    <dd class="text-3xl font-black text-primary m-0">${councillorName}</dd>
                 </div>
                 <dd class="m-0" aria-hidden="true">
                     <i class="material-symbols-outlined text-orange-600/20 text-6xl translate-y-4 group-hover:text-orange-600 transition-colors">
@@ -102,18 +106,16 @@ async function renderSubscribedWards(residentId) {
         
 
             // Insert BEFORE the "Add New Ward" button
-        card.addEventListener('click', (event) => {
-            // 1. Check if the click happened inside the three-dots menu or dropdown
-            const clickedMenu = event.target.closest('nav[aria-label="Ward management options"]');
-            
-            // 2. If they clicked the menu, do nothing and let the menu open
-            if (clickedMenu) {
-                return; 
-            }
+card.addEventListener('click', (event) => {
+    const clickedMenu = event.target.closest('nav[aria-label="Ward management options"]');
+    
+    if (clickedMenu) {
+        return; 
+    }
 
-            // 3. Otherwise, redirect to the Ward Page and pass the ID in the URL
-            window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}`;
-        });
+    // 🚨 UPDATE THIS LINE: Add &muniId=${ward.MunicipalityID}
+    window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}&muniId=${ward.MunicipalityID}`;
+});
             wardsGrid.insertBefore(card, addButton);
         });
 
@@ -205,13 +207,12 @@ function showModal(title, message, type = 'alert') {
     });
 }
 
-async function unsubscribeWard(wardId) {
-    // 1. Use the custom modal instead of 'confirm()'
+async function unsubscribeWard(wardId, municipalityId) { // 🚨 Accept both IDs
     const confirmDelete = await showModal(
         'Remove Ward', 
-        `Are you sure you want to stop tracking Ward ${wardId}? You will no longer receive alerts for this area.`, 
+        `Are you sure you want to stop tracking Ward ${wardId}?`, 
         'confirm'
-    ); //resolves or does not resolve the promise
+    );
     
     if (confirmDelete) {
         try {
@@ -219,29 +220,20 @@ async function unsubscribeWard(wardId) {
 
             const response = await fetch('/api/residents/unsubscribe', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ResidentID: residentId,
-                    WardID: wardId
+                    WardID: wardId,
+                    MunicipalityID: municipalityId // 🚨 Send both to the backend
                 })
             });
 
-            const data = await response.json();
-
             if (response.ok) {
-                // Success Modal
-                await showModal('Success', `Ward ${wardId} has been successfully removed from your dashboard.`, 'alert');
-                await renderSubscribedWards(residentId);
-            } else {
-                // Error Modal
-                await showModal('Error', data.error || data.message, 'alert');
+                await showModal('Success', `Ward ${wardId} removed.`, 'alert');
+                await renderSubscribedWards(residentId); // Refresh the UI
             }
-
         } catch (error) {
             console.error('Failed to unsubscribe:', error);
-            await showModal('Network Error', 'A network error occurred while trying to remove the ward. Please try again later.', 'alert');
         }
     }
 }
@@ -280,27 +272,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Handle the Form Submission
   // 4. Handle the Form Submission
-    if (addWardForm) {
-        addWardForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); 
-            
-            const formData = new FormData(addWardForm);
-            const selectedWardId = formData.get('ward');
-            const residentId = localStorage.getItem('residentId') || '1';//fallback to big Fakir
+  if (addWardForm) {
+    addWardForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); 
+        
+        const formData = new FormData(addWardForm);
+        const selectedWardId = formData.get('ward');
+        // 🚨 NEW: You must capture the MunicipalityID from the dropdown!
+        const selectedMuniId = formData.get('municipality'); 
+        const residentId = localStorage.getItem('residentId') || '1';
 
-            try {
-                // 1. Send the POST request to your backend
-                // (Ensure this URL matches exactly where you mounted the route in server.js)
-                const response = await fetch('/api/residents/subscribe', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        ResidentID: residentId,
-                        WardID: selectedWardId
-                    })
-                });
+        try {
+            const response = await fetch('/api/residents/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ResidentID: residentId,
+                    WardID: selectedWardId,
+                    MunicipalityID: selectedMuniId // 🚨 Send the ID to the backend
+                })
+            });
 
                 const data = await response.json();
 
@@ -605,13 +596,14 @@ if(bellBtn) {
             muteWardSelect.innerHTML = '';
 
             // Populate with subscribed wards
+            // Inside bellBtn listener:
             wards.forEach(ward => {
                 const option = document.createElement('option');
-                option.value = ward.WardID;
-                option.textContent = `Ward ${ward.WardID}`;
+                // 🚨 Store a composite value like "WardID-MunicipalityID"
+                option.value = `${ward.WardID}-${ward.MunicipalityID}`;
+                option.textContent = `Ward ${ward.WardID} (${ward.Ward?.WardCouncillor || 'No Councillor'})`;
                 muteWardSelect.appendChild(option);
             });
-
             // Show the modal
             muteModal.showModal();
         } catch (error) {

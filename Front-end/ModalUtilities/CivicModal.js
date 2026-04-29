@@ -103,39 +103,63 @@ class CivicModal {
         }
     }
 
-    open(data) {
+   open(data) {
         document.getElementById(`${this.modalId}-title`).textContent = data.type || 'General Issue';
         document.getElementById(`${this.modalId}-desc`).textContent = data.description || 'No description provided.';
         document.getElementById(`${this.modalId}-date`).textContent = data.date ? new Date(data.date).toISOString().split('T')[0] : 'Unknown';
         document.getElementById(`${this.modalId}-status`).innerHTML = this.getBadgeHTML(data.status);
         
-        // 🚨 NEW: Populate Ward and Municipality
         document.getElementById(`${this.modalId}-ward`).textContent = data.ward ? `Ward ${data.ward}` : 'N/A';
         document.getElementById(`${this.modalId}-muni`).textContent = data.municipality || 'N/A';
-        document.getElementById(`${this.modalId}-muni`).title = data.municipality || 'N/A'; // Hover to see full name if it truncates
+        document.getElementById(`${this.modalId}-muni`).title = data.municipality || 'N/A'; 
 
         const carousel = document.getElementById(`${this.modalId}-carousel`);
         carousel.innerHTML = ''; 
         
-        const images = data.images && data.images.length > 0 
-            ? data.images 
-            : [1, 2, 3].map(i => `https://picsum.photos/seed/${data.id + i}/800/600`);
+        // Ensure images array exists. We assume data.images is the array returned from your GET route.
+        const images = data.images || [];
 
-        images.forEach((imgUrl, i) => {
-            carousel.innerHTML += `
-                <li class="snap-center shrink-0 w-full h-full relative p-0 m-0 list-none">
-                    <img src="${imgUrl}" alt="Issue Photo ${i+1}" class="w-full h-full object-cover" />
+        if (images.length > 0) {
+            images.forEach((img, i) => {
+                let imgSrc = '';
+
+                // Handle Sequelize BLOBs serialized as JSON Buffers
+                if (img.Image && img.Image.type === 'Buffer' && img.Image.data) {
+                    // Convert the byte array to a Uint8Array, then to a browser Blob
+                    const uint8Array = new Uint8Array(img.Image.data);
+                    const blob = new Blob([uint8Array], { type: img.Type || 'image/jpeg' });
+                    
+                    // Create a local, temporary URL the browser can use as the src
+                    imgSrc = URL.createObjectURL(blob);
+                } else if (typeof img === 'string') {
+                    // Fallback just in case you pass direct URLs or Base64 strings later
+                    imgSrc = img;
+                }
+
+                carousel.innerHTML += `
+                    <li class="snap-center shrink-0 w-full h-full relative p-0 m-0 list-none">
+                        <img src="${imgSrc}" 
+                             alt="Issue Photo ${i+1}" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/800x600?text=Image+Unavailable'" />
+                    </li>
+                `;
+            });
+        } else {
+            // Fallback for reports with no photos
+            carousel.innerHTML = `
+                <li class="snap-center shrink-0 w-full h-full relative p-0 m-0 list-none flex items-center justify-center bg-[#1B1B1B]">
+                    <span class="text-white/40 text-sm font-bold uppercase tracking-widest">No Photos Provided</span>
                 </li>
             `;
-        });
+        }
+
         const personnelSection = document.getElementById(`${this.modalId}-personnel-section`);
         const workersContainer = document.getElementById(`${this.modalId}-workers`);
         
-        // If the old code calls this without passing workers, keep it hidden!
         if (data.workers === undefined) {
             personnelSection.classList.add('hidden');
         } else {
-            // Workers array was provided, so show the section
             personnelSection.classList.remove('hidden');
             
             if (data.workers.length > 0) {
