@@ -7,6 +7,9 @@ let issueModal = null;
 let currentMuniId = null;   // 🚨 NEW: Store the Municipality ID globally
 let currentMuniName = "N/A"; // 🚨 NEW: Store name for the modal
 
+function setCurrentReports(data) {
+    currentReports = data;
+}
 // ==========================================
 // 2. PAGE INITIALIZATION
 // ==========================================
@@ -246,4 +249,14 @@ async function handleBump(reportId, btnElement) {
         btnElement.innerHTML = `Error! Try again.`;
         btnElement.disabled = false;
     }
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = { 
+        renderStats, 
+        renderTable, 
+        fetchWardDetails, 
+        fetchWardReports, 
+        setCurrentReports // 🚨 Don't forget this setter for your global state
+    };
 }
