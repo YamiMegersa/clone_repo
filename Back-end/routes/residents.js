@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { Op } = require('sequelize');
 const {Resident,Ward,Subscription} = require('../models');
 
 // GET: Fetch all residents
@@ -22,68 +23,45 @@ router.post('/', async (req, res) => {
   }
 });
 //returns subscriptions for a particular resident
+// In your backend residents router file:
 router.get('/:id/subscriptions', async (req, res) => {
     try {
-        const residentId = req.params.id;
-
-        // Find the resident by Primary Key and "include" their associated Wards
-        const residentWithWards = await Resident.findByPk(residentId, {
+        const subscriptions = await Subscription.findAll({
+            where: { ResidentID: req.params.id },
             include: [{
                 model: Ward,
-                // The 'through' option refers to the Subscription table 
-                // Setting attributes to [] prevents the junction table data from cluttering the result
-                through: { attributes: [] } 
-            }]//this is how sqlise does join
+                // 🚨 This manual 'on' clause tells Sequelize to match BOTH IDs
+                on: {
+                    WardID: { [Op.col]: 'Subscription.WardID' },
+                    MunicipalityID: { [Op.col]: 'Subscription.MunicipalityID' }
+                }
+            }]
         });
-
-        if (!residentWithWards) {
-            return res.status(404).json({ message: 'Resident not found' });
-        }
-
-        // residentWithWards.Wards is an array of Ward objects
-        res.json(residentWithWards.Wards);
+        res.json(subscriptions);
     } catch (err) {
-        console.error('Error fetching subscriptions:', err);
         res.status(500).json({ error: err.message });
     }
 });//Returns an array of wards
 
+// Inside your residents router (e.g., routes/residents.js)
 router.post('/subscribe', async (req, res) => {
     try {
-        const { ResidentID, WardID } = req.body;
+        const { ResidentID, WardID, MunicipalityID } = req.body;
 
-        // 1. Validation: Ensure both the resident and ward actually exist in Azure
-        const resident = await Resident.findByPk(ResidentID);
-        const ward = await Ward.findByPk(WardID);
-
-        if (!resident || !ward) {
-            return res.status(404).json({ 
-                error: 'Resident or Ward not found. Please check the IDs.' 
-            });
+        // 🚨 Ensure all three are present to satisfy the composite key
+        if (!ResidentID || !WardID || !MunicipalityID) {
+            return res.status(400).json({ error: "Missing required subscription data." });
         }
 
-        // 2. Check if the subscription already exists to avoid duplicates
-        const existingSubscription = await Subscription.findOne({
-            where: { ResidentID, WardID }
-        });
-
-        if (existingSubscription) {
-            return res.status(400).json({ message: 'Resident is already subscribed to this ward.' });
-        }
-
-        // 3. Create the link in the Subscription table
         const newSubscription = await Subscription.create({
-            ResidentID: ResidentID,
-            WardID: WardID
+            ResidentID,
+            WardID,
+            MunicipalityID // 🚨 This stops the notNull Violation
         });
 
-        res.status(201).json({
-            message: 'Subscription successful!',
-            data: newSubscription
-        });
-
+        res.status(201).json(newSubscription);
     } catch (err) {
-        console.error('Error creating subscription:', err);
+        console.error("Subscription Error:", err);
         res.status(500).json({ error: err.message });
     }
 });//puts association in the db
@@ -94,33 +72,27 @@ router.post('/subscribe', async (req, res) => {
  * URL: /api/residents/unsubscribe
  * Body: { "ResidentID": 1, "WardID": 10 }
  */
+// routes/residents.js
 router.delete('/unsubscribe', async (req, res) => {
     try {
-        const { ResidentID, WardID } = req.body;
+        const { ResidentID, WardID, MunicipalityID } = req.body;
 
-        // 1. Validation: Ensure both IDs are provided
-        if (!ResidentID || !WardID) {
-            return res.status(400).json({ error: 'ResidentID and WardID are required.' });
-        }
-
-        // 2. Perform the deletion (telling Azure to remove the row from Subscription)
-        const deletedRows = await Subscription.destroy({
+        // 🚨 We now require all three to identify the composite record
+        const deleted = await Subscription.destroy({
             where: {
                 ResidentID: ResidentID,
-                WardID: WardID
+                WardID: WardID,
+                MunicipalityID: MunicipalityID // 🚨 New required field
             }
         });
 
-        // 3. Handle the result
-        if (deletedRows > 0) {
-            res.status(200).json({ message: 'Unsubscribed successfully!' });
+        if (deleted) {
+            res.status(200).json({ message: "Unsubscribed successfully." });
         } else {
-            // This happens if the resident wasn't actually subscribed to that ward
-            res.status(404).json({ message: 'Subscription not found.' });
+            res.status(404).json({ error: "Subscription not found." });
         }
-
     } catch (err) {
-        console.error('Error removing subscription:', err);
+        console.error("Unsubscribe Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
