@@ -20,6 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za';
+const { Resident } = require('../models');
 
 // ─── Email helper 
 async function sendEmail(to, subject, html) {
@@ -82,7 +83,7 @@ router.get('/resident/:residentId', async (req,res)=>{
     }
 });
 
-// POST: Log a new report/fault and NOTIFIES ADMIN 
+// POST: Log a new report/fault and NOTIFIES ADMIN and RESIDENT
 router.post('/', async (req, res) => {
     try {
         const newReport = await Report.create(req.body);
@@ -112,15 +113,55 @@ router.post('/', async (req, res) => {
                 <p style="color:#737373;font-size:11px;">Log in to the Admin Dashboard to assign this report to a field operative.</p>
             </div>
             `
-        );
-        } else {
+            );
+        }
+     
+        const resident = await Resident.findOne({ where: { Email: 'user@example.com' } });
+        const subscriptions = await Subscription.findAll({ 
+            where: { WardID: newReport.WardID } 
+        });
+        
+        const residentE = await Resident.findByPk(residentId);
+        const RESIDENT_EMAIL = resident ? resident.Email : null;
+
+        for(const sub of subscriptions){
+            if(sub.WardID === newReport.WardID){
+                await notify(sub.ResidentID, 'WARD_REPORT',
+                `New Report in Your Area: ${newReport.Type}`,
+                `A new report has been logged in Ward ${newReport.WardID}. Report #${newReport.ReportID} is pending assignment.`,
+                newReport.ReportID
+            );
+
+            if (!paused /* && RESIDENT_EMAIL */) {
+                await sendEmail(
+                    RESIDENT_EMAIL, // Be sure this is defined for each specific user
+                    `🔔 New Report: ${newReport.Type}`,
+                    `
+                    <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#1a1a1a;color:#e2e2e2;padding:32px;border-radius:12px;">
+                        <h2 style="color:#ff8c00;margin:0 0 8px;">New Fault Reported</h2>
+                        <p style="color:#a3a3a3;font-size:12px;text-transform:uppercase;letter-spacing:0.1em;">Groundwork Alert</p>
+                        <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                        <p><strong>Type:</strong> ${newReport.Type}</p>
+                        <p><strong>Ward:</strong> ${newReport.WardID || 'N/A'}</p>
+                        <p><strong>Report ID:</strong> #${newReport.ReportID}</p>
+                        <p><strong>Status:</strong> Pending Assignment</p>
+                        <hr style="border:none;border-top:1px solid #333;margin:20px 0;">
+                        <p style="color:#737373;font-size:11px;">Log in to your dashboard to track the status of this report.</p>
+                    </div>
+                    `
+                );
+            }
+        }
+        else {
             console.log('[Email] Skipped — notifications paused by user');
         }
+    }
 
-        res.status(201).json({ message: 'Report logged successfully', report: newReport });
+    res.status(201).json({ message: 'Report logged successfully', report: newReport });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
+    
 });
 
 //GET: Fetch a single report by its exact ID

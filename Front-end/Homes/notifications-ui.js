@@ -10,11 +10,14 @@
     function init() {
     const role = localStorage.getItem('role');
     const workerId = localStorage.getItem('workerId');
+    const residentId = localStorage.getItem('residentId');
 
     if (role === 'admin') {
         currentRecipientId = 'admin';
     } else if (role === 'worker' && workerId) {
         currentRecipientId = workerId;
+    } else if (role === 'resident' && residentId) {
+        currentRecipientId = residentId;
     } else {
         return;
     }
