@@ -106,9 +106,7 @@ router.get('/:id/profile', async (req, res) => {
         if (!resident) return res.status(404).json({ message: 'Resident not found' });
 
         const data = resident.toJSON();
-        if (data.ProfilePicture) {
-            data.ProfilePicture = `data:image/jpeg;base64,${Buffer.from(data.ProfilePicture).toString('base64')}`;
-        }
+        // ProfilePicture is already a base64 string, no conversion needed
         res.json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -118,12 +116,15 @@ router.get('/:id/profile', async (req, res) => {
 // PUT: Update resident profile  
 router.put('/:id/profile', async (req, res) => {
     try {
-        const { Username, CellphoneNumber, ProfilePicture } = req.body;
+        const { Username, Email, CellphoneNumber, ProfilePicture } = req.body; // destructure Email
+
         const updateData = { Username, CellphoneNumber };
 
+        if (Email) updateData.Email = Email; // now Email is defined
+
         if (ProfilePicture && ProfilePicture.startsWith('data:image')) {
-            const base64Data = ProfilePicture.split(',')[1];
-            updateData.ProfilePicture = Buffer.from(base64Data, 'base64');
+            // Store as base64 string directly since column is TEXT
+            updateData.ProfilePicture = ProfilePicture;
         }
 
         const [updated] = await Resident.update(updateData, {
@@ -133,6 +134,7 @@ router.put('/:id/profile', async (req, res) => {
         if (updated === 0) return res.status(404).json({ message: 'Resident not found' });
         res.json({ success: true, message: 'Profile updated successfully' });
     } catch (err) {
+        console.error('Profile update error:', err);
         res.status(500).json({ error: err.message });
     }
 });

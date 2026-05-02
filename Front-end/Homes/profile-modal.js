@@ -295,9 +295,9 @@
                     <input class="pm-input" id="pm-lastname" type="text" value="${profile.LastName || ''}" placeholder="Last name"/>
                 </div>
                 <div class="pm-field">
-                    <label class="pm-label">Email Address</label>
-                    <input class="pm-input" id="pm-email" type="email" value="${profile.Email || ''}" placeholder="email@example.com"/>
-                    <p class="pm-input-hint">Used for task notifications</p>
+                <label class="pm-label">Email Address</label>
+                <input class="pm-input" id="pm-email" type="email" value="${profile.Email || ''}" placeholder="email@example.com"/>
+                <p class="pm-input-hint">⚠ This changes your notification email only — your Google login is unchanged</p>
                 </div>
                 <div class="pm-field">
                     <label class="pm-label">Cell Number</label>
@@ -310,9 +310,9 @@
                     <input class="pm-input" id="pm-username" type="text" value="${profile.Username || ''}" placeholder="Your display name"/>
                 </div>
                 <div class="pm-field">
-                    <label class="pm-label">Email Address</label>
-                    <input class="pm-input" id="pm-email" type="email" value="${profile.Email || ''}" disabled/>
-                    <p class="pm-input-hint">Email is managed by Google Sign-In</p>
+                 <label class="pm-label">Email Address</label>
+                <input class="pm-input" id="pm-email" type="email" value="${profile.Email || ''}" placeholder="email@example.com"/>
+                <p class="pm-input-hint">⚠ This changes your notification email only — your Google login is unchanged</p>
                 </div>
                 <div class="pm-field">
                     <label class="pm-label">Cell Number</label>
@@ -341,6 +341,7 @@
             } else {
                 data = {
                     Username: document.getElementById('pm-username').value.trim(),
+                    Email: document.getElementById('pm-email').value.trim(),
                     CellphoneNumber: document.getElementById('pm-cell').value.trim(),
                 };
             }
