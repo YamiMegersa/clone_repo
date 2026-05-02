@@ -260,3 +260,113 @@ if (typeof module !== 'undefined') {
         setCurrentReports // 🚨 Don't forget this setter for your global state
     };
 }
+
+// ==========================================
+// 6. NOTIFICATION & ACCOUNT MENU CONTROLLERS
+// ==========================================
+
+// Handle closing the profile dropdown when clicking outside
+document.addEventListener('click', (event) => {
+    const detailsElement = document.querySelector('nav details');
+    if (detailsElement && !detailsElement.contains(event.target)) {
+        detailsElement.removeAttribute('open');
+    }
+});
+
+// Notifications settings logic
+const bellBtn = document.getElementById('notification-bell-btn');
+const muteModal = document.getElementById('mute-settings-modal');
+const closeMuteIcon = document.getElementById('close-mute-modal-icon');
+const closeMuteBtn = document.getElementById('close-mute-modal-btn');
+const muteForm = document.getElementById('mute-settings-form');
+const muteAllCheckbox = document.getElementById('mute-all');
+const specificWardsFieldset = document.getElementById('specific-wards-fieldset');
+const muteWardSelect = document.getElementById('mute-ward-select');
+
+// Open the Modal
+if(bellBtn) {
+    bellBtn.addEventListener('click', async () => {
+        const residentId = localStorage.getItem('residentId');
+        if (!residentId) {
+            console.error('No resident ID found');
+            return;
+        }
+
+        try {
+            // Fetch subscribed wards to populate the select
+            const response = await fetch(`/api/residents/${residentId}/subscriptions`);
+            if (!response.ok) throw new Error('Failed to fetch subscriptions');
+
+            const wards = await response.json();
+
+            // Clear existing options
+            muteWardSelect.innerHTML = '';
+
+            // Populate with subscribed wards
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = `${ward.WardID}-${ward.MunicipalityID}`;
+                option.textContent = `Ward ${ward.WardID} (${ward.Ward?.WardCouncillor || 'No Councillor'})`;
+                muteWardSelect.appendChild(option);
+            });
+            
+            // Show the modal
+            muteModal.showModal();
+        } catch (error) {
+            console.error('Error loading wards for mute settings:', error);
+        }
+    });
+}
+
+// Close Modal Handlers
+const closeMuteModal = () => muteModal.close();
+if(closeMuteIcon) closeMuteIcon.addEventListener('click', closeMuteModal);
+if(closeMuteBtn) closeMuteBtn.addEventListener('click', closeMuteModal);
+
+// Close the modal if the user clicks the darkened background outside the modal
+if (muteModal) {
+    muteModal.addEventListener('click', (e) => {
+        if (e.target === muteModal) {
+            closeMuteModal();
+        }
+    });
+}
+
+// If "Mute All" is checked, disable the specific ward select
+if (muteAllCheckbox) {
+    muteAllCheckbox.addEventListener('change', (e) => {
+        if(e.target.checked) {
+            muteWardSelect.disabled = true;
+            specificWardsFieldset.classList.add('opacity-30', 'pointer-events-none');
+        } else {
+            muteWardSelect.disabled = false;
+            specificWardsFieldset.classList.remove('opacity-30', 'pointer-events-none');
+        }
+    });
+}
+
+// Form Submission Logic
+if (muteForm) {
+    muteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const isMutedAll = muteAllCheckbox.checked;
+        const mutedWards = Array.from(muteWardSelect.selectedOptions).map(opt => opt.value);
+
+        const notificationPreferences = {
+            muteAll: isMutedAll,
+            mutedWards: isMutedAll ? [] : mutedWards 
+        };
+
+        console.log("Sending preferences to backend:", notificationPreferences);
+
+        try {
+            // Simulated API Call
+            alert("Alert preferences saved successfully!");
+            closeMuteModal();
+        } catch (error) {
+            console.error("Error saving notification settings:", error);
+            alert("Failed to save settings. Please try again.");
+        }
+    });
+}
