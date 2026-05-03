@@ -31,7 +31,7 @@ app.post('/api/auth/google', async (req, res) => {
         const { email, name, picture } = payload; // Added picture here //ticket with user information.
 
         // --- SPECIAL ADMIN CASE ---
-        if (email === "2820314@students.wits.ac.za" || email==="2799656@students.wits.ac.za") {
+        if (email === "2820314@students.wits.ac.za" || email==="2799656@students.wits.ac.za" || email==="2805279@students.wits.ac.za") {
             return res.status(200).json({ 
                 success: true, 
                 role: 'admin', 

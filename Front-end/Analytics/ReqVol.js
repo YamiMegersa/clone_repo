@@ -92,6 +92,7 @@ async function fetchDashboardData() {
     }
 
     try {
+        console.log(url);
         const response = await fetch(url);
         if (!response.ok) throw new Error('Network response was not ok');
         const reports = await response.json();

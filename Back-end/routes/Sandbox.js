@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const { MockReport, Geography, MockWard, Municipality, Allocation, MunicipalWorker } = require('../models');
+const { Report, Geography, MockWard, Municipality, Allocation, MunicipalWorker } = require('../models');
 // Helper function to build the date filter
 const buildDateFilter = (startDate, endDate) => {
     let dateFilter = {};
@@ -43,7 +43,7 @@ router.get('/request-volume', async (req, res) => {
         // 3. Set up Dynamic Grouping based on Granularity
         let queryAttributes = [
             // We always want to count the number of reports
-            [sequelize.fn('COUNT', sequelize.col('MockReport.ReportID')), 'TotalReports']
+            [sequelize.fn('COUNT', sequelize.col('Report.ReportID')), 'TotalReports']
         ];
         let queryGroup = [];
         let queryInclude = [];
@@ -67,7 +67,7 @@ router.get('/request-volume', async (req, res) => {
         }
 
         // 4. Execute the Aggregation Query
-        const analyticsData = await MockReport.findAll({
+        const analyticsData = await Report.findAll({
             where: whereClause,
             attributes: queryAttributes,
             include: queryInclude,
@@ -102,7 +102,7 @@ router.get('/ward/:municipalityId/:wardId', async (req, res) => {
             };
         }
 
-        const reports = await MockReport.findAll({ where: whereClause });
+        const reports = await Report.findAll({ where: whereClause });
         res.status(200).json(reports);
 
     } catch (error) {
@@ -132,7 +132,7 @@ router.get('/municipality/:muniId', async (req, res) => {
         }
 
         // 4. Fetch the data using our combined rules
-        const reports = await MockReport.findAll({
+        const reports = await Report.findAll({
             where: whereClause,
             raw: true
         });
@@ -161,7 +161,7 @@ router.get('/province/:provinceId', async (req, res) => {
             };
         }
 
-        const reports = await MockReport.findAll({
+        const reports = await Report.findAll({
             where: whereClause,
             include: [{
                 model: Municipality,
@@ -240,7 +240,7 @@ router.get('/worker/:workerId/reports', async (req, res) => {
         }
 
         // 4. Fetch the filtered reports
-        const reports = await MockReport.findAll({ 
+        const reports = await Report.findAll({ 
             where: whereClause, 
             raw: true 
         });

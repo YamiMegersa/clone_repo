@@ -34,9 +34,26 @@ const Resident = sequelize.define('Resident', {
 });
 
 const Subscription = sequelize.define('Subscription', {
-    SubscriptionID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    WardID: { type: DataTypes.INTEGER }, // [cite: 14]
-    ResidentID: { type: DataTypes.INTEGER} // [cite: 13]
-}, { tableName: 'Subscription', timestamps: false });
+    SubscriptionID: { 
+        type: DataTypes.INTEGER, 
+        primaryKey: true,
+        autoIncrement: true 
+    },
+    ResidentID: { 
+        type: DataTypes.INTEGER, 
+        allowNull: false
+    },
+    WardID: { 
+        type: DataTypes.INTEGER, 
+        allowNull: false
+    },
+    MunicipalityID: { 
+        type: DataTypes.INTEGER, 
+        allowNull: false
+    }
+}, { 
+    tableName: 'Subscription', 
+    timestamps: false 
+});
 
 module.exports = {Resident,Subscription};

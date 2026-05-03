@@ -1,21 +1,26 @@
 // ==========================================
-// 1. GLOBAL STATE (Must be at the very top!)
+// 1. GLOBAL STATE
 // ==========================================
 let currentReports = []; 
 let activeReportId = null;
+let issueModal = null; 
+let currentMuniId = null;   // 🚨 NEW: Store the Municipality ID globally
+let currentMuniName = "N/A"; // 🚨 NEW: Store name for the modal
 
+function setCurrentReports(data) {
+    currentReports = data;
+}
 // ==========================================
 // 2. PAGE INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Get the Ward ID from the URL
+    // Extract both IDs from the URL
     const urlParams = new URLSearchParams(window.location.search);
-    //window.location.search looks at the query part of the URL
     const wardId = urlParams.get('wardId');
-    //extract wardID part from there
+    currentMuniId = urlParams.get('muniId'); 
 
-    // If there is no Ward ID, send them back to the dashboard
-    if (!wardId) {
+    // Validation: Require BOTH for a composite key system
+    if (!wardId || !currentMuniId) {
         window.location.href = '../Homes/Resident.html';
         return;
     }
@@ -23,87 +28,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update the Page Title
     document.getElementById('ward-title').textContent = `WARD ${wardId}`;
 
-    // Setup Navigation (Back Button)
+    // Setup Navigation
     document.getElementById('back-btn').addEventListener('click', () => {
         window.location.href = '../Homes/Resident.html';
     });
 
-    // Fetch the Data
-    fetchWardReports(wardId);
-    fetchWardDetails(wardId);
+    // Instantiate the reusable modal
+    issueModal = new CivicModal();
 
-    // --- MODAL & BUMP BUTTON LISTENERS ---
-    const dialog = document.getElementById('issue-modal');
-    
-    // Close Modal Logic
-    document.getElementById('close-issue-modal').addEventListener('click', () => dialog.close());
-    dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) dialog.close(); // Close if clicking the parent dialog
-    });
-
-
-    // Carousel Desktop Navigation Logic for image swiping
-    const carousel = document.getElementById('modal-carousel');
-    const btnPrev = document.getElementById('carousel-prev');
-    const btnNext = document.getElementById('carousel-next');//arrows
-
-    if (btnPrev && btnNext && carousel) { //wrapped in an if because it must exist first
-        btnNext.addEventListener('click', () => {
-            // Scroll right by the exact width of one image container
-            carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
-        });
-
-        btnPrev.addEventListener('click', () => {
-            // Scroll left by the exact width of one image container
-            carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
-        });
-    }
-
-    // Bump Button Logic
-    document.getElementById('bump-btn').addEventListener('click', async () => {
-        if (!activeReportId) return; //if they're not in a report ignore logic
-        
-        const btn = document.getElementById('bump-btn');
-        btn.innerHTML = `<i class="material-symbols-outlined animate-spin">refresh</i> Bumping...`;
-        btn.disabled = true;
-
-        try {
-            const response = await fetch(`/api/reports/${activeReportId}/bump`, { method: 'PUT' });
-            
-            if (response.ok) {
-                const data = await response.json();
-                document.getElementById('modal-frequency').textContent = data.newFrequency; //change view
-                
-                const localReport = currentReports.find(r => r.ReportID === activeReportId);
-                if (localReport) localReport.Frequency = data.newFrequency; //changes data
-
-                const currentBumped = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
-                if (!currentBumped.includes(String(activeReportId))) {
-                    currentBumped.push(String(activeReportId));
-                    localStorage.setItem('bumpedIssues', JSON.stringify(currentBumped));
-                }
-
-                btn.innerHTML = `<i class="material-symbols-outlined">check</i> Bumped!`;
-                btn.classList.add('bg-[#FF8C00]', 'text-white');
-            }
-        } catch (error) {
-            console.error('Failed to bump issue', error);
-            btn.innerHTML = `Error! Try again.`;
-            btn.disabled = false;
-        }
-    });
+    // Initial Data Fetching
+    fetchWardReports(wardId, currentMuniId);
+    fetchWardDetails(wardId, currentMuniId);
 });
 
 // ==========================================
 // 3. FETCH FUNCTIONS
 // ==========================================
-async function fetchWardReports(wardId) {
+async function fetchWardReports(wardId, muniId) {
     try {
-        const response = await fetch(`/api/reports/ward/${wardId}`);
+        // 🚨 Update: API call now uses both IDs to pinpoint the correct ward
+        const response = await fetch(`/api/reports/ward/${wardId}/${muniId}`);
         if (!response.ok) throw new Error('Failed to fetch reports');
         
-        // Correctly assign the data to our global variable
-        currentReports = await response.json(); //returns an array of reports
+        currentReports = await response.json(); 
         
         renderStats(currentReports);
         renderTable(currentReports);
@@ -111,19 +58,23 @@ async function fetchWardReports(wardId) {
     } catch (error) {
         console.error('Error fetching ward data:', error);
         document.getElementById('reports-table-body').innerHTML = `
-            <tr><td colspan="4" class="px-8 py-6 text-center text-red-400 font-bold">Failed to load reports. Please try again later.</td></tr>
+            <tr><td colspan="4" class="px-8 py-6 text-center text-red-400 font-bold">Failed to load reports.</td></tr>
         `;
     }
 }
 
-async function fetchWardDetails(wardId) {
+async function fetchWardDetails(wardId, muniId) {
     try {
-        const response = await fetch(`/api/geography/wards/${wardId}`);
+        // 🚨 Update: Fetch details using the composite key pair
+        const response = await fetch(`/api/geography/wards/${muniId}/${wardId}`);
         if (!response.ok) throw new Error('Failed to fetch ward details');
         
         const ward = await response.json();
         
-        const councillorName = ward.WardCouncillor ? ward.WardCouncillor : 'Unassigned'; //just in case ward has no cllr
+        // Save Municipality Name for the Modal display
+        currentMuniName = ward.Municipality ? ward.Municipality.MunicipalityName : "Unknown";
+        
+        const councillorName = ward.WardCouncillor ? ward.WardCouncillor : 'Unassigned'; 
         document.getElementById('councillor-label').textContent = `${councillorName}`;
 
     } catch (error) {
@@ -152,19 +103,14 @@ function renderTable(reports) {
         return;
     }
 
-    reports.forEach(report => {//populate the table body with the rows
-let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssueModal
+    reports.forEach(report => {
+        let statusBadge = ''; 
         const progressStr = (report.Progress || '').toLowerCase(); 
         
-        // 1. ONLY give the Resolved badge if it is actually resolved
         if (progressStr === 'resolved') {
             statusBadge = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
-        
-        // 2. Catch the "middle" steps and label them In Progress
         } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
             statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
-        
-        // 3. Everything else defaults to Active
         } else {
             statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
         }
@@ -177,14 +123,13 @@ let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssue
             'electricity': 'bolt',
             'sanitation': 'recycling'
         };
+        
         const typeStr = (report.Type || '').toLowerCase();
-        const icon = iconMap[typeStr] || 'report_problem'; //falls back to triangle with exclamation 
+        const icon = iconMap[typeStr] || 'report_problem'; 
 
         const formattedDate = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
-        //The above looks for a date, converts it to ISO format, splits by T and chooses the first element.
 
-        const tr = document.createElement('tr'); //creates table-row
-        // Added cursor-pointer so the user knows it's clickable
+        const tr = document.createElement('tr'); 
         tr.className = 'hover:bg-surface-container-high transition-colors group cursor-pointer';
         tr.innerHTML = `
             <td class="px-8 py-6">
@@ -193,14 +138,12 @@ let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssue
                     <span class="font-bold text-white uppercase tracking-tight">${report.Type || 'General'}</span>
                 </span>
             </td>
-            <td class="px-8 py-6 text-on-surface-variant font-medium max-w-md">${report.Progress || 'No description provided.'}</td>
+            <td class="px-8 py-6 text-on-surface-variant font-medium max-w-md">${report.Brief || report.Progress || 'No description provided.'}</td>
             <td class="px-8 py-6 text-center">${statusBadge}</td>
             <td class="px-8 py-6 text-right font-mono text-on-surface-variant text-sm">${formattedDate}</td>
         `;
         
-        // Connect the click to the row!
         tr.onclick = () => openIssueModal(report.ReportID);
-        
         tbody.appendChild(tr);
     });
 }
@@ -208,78 +151,222 @@ let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssue
 // ==========================================
 // 5. MODAL CONTROLLER
 // ==========================================
-function openIssueModal(reportId) {
+async function openIssueModal(reportId) {
     const report = currentReports.find(r => r.ReportID === reportId);
-    if (!report) return;//if the report mysteriously disappears
+    if (!report) return;
 
     activeReportId = reportId;
-    const dialog = document.getElementById('issue-modal');
 
-    document.getElementById('modal-title').textContent = report.Type || 'General Issue';
-    //document.getElementById('modal-desc').textContent = report.Progress || 'No description provided.';
-    document.getElementById('modal-date').textContent = report.CreatedAt ? new Date(report.CreatedAt).toISOString().split('T')[0] : 'Unknown';
-    document.getElementById('modal-frequency').textContent = report.Frequency || 0;
-    
-        let statusBadge = ''; // Note: this variable is named badgeHTML inside openIssueModal
-        const progressStr = (report.Progress || '').toLowerCase(); 
-        
-        // 1. ONLY give the Resolved badge if it is actually resolved
-        if (progressStr === 'resolved') {
-            statusBadge = `<span class="px-3 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-black uppercase rounded-full">Resolved</span>`;
-        
-        // 2. Catch the "middle" steps and label them In Progress
-        } else if (progressStr === 'in progress' || progressStr === 'assigned to field staff') {
-            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00]/20 text-[#FF8C00] border border-[#FF8C00]/40 text-[10px] font-black uppercase rounded-full">In Progress</span>`;
-        
-        // 3. Everything else defaults to Active
-        } else {
-            statusBadge = `<span class="px-3 py-1 bg-[#FF8C00] text-on-primary text-[10px] font-black uppercase rounded-full">Active</span>`;
+    let fetchedImages = [];
+    try {
+        const response = await fetch(`/api/reports/report/${reportId}`);
+        if (response.ok) {
+            const imgData = await response.json();
+            fetchedImages = imgData.map(img => `data:${img.Type || 'image/jpeg'};base64,${img.base64}`);
         }
-    document.getElementById('modal-status').innerHTML = statusBadge;
-
-    const carousel = document.getElementById('modal-carousel');
-    carousel.innerHTML = ''; 
- /////////////////INSERT IMAGE FETCHING CODE HERE PLEASE YAMI   
-for(let i=1; i<=3; i++) {
-        const imgUrl = `https://picsum.photos/seed/${reportId + i}/800/600`;
-        carousel.innerHTML += `
-            <li class="snap-center shrink-0 w-full h-full relative p-0 m-0 list-none">
-                <img src="${imgUrl}" alt="Issue Photo ${i}" class="w-full h-full object-cover" />
-            </li>
-        `;
+    } catch (error) {
+        console.error('Failed to fetch images for report:', error);
     }
 
-    const bumpBtn = document.getElementById('bump-btn');
-    const bumpedIssues = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
-    
-    if (bumpedIssues.includes(String(reportId))) { 
-        // Already bumped: Disable button and show grayed out state
-        bumpBtn.disabled = true;
-        bumpBtn.innerHTML = `<i class="material-symbols-outlined">check_circle</i> Already Bumped`;
-        bumpBtn.classList.remove('bg-[#FF8C00]/10', 'text-[#FF8C00]', 'hover:bg-[#FF8C00]', 'hover:text-white');
-        bumpBtn.classList.add('bg-surface-container-highest', 'text-on-surface-variant', 'cursor-not-allowed', 'opacity-50');
-    } else {
-        // Not bumped: Reset to active state
-        bumpBtn.disabled = false;
-        bumpBtn.innerHTML = `<i class="material-symbols-outlined">exposure_plus_1</i> Bump this Issue`;
-        bumpBtn.classList.remove('bg-surface-container-highest', 'text-on-surface-variant', 'cursor-not-allowed', 'opacity-50');
-        bumpBtn.classList.add('bg-[#FF8C00]/10', 'text-[#FF8C00]', 'hover:bg-[#FF8C00]', 'hover:text-white');
-    }
+    // 🚨 Update: Map data including the real Municipality Name
+    const modalData = {
+        type: report.Type,
+        description: report.Brief || report.Progress || 'No description provided.',
+        date: report.CreatedAt,
+        status: report.Progress || report.Status,
+        ward: report.WardID,
+        municipality: currentMuniName.toUpperCase(), // 🚨 Fixes the "N/A" bug
+        images: fetchedImages
+    };
 
-    dialog.showModal();
+    issueModal.open(modalData);
+    injectBumpButton(report);
 }
 
-// EXPORTS SO THAT JEST TEST CASES WORK
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        fetchWardReports,
-        fetchWardDetails,
-        renderStats,
-        renderTable,
-        openIssueModal,
-        // Expose global state for testing
-        getCurrentReports: () => currentReports,
-        setCurrentReports: (reports) => { currentReports = reports; },
-        getActiveReportId: () => activeReportId
+// --- Dynamic Bump Button Logic ---
+function injectBumpButton(report) {
+    const modalMain = document.querySelector(`#${issueModal.modalId} main`);
+    if (!modalMain) return;
+
+    const existingContainer = document.getElementById('dynamic-bump-container');
+    if (existingContainer) existingContainer.remove();
+
+    const bumpContainer = document.createElement('div');
+    bumpContainer.id = 'dynamic-bump-container';
+    bumpContainer.className = 'mt-6 pt-6 border-t border-white/5 flex items-center justify-between';
+
+    const freqDisplay = document.createElement('div');
+    freqDisplay.innerHTML = `<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">Issue Frequency: </span><span id="modal-frequency" class="font-bold text-white ml-2 text-lg">${report.Frequency || 0}</span>`;
+
+    const bumpBtn = document.createElement('button');
+    bumpBtn.id = 'bump-btn';
+    bumpBtn.className = 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors';
+
+    const bumpedIssues = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
+    
+    if (bumpedIssues.includes(String(report.ReportID))) { 
+        bumpBtn.disabled = true;
+        bumpBtn.innerHTML = `<i class="material-symbols-outlined text-sm">check_circle</i> Already Bumped`;
+        bumpBtn.className += ' bg-surface-container-highest text-on-surface-variant cursor-not-allowed opacity-50';
+    } else {
+        bumpBtn.disabled = false;
+        bumpBtn.innerHTML = `<i class="material-symbols-outlined text-sm">exposure_plus_1</i> Bump Issue`;
+        bumpBtn.className += ' bg-[#FF8C00]/10 text-[#FF8C00] hover:bg-[#FF8C00] hover:text-white';
+        
+        bumpBtn.addEventListener('click', () => handleBump(report.ReportID, bumpBtn));
+    }
+
+    bumpContainer.appendChild(freqDisplay);
+    bumpContainer.appendChild(bumpBtn);
+    modalMain.appendChild(bumpContainer);
+}
+
+async function handleBump(reportId, btnElement) {
+    btnElement.innerHTML = `<i class="material-symbols-outlined text-sm animate-spin">refresh</i> Bumping...`;
+    btnElement.disabled = true;
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}/bump`, { method: 'PUT' });
+        
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('modal-frequency').textContent = data.newFrequency; 
+            
+            const localReport = currentReports.find(r => r.ReportID === reportId);
+            if (localReport) localReport.Frequency = data.newFrequency; 
+
+            const currentBumped = JSON.parse(localStorage.getItem('bumpedIssues') || '[]');
+            if (!currentBumped.includes(String(reportId))) {
+                currentBumped.push(String(reportId));
+                localStorage.setItem('bumpedIssues', JSON.stringify(currentBumped));
+            }
+
+            btnElement.innerHTML = `<i class="material-symbols-outlined text-sm">check</i> Bumped!`;
+            btnElement.className = 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-colors bg-[#FF8C00] text-white';
+        }
+    } catch (error) {
+        console.error('Failed to bump issue', error);
+        btnElement.innerHTML = `Error! Try again.`;
+        btnElement.disabled = false;
+    }
+}
+
+if (typeof module !== 'undefined') {
+    module.exports = { 
+        renderStats, 
+        renderTable, 
+        fetchWardDetails, 
+        fetchWardReports, 
+        setCurrentReports // 🚨 Don't forget this setter for your global state
     };
+}
+
+// ==========================================
+// 6. NOTIFICATION & ACCOUNT MENU CONTROLLERS
+// ==========================================
+
+// Handle closing the profile dropdown when clicking outside
+document.addEventListener('click', (event) => {
+    const detailsElement = document.querySelector('nav details');
+    if (detailsElement && !detailsElement.contains(event.target)) {
+        detailsElement.removeAttribute('open');
+    }
+});
+
+// Notifications settings logic
+const bellBtn = document.getElementById('notification-bell-btn');
+const muteModal = document.getElementById('mute-settings-modal');
+const closeMuteIcon = document.getElementById('close-mute-modal-icon');
+const closeMuteBtn = document.getElementById('close-mute-modal-btn');
+const muteForm = document.getElementById('mute-settings-form');
+const muteAllCheckbox = document.getElementById('mute-all');
+const specificWardsFieldset = document.getElementById('specific-wards-fieldset');
+const muteWardSelect = document.getElementById('mute-ward-select');
+
+// Open the Modal
+if(bellBtn) {
+    bellBtn.addEventListener('click', async () => {
+        const residentId = localStorage.getItem('residentId');
+        if (!residentId) {
+            console.error('No resident ID found');
+            return;
+        }
+
+        try {
+            // Fetch subscribed wards to populate the select
+            const response = await fetch(`/api/residents/${residentId}/subscriptions`);
+            if (!response.ok) throw new Error('Failed to fetch subscriptions');
+
+            const wards = await response.json();
+
+            // Clear existing options
+            muteWardSelect.innerHTML = '';
+
+            // Populate with subscribed wards
+            wards.forEach(ward => {
+                const option = document.createElement('option');
+                option.value = `${ward.WardID}-${ward.MunicipalityID}`;
+                option.textContent = `Ward ${ward.WardID} (${ward.Ward?.WardCouncillor || 'No Councillor'})`;
+                muteWardSelect.appendChild(option);
+            });
+            
+            // Show the modal
+            muteModal.showModal();
+        } catch (error) {
+            console.error('Error loading wards for mute settings:', error);
+        }
+    });
+}
+
+// Close Modal Handlers
+const closeMuteModal = () => muteModal.close();
+if(closeMuteIcon) closeMuteIcon.addEventListener('click', closeMuteModal);
+if(closeMuteBtn) closeMuteBtn.addEventListener('click', closeMuteModal);
+
+// Close the modal if the user clicks the darkened background outside the modal
+if (muteModal) {
+    muteModal.addEventListener('click', (e) => {
+        if (e.target === muteModal) {
+            closeMuteModal();
+        }
+    });
+}
+
+// If "Mute All" is checked, disable the specific ward select
+if (muteAllCheckbox) {
+    muteAllCheckbox.addEventListener('change', (e) => {
+        if(e.target.checked) {
+            muteWardSelect.disabled = true;
+            specificWardsFieldset.classList.add('opacity-30', 'pointer-events-none');
+        } else {
+            muteWardSelect.disabled = false;
+            specificWardsFieldset.classList.remove('opacity-30', 'pointer-events-none');
+        }
+    });
+}
+
+// Form Submission Logic
+if (muteForm) {
+    muteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const isMutedAll = muteAllCheckbox.checked;
+        const mutedWards = Array.from(muteWardSelect.selectedOptions).map(opt => opt.value);
+
+        const notificationPreferences = {
+            muteAll: isMutedAll,
+            mutedWards: isMutedAll ? [] : mutedWards 
+        };
+
+        console.log("Sending preferences to backend:", notificationPreferences);
+
+        try {
+            // Simulated API Call
+            alert("Alert preferences saved successfully!");
+            closeMuteModal();
+        } catch (error) {
+            console.error("Error saving notification settings:", error);
+            alert("Failed to save settings. Please try again.");
+        }
+    });
 }

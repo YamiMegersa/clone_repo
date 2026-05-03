@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za';
 const { Resident } = require('../models');
+const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za, 2805279@students.wits.ac.za';
 
 // ─── Email helper 
 async function sendEmail(to, subject, html) {
@@ -72,23 +72,63 @@ router.get('/',async (req,res)=>{
     }
 });
 
-//GET: Fetch all reports for a SPECIFIC Resident
+// //GET: Fetch all reports for a SPECIFIC Resident
+// router.get('/resident/:residentId', async (req,res)=>{
+//     try{
+//         const residentReports=await Report.findAll({where:{ResidentID:req.params.residentId}});
+//         res.json(residentReports);
+//     }catch (err){
+//         console.error(err);
+//         res.status(500).json({error:err.message});
+//     }
+// });
+// GET: Fetch all reports for a SPECIFIC Resident
 router.get('/resident/:residentId', async (req,res)=>{
     try{
         const residentReports=await Report.findAll({where:{ResidentID:req.params.residentId}});
-        res.json(residentReports);
+        res.json({ reports: residentReports }); // Keep the { reports: ... } wrapper so the frontend still works!
     }catch (err){
         console.error(err);
         res.status(500).json({error:err.message});
     }
 });
 
-// POST: Log a new report/fault and NOTIFIES ADMIN and RESIDENT
+
+// POST: Log a new report/fault and NOTIFIES ADMIN 
+// POST: Log a new report/fault and NOTIFIES ADMIN 
 router.post('/', async (req, res) => {
     try {
+        // 1. Create the base report
         const newReport = await Report.create(req.body);
         const paused = req.headers['x-notif-paused'] === 'true';
 
+        // 2. 🚨 NEW LOGIC: Process and save the images
+        if (req.body.Images && Array.isArray(req.body.Images) && req.body.Images.length > 0) {
+            const imagePromises = req.body.Images.map(async (base64String) => {
+                // Use Regex to split the "data:image/png;base64," prefix from the raw data
+                const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+                
+                if (matches && matches.length === 3) {
+                    const mimeType = matches[1]; // e.g., 'image/jpeg'
+                    const base64Data = matches[2]; // The raw alphanumeric string
+                    
+                    // Convert the string into a binary Buffer
+                    const imageBuffer = Buffer.from(base64Data, 'base64');
+
+                    // Save it to the ReportImage table
+                    return ReportImage.create({
+                        ReportID: newReport.ReportID,
+                        Type: mimeType,
+                        Image: imageBuffer
+                    });
+                }
+            });
+
+            // Wait for all images to finish saving to the database
+            await Promise.all(imagePromises);
+        }
+
+        // 3. Existing Notification Logic
         await notify('admin', 'NEW_REPORT',
             `New ${newReport.Type} Report`,
             `A new fault has been logged in Ward ${newReport.WardID || 'N/A'}. Report #${newReport.ReportID} is pending assignment.`,
@@ -159,7 +199,9 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ message: 'Report logged successfully', report: newReport });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        console.error('Submit failed on backend:', err);
+        // Ensure this matches the error message your frontend test is looking for
+        res.status(400).json({ error: 'Failed to log report', details: err.message });
     }
     
 });
@@ -456,15 +498,23 @@ router.put('/:id/accept', async (req, res) => {
 });
 
 // GET: Fetch all reports for a specific Ward
-router.get('/ward/:wardId', async (req, res) => {
+// GET /api/reports/ward/:wardId/:muniId
+router.get('/ward/:wardId/:muniId', async (req, res) => {
     try {
+        const { wardId, muniId } = req.params;
+
         const reports = await Report.findAll({
-            where: { WardID: req.params.wardId }, 
-            order: [['CreatedAt', 'DESC']]        
+            where: {
+                WardID: wardId,
+                MunicipalityID: muniId
+            },
+            // Sort by newest first so the dashboard is relevant
+            order: [['CreatedAt', 'DESC']] 
         });
+
         res.json(reports);
     } catch (err) {
-        console.error('Error fetching ward reports:', err);
+        console.error("Report Fetch Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
