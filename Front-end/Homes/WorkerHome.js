@@ -19,7 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update Header
-    document.querySelector('p.text-xs.font-bold').textContent = workerName || "Field Operative";
+    const nameEl = document.querySelector('p.text-xs.font-bold');
+    if (nameEl) nameEl.textContent = workerName || "Field Operative";
+    
+    const dropdownName = document.getElementById('dropdown-name');
+    if (dropdownName) dropdownName.textContent = workerName || "Field Operative";
 
     loadMyAssignedTasks(workerId);
 });
@@ -431,6 +435,40 @@ function renderPreviews(reportId) {
         reader.readAsDataURL(file);
     });
 }
+// ── Profile dropdown ──────────────────────────────────────────────────────────
+function toggleProfileDropdown() {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.toggle('hidden');
+
+    // Close when clicking outside
+    if (!dropdown.classList.contains('hidden')) {
+        setTimeout(() => {
+            document.addEventListener('click', closeDropdownOutside, { once: true });
+        }, 0);
+    }
+}
+
+function closeDropdownOutside(e) {
+    const wrap = document.getElementById('profile-dropdown-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('profile-dropdown').classList.add('hidden');
+    }
+}
+
+function openEditProfile() {
+    document.getElementById('profile-dropdown').classList.add('hidden');
+    if (window._profileModal) {
+        window._profileModal.open();
+    }
+}
+
+function logoutWorker() {
+    document.getElementById('profile-dropdown').classList.add('hidden');
+    if (!confirm('Are you sure you want to log out?')) return;
+    localStorage.clear();
+    window.location.href = '../Login/Worker_Login.html';
+}
+
 
 async function uploadTaskImages(reportId) {
     const filesToUpload = taskImages[reportId];
