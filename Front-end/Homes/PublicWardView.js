@@ -320,7 +320,7 @@ function openIssueModal(reportId) {
     dialog.showModal();
 
     // --- MODAL MINI-MAP LOGIC ---
-    // THE LEAFLET MODAL HACK:
+   
     // Leaflet calculates its width/height when it is initialised. If initialised while 
     // hidden inside a closed modal, it thinks its size is 0x0 pixels, causing gray rendering bugs.
     // We use setTimeout to wait 10 milliseconds *after* the modal opens so Leaflet can see the actual pixel dimensions.

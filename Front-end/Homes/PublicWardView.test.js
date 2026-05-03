@@ -39,6 +39,7 @@ describe('Public Ward View Controller', () => {
         jest.restoreAllMocks();
     });
 
+
     // TEST 1: Check if math logic works
     test('renderStats correctly filters active vs resolved reports', () => {
         // ARRANGE: Create some fake test data
@@ -140,7 +141,7 @@ describe('Public Ward View Controller', () => {
     });
 
     // TEST: API Error Catching
-    // TEST: API Error Catching
+    
     test('fetchWardReports shows error message in table if API fails', async () => {
         // 1. Temporarily mute the console so the expected server error doesn't print
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -160,9 +161,50 @@ describe('Public Ward View Controller', () => {
         consoleSpy.mockRestore();
     });
 
+    // TEST: Page Initialisation & Carousel
+    test('DOMContentLoaded initializes the page and carousel buttons', () => {
+        // 1. FIX: Bypass window.location entirely by mocking URLSearchParams
+        const originalURLSearchParams = global.URLSearchParams;
+        global.URLSearchParams = jest.fn(() => ({
+            get: (param) => {
+                if (param === 'wardId') return '7';
+                return null;
+            }
+        }));
+
+        // 2. FIX: Add the MISSING dialog element and the carousel buttons
+        document.body.innerHTML += `
+            <dialog id="issue-modal"></dialog>
+            <button id="close-issue-modal"></button>
+            <div id="modal-carousel"></div>
+            <button id="carousel-prev"></button>
+            <button id="carousel-next"></button>
+        `;
+
+        // 3. Mock scrollBy since the terminal (JSDOM) doesn't know how to scroll
+        document.getElementById('modal-carousel').scrollBy = jest.fn();
+        
+        // Mock fetch so the initial API calls don't crash the test
+        global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) }));
+
+        // 4. FIRE THE PAGE LOAD EVENT! 
+        document.dispatchEvent(new Event('DOMContentLoaded'));
+
+        // 5. Click the carousel buttons to cover their inner logic
+        document.getElementById('carousel-next').click();
+        document.getElementById('carousel-prev').click();
+        document.getElementById('close-issue-modal').click();
+
+        // Assert the page title was set correctly
+        expect(document.getElementById('ward-title').textContent).toBe('WARD 7');
+
+        // Cleanup our mock so it doesn't affect other tests
+        global.URLSearchParams = originalURLSearchParams;
+    });
+
     // TEST: Modal Opening
-    test('openIssueModal populates the dialog box correctly', () => {
-        // We need to add the modal HTML to our fake DOM
+    // TEST: Modal Opening
+    test('openIssueModal populates the dialog box correctly', async () => {
         document.body.innerHTML += `
             <dialog id="issue-modal"></dialog>
             <h2 id="modal-title"></h2>
@@ -173,10 +215,14 @@ describe('Public Ward View Controller', () => {
             <aside id="modal-mini-map"></aside>
         `;
 
-        // 1. Manually set the global 'currentReports' array inside your JS file using your exports
+        // Mock the fetch call for the images inside the modal
+        global.fetch = jest.fn(() => Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([{ Type: 'image/jpeg', base64: 'fakeBase64String' }])
+        }));
+
         const script = require('./PublicWardView');
-        // You might need to add a setter function to your exports in PublicWardView.js like:
-        // setCurrentReports: (reports) => { currentReports = reports; }
+        
         if(script.setCurrentReports) {
             script.setCurrentReports([{ 
                 ReportID: 99, 
@@ -188,10 +234,9 @@ describe('Public Ward View Controller', () => {
             }]);
         }
 
-        // 2. Trigger the modal
-        if(script.openIssueModal) script.openIssueModal(99);
+        // We must await this now because openIssueModal is async!
+        if(script.openIssueModal) await script.openIssueModal(99);
 
-        // 3. Verify it populated!
         expect(document.getElementById('modal-title').textContent).toBe('Water Leak');
         expect(document.getElementById('modal-frequency').textContent).toBe('5');
         expect(document.getElementById('modal-status').innerHTML).toContain('Resolved');
