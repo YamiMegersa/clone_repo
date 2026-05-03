@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za';
+const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za, 2805279@students.wits.ac.za';
 
 // ─── Email helper 
 async function sendEmail(to, subject, html) {
@@ -71,16 +71,27 @@ router.get('/',async (req,res)=>{
     }
 });
 
-//GET: Fetch all reports for a SPECIFIC Resident
+// //GET: Fetch all reports for a SPECIFIC Resident
+// router.get('/resident/:residentId', async (req,res)=>{
+//     try{
+//         const residentReports=await Report.findAll({where:{ResidentID:req.params.residentId}});
+//         res.json(residentReports);
+//     }catch (err){
+//         console.error(err);
+//         res.status(500).json({error:err.message});
+//     }
+// });
+// GET: Fetch all reports for a SPECIFIC Resident
 router.get('/resident/:residentId', async (req,res)=>{
     try{
         const residentReports=await Report.findAll({where:{ResidentID:req.params.residentId}});
-        res.json(residentReports);
+        res.json({ reports: residentReports }); // Keep the { reports: ... } wrapper so the frontend still works!
     }catch (err){
         console.error(err);
         res.status(500).json({error:err.message});
     }
 });
+
 
 // POST: Log a new report/fault and NOTIFIES ADMIN 
 // POST: Log a new report/fault and NOTIFIES ADMIN 
