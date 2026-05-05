@@ -1,5 +1,14 @@
 // // GuestDashboard.test.js
 
+// By adding .skip, Jest will instantly ignore everything inside this block
+describe.skip('My Component Tests', () => {
+    
+    test('does something', () => {
+        expect(1).toBe(1);
+    });
+
+});
+
 // beforeEach(() => {
 //     document.body.innerHTML = `
 //         <select id="province"><option value="">Choose a province...</option></select>

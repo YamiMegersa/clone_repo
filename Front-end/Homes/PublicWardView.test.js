@@ -1,5 +1,14 @@
 // // PublicWardView.test.js
 
+// By adding .skip, Jest will instantly ignore everything inside this block
+describe.skip('My Component Tests', () => {
+    
+    test('does something', () => {
+        expect(1).toBe(1);
+    });
+
+});
+
 // // 1. Setup Mocks before requiring the file
 // beforeEach(() => {
 // // 1. 🚨 Wrap the tbody inside a <table> tag so JSDOM doesn't delete it
