@@ -478,3 +478,17 @@ function drawPinsOnMap(reports) {
         });
     });
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        normalizeName,
+        getDateRange,
+        buildMunicipalityMap,
+        fetchAgingData,
+        updateAssignmentDurationLedger,
+        calculateBottleneckMetrics,
+        onMapClick,
+        renderUnassignedTable,
+        drawPinsOnMap
+    };
+}

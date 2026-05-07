@@ -1,18 +1,13 @@
 /**
  * @jest-environment jsdom
  */
-
 const fs = require('fs');
-const path = require('path');
+const path = require('path'); // Add this line
+const { CivicTable } = require('../CivicReportTable.js');
 
 // --- 1. LOAD & INJECT SCRIPT ---
 const tablePath = path.resolve(__dirname, '../CivicReportTable.js');
 let tableSource = fs.readFileSync(tablePath, 'utf8');
-
-// Inject into global scope for the test environment
-tableSource += ` ; global.CivicTable = CivicTable; `;
-
-eval(tableSource);
 
 describe('CivicTable Component Tests', () => {
     let container;

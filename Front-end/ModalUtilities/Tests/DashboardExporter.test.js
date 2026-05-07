@@ -2,9 +2,7 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
-
+const { DashboardExporter } = require('../DashboardExporter.js');
 // --- 1. MOCK EXTERNAL LIBRARY (html2pdf) ---
 // We use a variable to capture the resolve callback so we can trigger it manually
 let resolvePdf;
@@ -30,15 +28,6 @@ global.html2pdf = jest.fn(() => mockHtml2Pdf);
 // Mock window.scrollTo since JSDOM does not implement it
 global.scrollTo = jest.fn();
 
-// --- 2. LOAD & INJECT SCRIPT ---
-// Assuming this is in ModalUtilities/Tests/ relative to DashboardExporter.js
-const exporterPath = path.resolve(__dirname, '../DashboardExporter.js');
-let exporterSource = fs.readFileSync(exporterPath, 'utf8');
-
-// Inject into global scope for testing
-exporterSource += ` ; global.DashboardExporter = DashboardExporter; `;
-
-eval(exporterSource);
 
 describe('DashboardExporter Component Tests', () => {
     let exporter;

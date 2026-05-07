@@ -2,8 +2,7 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
+
 
 // --- 1. MOCK EXTERNAL DEPENDENCIES ---
 global.L = {
@@ -33,19 +32,19 @@ global.DashboardExporter = jest.fn();
 global.fetch = jest.fn();
 
 // --- 2. LOAD & INJECT SCRIPT ---
-const reqVolPath = path.resolve(__dirname, '../ReqVol.js');
-let reqVolSource = fs.readFileSync(reqVolPath, 'utf8');
-
-// Expose internal functions/variables to the test environment
-reqVolSource += `
-    global.normalizeName = normalizeName;
-    global.formatNumber = formatNumber;
-    global.getDateRange = getDateRange;
-    global.updateUI = updateUI;
-    global.renderLedgerTable = renderLedgerTable;
-`;
-
-eval(reqVolSource);
+const { 
+    onMapClick, 
+    getDateRange, 
+    fetchDashboardData, 
+    updateUI, 
+    updateBarCharts, 
+    formatNumber, 
+    normalizeName, 
+    buildMunicipalityMap, 
+    renderLedgerTable, 
+    openIssueModal, 
+    drawPinsOnMap 
+} = require('../ReqVol.js');
 
 describe('ReqVol.js Integration Tests', () => {
     beforeEach(() => {

@@ -133,3 +133,7 @@ constructor(containerId, geoJsonPath, onClickCallback) {
         }).addTo(this.map);
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { CivicMap };
+}

@@ -304,6 +304,13 @@ function showModal(title, message) {
 }
 
 // EXPORTS FOR JEST TESTING
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { loadProvinces, fetchWardStats, showModal };
+    module.exports = { 
+        loadProvinces, 
+        fetchWardStats, 
+        showModal,
+        handleMapLocation,
+        triggerChangeEvent 
+    };
 }

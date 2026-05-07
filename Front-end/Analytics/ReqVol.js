@@ -482,3 +482,22 @@ function drawPinsOnMap(reports) {
         });
     });
 }
+
+
+/* istanbul ignore next */
+/* istanbul ignore next */
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        onMapClick,
+        getDateRange,
+        fetchDashboardData,
+        updateUI,
+        updateBarCharts,
+        formatNumber,
+        normalizeName,
+        buildMunicipalityMap,
+        renderLedgerTable,
+        openIssueModal,
+        drawPinsOnMap
+    };
+}

@@ -2,8 +2,7 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
+
 
 // --- 1. MOCK EXTERNAL DEPENDENCIES ---
 global.L = {
@@ -34,20 +33,14 @@ global.DashboardExporter = jest.fn();
 // Mock Fetch
 global.fetch = jest.fn();
 
-// --- 2. LOAD & INJECT SCRIPT ---
-const workerPerformPath = path.resolve(__dirname, '../WorkerPerform.js');
-let workerPerformSource = fs.readFileSync(workerPerformPath, 'utf8');
-
-// Manual injection for global access
-workerPerformSource += `
-    global.normalizeName = normalizeName;
-    global.getDateRange = getDateRange;
-    global.updateAnalyticsUI = updateAnalyticsUI;
-    global.fetchAndPopulateWorkers = fetchAndPopulateWorkers;
-`;
-
-eval(workerPerformSource);
-
+const { 
+    normalizeName, 
+    fetchMunicipalityReports, 
+    drawPinsOnMap, 
+    fetchAndPopulateWorkers, 
+    fetchSelectedWorkerStats, 
+    updateAnalyticsUI 
+} = require('../WorkerPerform.js');
 describe('WorkerPerform.js Integration Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();

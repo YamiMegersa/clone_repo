@@ -3,6 +3,8 @@
  */
 
 // Mocking external dependencies
+
+
 global.L = {
     layerGroup: jest.fn().mockReturnValue({
         addTo: jest.fn().mockReturnThis(),
@@ -29,20 +31,18 @@ global.DashboardExporter = jest.fn();
 // Mock Fetch API
 global.fetch = jest.fn();
 
-// Mocking the script functions (assuming they are accessible)
-// Note: In a real environment, you might need to export these or use 'require'
-// For this example, we assume the code is loaded into the global scope.
-const fs = require('fs');
-const path = require('path');
-const scriptPath = path.resolve(__dirname, '../AgeReport.js');
-let scriptContent = fs.readFileSync(scriptPath, 'utf8'); 
 
-scriptContent += `
-    global.normalizeName = normalizeName;
-    global.currentSelection = currentSelection;
-`;
-
-eval(scriptContent);
+const { 
+    normalizeName, 
+    getDateRange, 
+    buildMunicipalityMap, 
+    fetchAgingData, 
+    updateAssignmentDurationLedger, 
+    calculateBottleneckMetrics, 
+    onMapClick, 
+    renderUnassignedTable, 
+    drawPinsOnMap 
+} = require('../AgeReport.js');
 
 describe('AgeReport.js Unit Tests', () => {
     

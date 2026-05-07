@@ -2,12 +2,8 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
-
-// --- 1. MOCKING ---
+const { CivicModal } = require('../CivicModal.js');
 global.fetch = jest.fn();
-
 // JSDOM doesn't implement <dialog> methods, so we mock them
 HTMLDialogElement.prototype.showModal = jest.fn();
 HTMLDialogElement.prototype.close = jest.fn();
@@ -15,14 +11,6 @@ HTMLDialogElement.prototype.close = jest.fn();
 // Mocking URL.createObjectURL for the buffer-to-blob logic
 global.URL.createObjectURL = jest.fn(() => 'mock-blob-url');
 
-// --- 2. LOAD & INJECT SCRIPT ---
-const modalPath = path.resolve(__dirname, '../CivicModal.js');
-let modalSource = fs.readFileSync(modalPath, 'utf8');
-
-// Ensure the class is globally accessible
-modalSource += ` ; global.CivicModal = CivicModal; `;
-
-eval(modalSource);
 
 describe('CivicModal Component Tests', () => {
     let modal;

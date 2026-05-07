@@ -2,13 +2,7 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
-const scriptPath = path.resolve(__dirname, '../CivicMap.js');
-let scriptContent = fs.readFileSync(scriptPath, 'utf8');
-scriptContent += ` ; global.CivicMap = CivicMap; `;
 
-eval(scriptContent);
 
 // --- 1. MOCK LEAFLET (L) ---
 // We need to simulate the nested structure of Leaflet
@@ -33,6 +27,7 @@ global.L = {
 // --- 3. MOCK FETCH ---
 global.fetch = jest.fn();
 
+const { CivicMap } = require('../CivicMap.js');
 describe('CivicMap Class Tests', () => {
     let containerId = 'map-container';
     let geoJsonPath = 'data/test.json';

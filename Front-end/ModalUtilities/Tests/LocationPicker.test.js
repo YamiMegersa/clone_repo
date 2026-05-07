@@ -2,9 +2,7 @@
  * @jest-environment jsdom
  */
 
-const fs = require('fs');
-const path = require('path');
-
+const { LocationPicker } = require('../LocationPicker.js');
 // --- 1. MOCK EXTERNAL LIBRARIES ---
 
 // Leaflet Mock
@@ -40,15 +38,6 @@ global.turf = {
 // Global Fetch Mock
 global.fetch = jest.fn();
 
-// --- 2. LOAD & INJECT SCRIPT ---
-const scriptPath = path.resolve(__dirname, '../LocationPicker.js');
-let scriptContent = fs.readFileSync(scriptPath, 'utf8');
-
-// Strip 'export ' so eval works in JSDOM and assign to global
-scriptContent = scriptContent.replace('export class', 'class');
-scriptContent += ` ; global.LocationPicker = LocationPicker; `;
-
-eval(scriptContent);
 
 describe('LocationPicker Class Tests', () => {
     let picker;

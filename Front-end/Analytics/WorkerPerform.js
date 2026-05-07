@@ -482,3 +482,15 @@ function updateAnalyticsUI(reports, acceptanceData) {
         `;
     });
 }
+
+/* istanbul ignore next */
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        normalizeName,
+        fetchMunicipalityReports,
+        drawPinsOnMap,
+        fetchAndPopulateWorkers,
+        fetchSelectedWorkerStats,
+        updateAnalyticsUI
+    };
+}
