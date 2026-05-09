@@ -125,38 +125,6 @@ async function toggleCompletedTasks() {
 
 
 
-async function toggleCompletedTasks() {
-    const container = document.getElementById('completed-tasks-list');
-    const button = document.querySelector('footer button');
-    
-    if (completedVisible) {
-        container.innerHTML = '';
-        button.innerHTML = '<span class="material-symbols-outlined text-sm">history</span> Show Completed Tasks';
-        completedVisible = false;
-        return;
-    }
-
-    // Instead of fetching again, we use the data we already stored
-    if (archivedReports.length === 0) {
-        container.innerHTML = '<p class="text-[10px] text-center uppercase tracking-widest text-neutral-600 py-4">No completed operations found.</p>';
-    } else {
-        container.innerHTML = archivedReports.map(report => `
-            <div class="flex justify-between items-center p-4 bg-surface-container-high/20 border border-outline/10 rounded-xl mb-3">
-                <section>
-                    <p class="text-[10px] font-mono text-primary/60 opacity-50">#${report.ReportID}</p>
-                    <h4 class="text-sm font-bold text-on-surface">${report.Type}</h4>
-                </section>
-                <section class="text-right">
-                    <p class="text-[10px] font-black uppercase text-on-surface-variant">Archived</p>
-                    <p class="text-[9px] text-neutral-600">${report.DateFulfilled ? new Date(report.DateFulfilled).toLocaleDateString() : 'Finalized'}</p>
-                </section>
-            </div>
-        `).join('');
-    }
-
-    button.innerHTML = '<span class="material-symbols-outlined text-sm">expand_less</span> Hide Completed Tasks';
-    completedVisible = true;
-}
 //workers can accept tasks 
 async function acceptTask(reportId) {
     try {

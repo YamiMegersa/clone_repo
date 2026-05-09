@@ -481,6 +481,7 @@ function drawPinsOnMap(reports) {
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
+        // Functions
         normalizeName,
         getDateRange,
         buildMunicipalityMap,
@@ -489,6 +490,12 @@ if (typeof module !== 'undefined' && module.exports) {
         calculateBottleneckMetrics,
         onMapClick,
         renderUnassignedTable,
-        drawPinsOnMap
+        drawPinsOnMap,
+        
+        // State Variables (Exposing these allows tests to inject data)
+        getSelection: () => currentSelection,
+        setSelection: (val) => { currentSelection = val; },
+        setDashboardMap: (val) => { dashboardMap = val; },
+        setPinLayerGroup: (val) => { pinLayerGroup = val; }
     };
 }

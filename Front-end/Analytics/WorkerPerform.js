@@ -1,14 +1,14 @@
 // ==========================================
 // 1. GLOBAL STATE
 // ==========================================
-let currentDisplayedReports = []; // Stores whatever reports are currently on the map
-let workerMap = null;
-let pinLayerGroup = null;
+// Allow variables to be initialized from global scope for testing
+let currentDisplayedReports = []; 
+let workerMap = typeof global !== 'undefined' && global.workerMap ? global.workerMap : null;
+let pinLayerGroup = typeof global !== 'undefined' && global.pinLayerGroup ? global.pinLayerGroup : null;
 let MunicipalityMap = {};
-let currentActiveMuniId = null; // Keeps track of which municipality is currently clicked
+let currentActiveMuniId = null;
 let currentWorkerReports = [];
-
-let currentWorkerId = ''; 
+let currentWorkerId = '';
 
 
 
@@ -484,13 +484,20 @@ function updateAnalyticsUI(reports, acceptanceData) {
 }
 
 /* istanbul ignore next */
+// At the bottom of WorkerPerform.js
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         normalizeName,
+        getDateRange, // Added this export
         fetchMunicipalityReports,
         drawPinsOnMap,
         fetchAndPopulateWorkers,
         fetchSelectedWorkerStats,
-        updateAnalyticsUI
+        updateAnalyticsUI,
+        // Setters for testing internal state
+        setWorkerMap: (map) => { workerMap = map; },
+        setPinLayerGroup: (group) => { pinLayerGroup = group; },
+        setWorkerId: (id) => { currentWorkerId = id; },
+        setActiveMuni: (id) => { currentActiveMuniId = id; }
     };
 }
