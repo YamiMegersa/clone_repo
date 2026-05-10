@@ -26,11 +26,14 @@ async function renderSubscribedWards(residentId) {
         }
 
         // 2. Map through the array and create cards
-        wards.forEach( async (ward) => {
+        wards.forEach( async (subscription) => {
             totalIssues=0;
 
+            const wardId = subscription.WardID;
+            const municipalityId = subscription.MunicipalityID;
+
             const prefs = getMutePrefs(residentId);
-            const isMuted = prefs.mutedWards && prefs.mutedWards.includes(String(ward.WardID));
+            const isMuted = prefs.mutedWards && prefs.mutedWards.includes(String(wardId));
 
             const muteText = isMuted ? 'Unmute Alerts' : 'Mute Alerts';
             const muteIcon = isMuted ? 'notifications_active' : 'notifications_off';
@@ -57,30 +60,37 @@ async function renderSubscribedWards(residentId) {
             const card = document.createElement('article');
             //card.className = "group bg-surface-container-low p-8 relative overflow-hidden transition-all duration-300 hover:bg-surface-container-high cursor-pointer";
             card.className = "group bg-surface-container-low p-8 relative transition-all duration-300 hover:bg-surface-container-high cursor-pointer";
-            // Note: Update 'ward.district' and 'ward.number' to match your SQL column names
-            const muniResponse = await fetch(`/api/geography/municipalities/${ward.MunicipalityID}`);
+            
+            // Fetch both municipality and ward data in parallel
+            const [muniResponse, wardResponse] = await Promise.all([
+                fetch(`/api/geography/municipalities/${municipalityId}`),
+                fetch(`/api/geography/wards/${wardId}`)
+            ]);
+            
             const municipalityData = await muniResponse.json();
-            const MunicipalityName=municipalityData.MunicipalityName.toUpperCase();
-            const councillorName = (ward.Ward && ward.Ward.WardCouncillor) 
-                           ? ward.Ward.WardCouncillor 
+            const wardData = await wardResponse.json();
+            
+            const MunicipalityName = municipalityData.MunicipalityName.toUpperCase();
+            const councillorName = (wardData && wardData.WardCouncillor) 
+                           ? wardData.WardCouncillor 
                            : 'Unassigned';
-            console.log(ward);
+            console.log(subscription);
             card.innerHTML = `
             <nav aria-label="Ward management options" class="absolute top-6 right-6 z-20">
-                <button aria-haspopup="menu" aria-expanded="false" aria-controls="menu-${ward.WardID}" class="menu-btn text-on-surface-variant hover:text-primary transition-colors" data-ward="${ward.WardID}">
+                <button aria-haspopup="menu" aria-expanded="false" aria-controls="menu-${wardId}" class="menu-btn text-on-surface-variant hover:text-primary transition-colors" data-ward="${wardId}">
                     <i aria-hidden="true" class="material-symbols-outlined pointer-events-none">more_vert</i>
-                    <span class="sr-only">Open options for Ward ${ward.WardID}</span> 
+                    <span class="sr-only">Open options for Ward ${wardId}</span> 
                 </button>
                 
-                <menu id="menu-${ward.WardID}" role="menu" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-surface-container-high border border-outline-variant rounded-md shadow-2xl z-50 overflow-hidden p-0 m-0">
+                <menu id="menu-${wardId}" role="menu" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-surface-container-high border border-outline-variant rounded-md shadow-2xl z-50 overflow-hidden p-0 m-0">
                     <li role="none">
-                        <button role="menuitem" onclick="manageNotifications(${ward.WardID})" class="w-full text-left px-4 py-3 hover:bg-primary/10 text-on-background transition-colors flex items-center gap-3 font-bold text-sm">
+                        <button role="menuitem" onclick="manageNotifications(${wardId})" class="w-full text-left px-4 py-3 hover:bg-primary/10 text-on-background transition-colors flex items-center gap-3 font-bold text-sm">
                             <i aria-hidden="true" class="material-symbols-outlined text-[18px]">notifications</i>
                             Manage Alerts
                         </button>
                     </li>
                     <li role="none">
-                        <button role="menuitem" onclick="unsubscribeWard(${ward.WardID}, ${ward.MunicipalityID})" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-3 border-t border-outline-variant font-bold text-sm">
+                        <button role="menuitem" onclick="unsubscribeWard(${wardId}, ${municipalityId})" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-3 border-t border-outline-variant font-bold text-sm">
                             <i aria-hidden="true" class="material-symbols-outlined text-[18px]">delete</i>
                             Remove Ward
                         </button>
@@ -90,7 +100,7 @@ async function renderSubscribedWards(residentId) {
 
             <header>
                 <p class="label-md block text-orange-500 font-black tracking-[0.2em] mb-4">${(MunicipalityName || 'Yoh FUck').toUpperCase()}</p>
-                <h3 class="text-4xl font-black mb-8">WARD ${ward.WardID}</h3>
+                <h3 class="text-4xl font-black mb-8">WARD ${wardId}</h3>
             </header>
 
             <dl class="flex items-end justify-between m-0">
@@ -118,8 +128,7 @@ async function renderSubscribedWards(residentId) {
                 return; 
             }
 
-    // UPDATE THIS LINE: Add &muniId=${ward.MunicipalityID}
-        window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}&muniId=${ward.MunicipalityID}`;
+        window.location.href = `/NittyGritty/WardPage.html?wardId=${wardId}&muniId=${municipalityId}`;
     });
         wardsGrid.insertBefore(card, addButton);
         });
@@ -201,39 +210,44 @@ function manageNotifications(wardId) {
     dialog.showModal();
 }
 
-async function toggleWardMute(wardId){
+async function toggleWardMute(wardId) {
     const residentId = localStorage.getItem('residentId') || '1';
     const prefs = getMutePrefs(residentId);
 
-    if(!prefs.mutedWards){
-        prefs.mutedWards = [];
-    }
+    if (!prefs.mutedWards) prefs.mutedWards = [];
+    // Ensure the unmutedAt map exists
+    if (!prefs.unmutedAt) prefs.unmutedAt = {};
 
     const wardIdStr = String(wardId);
     const index = prefs.mutedWards.indexOf(wardIdStr);
 
     let isNowMuted = false;
 
-    if(index === -1){//add to mute array
+    if (index === -1) {
+        // ── MUTING ──
+        // Add to muted list and clear any prior unmutedAt so old
+        // "show after unmute" logic doesn't interfere with the new mute period.
         prefs.mutedWards.push(wardIdStr);
+        delete prefs.unmutedAt[wardIdStr];
         isNowMuted = true;
-    }
-    else{//remove from mute array
+    } else {
+        // ── UNMUTING ──
+        // Remove from muted list and record the exact moment we unmuted.
+        // loadResidentNotifications will use this timestamp to hide every
+        // notification that was created BEFORE this moment (i.e. while muted).
         prefs.mutedWards.splice(index, 1);
+        prefs.unmutedAt[wardIdStr] = new Date().toISOString();
     }
 
     saveMutePrefs(residentId, prefs);
 
     await loadResidentNotifications(residentId);
 
-    // 🚨 NEW: Update the muted wards list display in the modal
+    // Update the muted wards list display in the modal if it's open
     const muteModal = document.getElementById('mute-settings-modal');
     if (muteModal && muteModal.open) {
-        // Find and update the checkbox state
         const muteAllCheckbox = document.getElementById('mute-all');
         muteAllCheckbox.checked = prefs.muteAll || false;
-        
-        // Refresh the muted wards list visually
         renderMutedWardsList(currentWardsForMute, prefs);
     }
 
@@ -487,10 +501,11 @@ municipalitySelect.addEventListener('change', async (e) => {
 // Trigger the initial load of provinces when the script runs
 loadProvinces();
 
-//notifications
-let loadedReports = [];
-// timestamps
 
+// NOTIFICATIONS PANEL
+let loadedReports = [];
+
+// ── Time-ago helper ───────────────────────────────────────────────────────
 function getTimeAgo(dateString) {
     const date = new Date(dateString);
     const seconds = Math.floor((new Date() - date) / 1000);
@@ -509,20 +524,35 @@ function getTimeAgo(dateString) {
     return "JUST NOW";
 }
 
-// Updated to pass the full report object and an index, and added cursor-pointer
-// Updated to use the latest available timestamp
-const createAlertHTML = (report, index) => {
-    const latestTime = report.UpdatedAt || report.updatedAt || report.CreatedAt || report.createdAt;
+// ── Render a single notification row ─────────────────────────────────────
+// Uses Notification model fields: Title, Type, CreatedAt, _wardId
+const createAlertHTML = (notif, index) => {
+    // Format the Ward Label (if the ID exists)
+    const wardLabel = notif.WardId ? `Ward ${notif.WardId}` : '';
+
+    //Extract the issue type by slicing the Title
+    const rawTitle = notif.Title || '';
+    const colonIdx = rawTitle.lastIndexOf(':');
+    
+    // If there's a colon, grab what's after it. Otherwise, fall back to the raw title or a default.
+    const issueType = colonIdx !== -1 
+        ? rawTitle.slice(colonIdx + 1).trim() 
+        : (notif.Type || 'Update');
+
+    const headerLabel = wardLabel ? `${wardLabel} - ${issueType}` : issueType;
+    
+    const latestTime = notif.CreatedAt || notif.createdAt;
 
     return `
     <li class="group cursor-pointer hover:bg-white/5 p-3 -mx-3 rounded-lg transition-colors" data-index="${index}">
-        <article class="space-y-2 pointer-events-none"> <header class="flex justify-between items-start">
-                <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">
-                Ward ${report.WardID} - ${report.Type || 'SYSTEM ALERT'}
-                </span>
+        <article class="space-y-2 pointer-events-none">
+            <header class="flex justify-between items-start">
+            <span class="text-orange-500 font-black tracking-widest text-xs uppercase">
+                ${headerLabel}
+            </span>
                 <span class="text-[9px] opacity-40 uppercase">${getTimeAgo(latestTime)}</span>
             </header>
-            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${report.Progress || 'No details provided.'}</p>
+            <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${rawTitle}</p>
             <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
         </article>
     </li>
@@ -547,156 +577,212 @@ function renderAlerts(reports) {
         pulseIndicator.classList.add('animate-pulse');
         pulseIndicator.classList.remove('opacity-30');
 
-        // Pass the whole report object and its array index
-        const alertsHTML = reports.map((report, index) => createAlertHTML(report, index)).join('');
+        // Pass the whole notification object and its array index
+        const alertsHTML = reports.map((notif, index) => createAlertHTML(notif, index)).join('');
         listContainer.innerHTML = alertsHTML;
     }
 }
 
-// Modal Control Functions
-function openReportModal(index) {
-    const report = loadedReports[index];
-    if (!report) return;
+// ── Open a notification's detail modal ───────────────────────────────────
+async function openReportModal(index) {
+    const notif = loadedReports[index];
+    if (!notif) return;
 
     const modal = document.getElementById('report-modal');
     const modalContent = document.getElementById('modal-content');
 
-    // Populate the modal with the specific report's data
+    const createdAt = notif.CreatedAt || notif.createdAt;
+
+    // Render the text details immediately so the modal opens without delay
     modalContent.innerHTML = `
         <div class="space-y-3">
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                <span class="text-xs uppercase tracking-widest opacity-50">Ward</span>
-                <span class="font-bold">${report.WardID}</span>
+                <span class="text-xs uppercase tracking-widest opacity-50">Title</span>
+                <span class="font-bold">${notif.Title || 'System Alert'}</span>
             </div>
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
                 <span class="text-xs uppercase tracking-widest opacity-50">Type</span>
-                <span class="font-bold">${report.Type || 'System Alert'}</span>
+                <span class="font-bold">${notif.Type || 'N/A'}</span>
             </div>
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                <span class="text-xs uppercase tracking-widest opacity-50">Date Logged</span>
-                <span class="font-bold">${new Date(report.CreatedAt).toLocaleDateString()} ${new Date(report.CreatedAt).toLocaleTimeString()}</span>
+                <span class="text-xs uppercase tracking-widest opacity-50">Date Received</span>
+                <span class="font-bold">${new Date(createdAt).toLocaleDateString()} ${new Date(createdAt).toLocaleTimeString()}</span>
             </div>
-            
+
             <div class="mt-6 pt-4">
-                <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Latest Progress / Details</span>
+                <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Details</span>
                 <div class="bg-black/20 p-4 rounded-lg text-sm font-medium leading-relaxed">
-                    ${report.Progress || report.Description || 'No further details have been provided for this report.'}
+                    ${notif.Message || 'No further details have been provided for this notification.'}
+                </div>
+            </div>
+
+            <!-- Image section: populated below once the fetch resolves -->
+            <div id="modal-images-section" class="mt-4 pt-4 border-t border-white/10">
+                <span class="text-xs uppercase tracking-widest opacity-50 block mb-3">Attached Images</span>
+                <div id="modal-images-container" class="flex gap-2 flex-wrap">
+                    <span class="text-xs opacity-40 italic">Loading images…</span>
                 </div>
             </div>
         </div>
     `;
 
     modal.classList.remove('hidden');
+
+    // Fetch images only when this notification is linked to a report
+    const imagesContainer = document.getElementById('modal-images-container');
+    if (!notif.ReportID) {
+        imagesContainer.innerHTML = `<span class="text-xs opacity-40 italic">No images attached.</span>`;
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/reportImages/report/${notif.ReportID}`);
+
+        // 404 means no images were uploaded for this report — that's fine
+        if (res.status === 404) {
+            imagesContainer.innerHTML = `<span class="text-xs opacity-40 italic">No images attached.</span>`;
+            return;
+        }
+        if (!res.ok) throw new Error('Image fetch failed');
+
+        const images = await res.json();
+
+        if (!images || images.length === 0) {
+            imagesContainer.innerHTML = `<span class="text-xs opacity-40 italic">No images attached.</span>`;
+            return;
+        }
+
+        // Render each image as a clickable thumbnail that opens full-size in a new tab
+        imagesContainer.innerHTML = images.map(img => `
+            <a href="data:${img.Type};base64,${img.base64}" target="_blank" rel="noopener"
+               title="Click to view full size">
+                <img
+                    src="data:${img.Type};base64,${img.base64}"
+                    alt="Report image"
+                    class="w-24 h-24 object-cover rounded-lg border border-white/10
+                           hover:border-orange-500 transition-colors cursor-pointer"
+                />
+            </a>
+        `).join('');
+
+    } catch (err) {
+        console.error('Failed to load report images:', err);
+        imagesContainer.innerHTML = `<span class="text-xs text-red-400 italic">Could not load images.</span>`;
+    }
 }
 
 function closeReportModal() {
     document.getElementById('report-modal').classList.add('hidden');
 }
 
-//using timestamp to track last cleared reports
-//to allow for new or updated reports to show
-function getLastClearedTimestamp(residentId) {
-    return localStorage.getItem(`lastClearedAt_${residentId}`);
-}
-
-function saveLastClearedTimestamp(residentId){
-    localStorage.setItem(`lastClearedAt_${residentId}`, new Date().toISOString());
-}
-
-// Helper functions to manage mute preferences
+// ── Mute preference helpers ───────────────────────────────────────────────
+// Shape: { muteAll: bool, mutedWards: string[], unmutedAt: { [wardId]: isoString } }
+// unmutedAt[wardId] records the exact moment a ward was unmuted so that any
+// notification created BEFORE that moment (i.e. while the ward was muted) is
+// permanently hidden even after the user unmutes the ward.
 function getMutePrefs(residentId) {
-    const prefs = localStorage.getItem(`mutePrefs_${residentId}`);
-    return prefs ? JSON.parse(prefs) : { muteAll: false, mutedWards: [] };
+    const raw = localStorage.getItem(`mutePrefs_${residentId}`);
+    const prefs = raw ? JSON.parse(raw) : {};
+    // Ensure all keys exist with safe defaults
+    if (!prefs.muteAll)      prefs.muteAll      = false;
+    if (!prefs.mutedWards)   prefs.mutedWards   = [];
+    if (!prefs.unmutedAt)    prefs.unmutedAt    = {};
+    return prefs;
 }
 
 function saveMutePrefs(residentId, prefs) {
     localStorage.setItem(`mutePrefs_${residentId}`, JSON.stringify(prefs));
 }
 
-function saveClearedReports(residentId, reportIds) {
-    localStorage.setItem(`clearedReports_${residentId}`, JSON.stringify(reportIds.map(String)));
-}
-
-// In your clearAllBtn listener, update this line:
-const reportIdsToClear = loadedReports.map(report => String(report.ReportID));
-
+// ── Core notification loader ──────────────────────────────────────────────
+// Fetches real Notification records from the DB (GET /api/notifications/:id),
+// resolves each notification's WardID via a ReportID→WardID lookup built from
+// the resident's subscribed ward reports, then filters by mute preferences.
 async function loadResidentNotifications(residentId) {
     try {
+        // 1. Fetch subscriptions so we know which wards this resident tracks
         const subRes = await fetch(`/api/residents/${residentId}/subscriptions`);
         if (!subRes.ok) throw new Error('Failed to fetch subscriptions');
-        
         const subscribedWards = await subRes.json();
-        
+
         if (subscribedWards.length === 0) {
             loadedReports = [];
             renderAlerts([]);
             return;
         }
 
-        const reportPromises = subscribedWards.map(ward => {
+        // 2. Fetch real Notification records for this resident
+        const notifRes = await fetch(`/api/notifications/${residentId}`);
+        if (!notifRes.ok) throw new Error('Failed to fetch notifications');
+        let notifications = await notifRes.json();
+
+        // 3. Build ReportID → WardID lookup from ward report lists.
+        //    This lets us filter notifications by ward for muting without
+        //    needing a WardID column on the Notification table.
+        const reportWardMap = {};
+        const reportFetches = subscribedWards.map(ward => {
             const wardId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
             const muniId = ward.MunicipalityID;
-
-            if (!wardId || !muniId) {
-                console.warn('Warning: Subscription item missing Ward ID:', ward);
-                return Promise.resolve([]);
-            }
-            
-            return fetch(`/api/reports/ward/${wardId}/${muniId}`).then(res => {
-                if (!res.ok) {
-                    console.error(`Failed to fetch reports for ward ${wardId}:`, res.status);
-                    return [];
-                }
-                return res.json();
-            }).catch(err => {
-                console.error(`Network error fetching reports for ward ${wardId}:`, err);
-                return [];
-            });
+            if (!wardId || !muniId) return Promise.resolve();
+            return fetch(`/api/reports/ward/${wardId}/${muniId}`)
+                .then(r => r.ok ? r.json() : [])
+                .then(reports => {
+                    reports.forEach(r => {
+                        // Guard against ReportID being named differently (ReportID, reportId, id, etc.)
+                        const id = r.ReportID ?? r.reportId ?? r.ReportId ?? r.id;
+                        if (id != null) reportWardMap[String(id)] = String(wardId);
+                    });
+                })
+                .catch(err => {
+                    console.error(`Could not load reports for ward ${wardId}:`, err);
+                });
         });
+        await Promise.all(reportFetches);
 
-        const reportsArrays = await Promise.all(reportPromises);
-        let allReports = reportsArrays.flat();
-        
+        // 4. Augment every notification with a _wardId field so the render
+        //    and filter functions can reference it without extra lookups.
+        notifications = notifications.map(notif => ({
+            ...notif,
+            _wardId: (() => {
+                const rid = notif.ReportID ?? notif.reportId ?? notif.ReportId;
+                return rid != null ? (reportWardMap[String(rid)] || null) : null;
+            })()
+        }));
+
+        // 5. Apply mute filters
         const mutePrefs = getMutePrefs(residentId);
-        const lastClearedAt = getLastClearedTimestamp(residentId);
-
-        allReports = allReports.filter(report => {
-            // 1. Hide if mute all is enabled
+        notifications = notifications.filter(notif => {
+            // Hide everything when the resident has muted all wards
             if (mutePrefs.muteAll) return false;
 
-            // 2. Hide if specific ward is muted
-            if (mutePrefs.mutedWards && mutePrefs.mutedWards.includes(String(report.WardID))) {
-                return false;
+            const wardId = notif._wardId;
+            if (!wardId) return true; // Can't filter without a WardID — show it
+
+            // Hide if the ward is currently muted
+            if (mutePrefs.mutedWards.includes(wardId)) return false;
+
+            // Hide notifications that arrived WHILE the ward was muted.
+            // When a ward is unmuted we record the timestamp in unmutedAt[wardId].
+            // Any notification whose CreatedAt is earlier than that timestamp was
+            // generated during the mute period and must stay hidden permanently.
+            const unmutedAt = mutePrefs.unmutedAt[wardId];
+            if (unmutedAt) {
+                const notifCreated = new Date(notif.CreatedAt || notif.createdAt);
+                const unmuteTime   = new Date(unmutedAt);
+                if (notifCreated < unmuteTime) return false;
             }
 
-            // 3. 🚨 FIXED: Show reports if they were UPDATED after clearing
-            // OR if they were created after clearing (new reports)
-            if (lastClearedAt) {
-                const createdTime = new Date(report.CreatedAt || report.createdAt);
-                const updatedTime = new Date(report.UpdatedAt || report.updatedAt || report.CreatedAt || report.createdAt);
-                const clearTime = new Date(lastClearedAt);
-                
-                // Show the report if:
-                // - It was created AFTER clearing (new report), OR
-                // - It was updated AFTER clearing (updated report)
-                const isNew = createdTime > clearTime;
-                const isUpdated = updatedTime > clearTime;
-                
-                if (!isNew && !isUpdated) {
-                    return false; // Hide old reports that weren't updated
-                }
-            }
             return true;
         });
-        
-        allReports.sort((a, b) => {
-            const timeA = new Date(a.UpdatedAt || a.updatedAt || a.CreatedAt || a.createdAt);
-            const timeB = new Date(b.UpdatedAt || b.updatedAt || b.CreatedAt || b.createdAt);
-            return timeB - timeA;
+
+        // 6. Sort newest first (notifications API already returns DESC but sort
+        //    again in case the filter changed the order)
+        notifications.sort((a, b) => {
+            return new Date(b.CreatedAt || b.createdAt) - new Date(a.CreatedAt || a.createdAt);
         });
 
-        loadedReports = allReports;
-        renderAlerts(allReports);
+        loadedReports = notifications;
+        renderAlerts(notifications);
 
     } catch (error) {
         console.error("Error loading notifications:", error);
@@ -705,28 +791,32 @@ async function loadResidentNotifications(residentId) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const currentResidentId = localStorage.getItem('residentId') || 1;
-    loadResidentNotifications(currentResidentId);
-    const pollingInterval = setInterval(() => loadResidentNotifications(currentResidentId), 30000);
 
-    // Clear All Button
-// Clear All Button
+    // Initial load, then poll every 30 seconds for new notifications
+    loadResidentNotifications(currentResidentId);
+    setInterval(() => loadResidentNotifications(currentResidentId), 30000);
+
+    // ── Clear All Button ──────────────────────────────────────────────────
+    // Uses DELETE /api/notifications/:recipientId/clear-all which physically
+    // removes all notification records from the DB, making the clear permanent
+    // across devices, browsers, and sessions — no timestamp tricks needed.
     const clearAllBtn = document.getElementById('clear-alerts-btn');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', async () => {
             if (!confirm('Are you sure you want to clear all alerts? This action cannot be undone.')) return;
-            
-            try {
-                if(!loadedReports || loadedReports.length === 0) return;
+            if (!loadedReports || loadedReports.length === 0) return;
 
-                //save the exact time they cleared the alerts
-                saveLastClearedTimestamp(currentResidentId);  
-                
-                // Clear the UI immediately
+            try {
+                const res = await fetch(`/api/notifications/${currentResidentId}/clear-all`, {
+                    method: 'DELETE'
+                });
+                if (!res.ok) throw new Error('Server rejected the clear-all request');
+
+                // Immediately clear the UI
                 loadedReports = [];
                 renderAlerts([]);
-                
             } catch (error) {
                 console.error('Error clearing alerts:', error);
             }
