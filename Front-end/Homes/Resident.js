@@ -513,7 +513,7 @@ function getTimeAgo(dateString) {
 // Uses Notification model fields: Title, Type, CreatedAt, _wardId
 const createAlertHTML = (notif, index) => {
     // Format the Ward Label (if the ID exists)
-    const wardLabel = notif.WardId ? `Ward ${notif.WardId}` : '';
+    const wardLabel = notif._wardId ? `Ward ${notif._wardId}` : '';
 
     //Extract the issue type by slicing the Title
     const rawTitle = notif.Title || '';
@@ -576,18 +576,40 @@ async function openReportModal(index) {
     const modal = document.getElementById('report-modal');
     const modalContent = document.getElementById('modal-content');
 
+    const modalHeader = modal.querySelector('h3');
+
     const createdAt = notif.CreatedAt || notif.createdAt;
+
+    const rawTitle = notif.Title || 'System Alert';
+        const colonIdx = rawTitle.lastIndexOf(':');
+        
+        const issueType = colonIdx !== -1 
+            ? rawTitle.slice(colonIdx + 1).trim() 
+            : (notif.Type || 'Update');
+            
+        // Removes the ": Street Light" part from the main title
+        const cleanTitle = colonIdx !== -1 
+            ? rawTitle.slice(0, colonIdx).trim() 
+            : rawTitle;
+
+        // 2. Format the top header
+        const wardLabel = notif._wardId ? `Ward ${notif._wardId}` : '';
+        const headerText = wardLabel ? `${wardLabel} - ${issueType}` : issueType;
+
+        if (modalHeader) {
+            modalHeader.textContent = headerText;
+        }
 
     // Render the text details immediately so the modal opens without delay
     modalContent.innerHTML = `
         <div class="space-y-3">
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
                 <span class="text-xs uppercase tracking-widest opacity-50">Title</span>
-                <span class="font-bold">${notif.Title || 'System Alert'}</span>
+                <span class="font-bold">${cleanTitle}</span>
             </div>
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
                 <span class="text-xs uppercase tracking-widest opacity-50">Type</span>
-                <span class="font-bold">${notif.Type || 'N/A'}</span>
+                <span class="font-bold">${issueType}</span>
             </div>
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
                 <span class="text-xs uppercase tracking-widest opacity-50">Date Received</span>
@@ -600,20 +622,28 @@ async function openReportModal(index) {
                     ${notif.Progress || notif.Description || 'No further details have been provided for this report.'}
                 </div>
             </div>
+
+            <div class="mt-6 pt-4">
+                <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Attached Images</span>
+                <div id="modal-images-container" class="flex flex-wrap gap-4 min-h-[6rem] items-center">
+                    <span class="text-xs opacity-40 italic text-orange-300">Loading images...</span>
+                </div>
+            </div>
         </div>
     `;
 
     modal.classList.remove('hidden');
 
     // Fetch images only when this notification is linked to a report
+    const realReportId = notif.ReportID || notif.reportId || notif.ReportId;
     const imagesContainer = document.getElementById('modal-images-container');
-    if (!notif.ReportID) {
+    if (!realReportId) {
         imagesContainer.innerHTML = `<span class="text-xs opacity-40 italic">No images attached.</span>`;
         return;
     }
 
     try {
-        const res = await fetch(`/api/reportImages/report/${notif.ReportID}`);
+        const res = await fetch(`/api/reportImages/report/${realReportId}`);
 
         // 404 means no images were uploaded for this report — that's fine
         if (res.status === 404) {
