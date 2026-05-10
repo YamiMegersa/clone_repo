@@ -28,6 +28,14 @@ async function renderSubscribedWards(residentId) {
         // 2. Map through the array and create cards
         wards.forEach( async (ward) => {
             totalIssues=0;
+
+            const prefs = getMutePrefs(residentId);
+            const isMuted = prefs.mutedWards && prefs.mutedWards.includes(String(ward.WardID));
+
+            const muteText = isMuted ? 'Unmute Alerts' : 'Mute Alerts';
+            const muteIcon = isMuted ? 'notifications_active' : 'notifications_off';
+            const muteColorClass = isMuted ? 'text-primary' : 'text-on-background'; 
+
             // Array of municipal-themed Material Symbols
             const wardIcons = [
                 'location_city', 
@@ -72,7 +80,7 @@ async function renderSubscribedWards(residentId) {
                         </button>
                     </li>
                     <li role="none">
-                        <button role="menuitem" onclick="unsubscribeWard(${ward.WardID})" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-3 border-t border-outline-variant font-bold text-sm">
+                        <button role="menuitem" onclick="unsubscribeWard(${ward.WardID}, ${ward.MunicipalityID})" class="w-full text-left px-4 py-3 hover:bg-red-500/10 text-red-400 transition-colors flex items-center gap-3 border-t border-outline-variant font-bold text-sm">
                             <i aria-hidden="true" class="material-symbols-outlined text-[18px]">delete</i>
                             Remove Ward
                         </button>
@@ -103,17 +111,17 @@ async function renderSubscribedWards(residentId) {
         
 
             // Insert BEFORE the "Add New Ward" button
-card.addEventListener('click', (event) => {
-    const clickedMenu = event.target.closest('nav[aria-label="Ward management options"]');
-    
-    if (clickedMenu) {
-        return; 
-    }
+        card.addEventListener('click', (event) => {
+            const clickedMenu = event.target.closest('nav[aria-label="Ward management options"]');
+            
+            if (clickedMenu) {
+                return; 
+            }
 
-    // 🚨 UPDATE THIS LINE: Add &muniId=${ward.MunicipalityID}
-    window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}&muniId=${ward.MunicipalityID}`;
-});
-            wardsGrid.insertBefore(card, addButton);
+    // UPDATE THIS LINE: Add &muniId=${ward.MunicipalityID}
+        window.location.href = `/NittyGritty/WardPage.html?wardId=${ward.WardID}&muniId=${ward.MunicipalityID}`;
+    });
+        wardsGrid.insertBefore(card, addButton);
         });
 
     } catch (error) {
@@ -143,10 +151,97 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// Placeholder functions for your buttons
+// MANAGE INDIVIDUAL WARD ALERTS MODAL
 function manageNotifications(wardId) {
-    console.log(`Managing notifications for Ward ${wardId}`);
-    // Add your routing logic here
+    const residentId = localStorage.getItem('residentId') || '1';
+    const prefs = getMutePrefs(residentId);
+    
+    // Check if the ward is currently muted
+    const isMuted = prefs.mutedWards && prefs.mutedWards.includes(String(wardId));
+
+    const dialog = document.getElementById('custom-modal');
+    const titleEl = document.getElementById('modal-title');
+    const messageEl = document.getElementById('modal-message');
+    const actionsEl = document.getElementById('modal-actions');
+
+    // Customize the text based on state
+    titleEl.textContent = `Ward ${wardId} Alerts`;
+    titleEl.className = isMuted 
+        ? 'text-xl font-black tracking-widest text-red-400 mb-2 uppercase' 
+        : 'text-xl font-black tracking-widest text-primary mb-2 uppercase';
+    
+    messageEl.innerHTML = isMuted 
+        ? `<span class="text-red-400 font-bold">MUTED</span> — You will not receive updates for this ward in your notifications panel.` 
+        : `<span class="text-primary font-bold">ACTIVE</span> — You will receive all updates for this ward in your notifications panel.`;
+
+    // Styling for the toggle button
+    const buttonText = isMuted ? 'Unmute Ward' : 'Mute Ward';
+    const buttonIcon = isMuted ? 'notifications_active' : 'notifications_off';
+    const buttonStyle = isMuted 
+        ? 'text-primary bg-primary-container/10 border-primary/20 hover:bg-primary-container/20' 
+        : 'text-red-400 bg-red-500/10 border-red-500/20 hover:bg-red-500/20';
+
+    // Inject the custom buttons
+    actionsEl.innerHTML = `
+        <button id="modal-cancel-manage" class="px-5 py-2 rounded-md text-on-surface-variant hover:text-on-background transition-colors font-bold text-sm">Close</button>
+        <button id="modal-toggle-mute" class="px-5 py-2 rounded-md ${buttonStyle} border transition-colors font-bold text-sm flex items-center gap-2">
+            <i class="material-symbols-outlined text-[18px]">${buttonIcon}</i>
+            ${buttonText}
+        </button>
+    `;
+
+    // Handle clicks
+    document.getElementById('modal-cancel-manage').onclick = () => dialog.close();
+    
+    document.getElementById('modal-toggle-mute').onclick = async () => {
+        dialog.close();
+        await toggleWardMute(wardId); // Run the actual logic
+    };
+
+    dialog.showModal();
+}
+
+async function toggleWardMute(wardId){
+    const residentId = localStorage.getItem('residentId') || '1';
+    const prefs = getMutePrefs(residentId);
+
+    if(!prefs.mutedWards){
+        prefs.mutedWards = [];
+    }
+
+    const wardIdStr = String(wardId);
+    const index = prefs.mutedWards.indexOf(wardIdStr);
+
+    let isNowMuted = false;
+
+    if(index === -1){//add to mute array
+        prefs.mutedWards.push(wardIdStr);
+        isNowMuted = true;
+    }
+    else{//remove from mute array
+        prefs.mutedWards.splice(index, 1);
+    }
+
+    saveMutePrefs(residentId, prefs);
+
+    await loadResidentNotifications(residentId);
+
+    // 🚨 NEW: Update the muted wards list display in the modal
+    const muteModal = document.getElementById('mute-settings-modal');
+    if (muteModal && muteModal.open) {
+        // Find and update the checkbox state
+        const muteAllCheckbox = document.getElementById('mute-all');
+        muteAllCheckbox.checked = prefs.muteAll || false;
+        
+        // Refresh the muted wards list visually
+        renderMutedWardsList(currentWardsForMute, prefs);
+    }
+
+    showModal(
+        isNowMuted ? 'Alerts Muted' : 'Alerts Restored', 
+        `Notifications for Ward ${wardId} have been ${isNowMuted ? 'muted' : 'unmuted'}.`, 
+        'alert'
+    );
 }
 
 // ==========================================
@@ -275,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formData = new FormData(addWardForm);
         const selectedWardId = formData.get('ward');
-        // 🚨 NEW: You must capture the MunicipalityID from the dropdown!
+        //capture the MunicipalityID from the dropdown!
         const selectedMuniId = formData.get('municipality'); 
         const residentId = localStorage.getItem('residentId') || '1';
 
@@ -415,19 +510,24 @@ function getTimeAgo(dateString) {
 }
 
 // Updated to pass the full report object and an index, and added cursor-pointer
-const createAlertHTML = (report, index) => `
+// Updated to use the latest available timestamp
+const createAlertHTML = (report, index) => {
+    const latestTime = report.UpdatedAt || report.updatedAt || report.CreatedAt || report.createdAt;
+
+    return `
     <li class="group cursor-pointer hover:bg-white/5 p-3 -mx-3 rounded-lg transition-colors" data-index="${index}">
         <article class="space-y-2 pointer-events-none"> <header class="flex justify-between items-start">
                 <span class="text-orange-500 font-black tracking-widest text-[10px] uppercase">
                 Ward ${report.WardID} - ${report.Type || 'SYSTEM ALERT'}
                 </span>
-                <span class="text-[9px] opacity-40 uppercase">${getTimeAgo(report.CreatedAt)}</span>
+                <span class="text-[9px] opacity-40 uppercase">${getTimeAgo(latestTime)}</span>
             </header>
             <p class="text-sm font-bold leading-snug group-hover:text-primary transition-colors">${report.Progress || 'No details provided.'}</p>
             <footer class="h-px w-8 bg-outline-variant group-hover:w-full transition-all"></footer>
         </article>
     </li>
-`;
+    `;
+};
 
 function renderAlerts(reports) {
     const listContainer = document.getElementById('alerts-list-container');
@@ -493,15 +593,32 @@ function closeReportModal() {
     document.getElementById('report-modal').classList.add('hidden');
 }
 
-// Helper functions to manage cleared reports in localStorage
-function getClearedReports(residentId) {
-    const cleared = localStorage.getItem(`clearedReports_${residentId}`);
-    return cleared ? JSON.parse(cleared) : [];
+//using timestamp to track last cleared reports
+//to allow for new or updated reports to show
+function getLastClearedTimestamp(residentId) {
+    return localStorage.getItem(`lastClearedAt_${residentId}`);
+}
+
+function saveLastClearedTimestamp(residentId){
+    localStorage.setItem(`lastClearedAt_${residentId}`, new Date().toISOString());
+}
+
+// Helper functions to manage mute preferences
+function getMutePrefs(residentId) {
+    const prefs = localStorage.getItem(`mutePrefs_${residentId}`);
+    return prefs ? JSON.parse(prefs) : { muteAll: false, mutedWards: [] };
+}
+
+function saveMutePrefs(residentId, prefs) {
+    localStorage.setItem(`mutePrefs_${residentId}`, JSON.stringify(prefs));
 }
 
 function saveClearedReports(residentId, reportIds) {
-    localStorage.setItem(`clearedReports_${residentId}`, JSON.stringify(reportIds));
+    localStorage.setItem(`clearedReports_${residentId}`, JSON.stringify(reportIds.map(String)));
 }
+
+// In your clearAllBtn listener, update this line:
+const reportIdsToClear = loadedReports.map(report => String(report.ReportID));
 
 async function loadResidentNotifications(residentId) {
     try {
@@ -517,30 +634,66 @@ async function loadResidentNotifications(residentId) {
         }
 
         const reportPromises = subscribedWards.map(ward => {
-            const wardId = ward.WardID || ward.WardId || ward.wardId;
-            if (!wardId) throw new Error('Subscription item missing Ward ID');
+            const wardId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
+            const muniId = ward.MunicipalityID;
+
+            if (!wardId || !muniId) {
+                console.warn('Warning: Subscription item missing Ward ID:', ward);
+                return Promise.resolve([]);
+            }
             
-            return fetch(`/api/reports/ward/${wardId}`).then(res => {
-                if (!res.ok) throw new Error(`Failed to fetch reports for ward ${wardId}`);
+            return fetch(`/api/reports/ward/${wardId}/${muniId}`).then(res => {
+                if (!res.ok) {
+                    console.error(`Failed to fetch reports for ward ${wardId}:`, res.status);
+                    return [];
+                }
                 return res.json();
+            }).catch(err => {
+                console.error(`Network error fetching reports for ward ${wardId}:`, err);
+                return [];
             });
         });
 
         const reportsArrays = await Promise.all(reportPromises);
         let allReports = reportsArrays.flat();
         
-        // Inside loadResidentNotifications:
-        const clearedReportHashes = getClearedReports(residentId);
+        const mutePrefs = getMutePrefs(residentId);
+        const lastClearedAt = getLastClearedTimestamp(residentId);
 
         allReports = allReports.filter(report => {
-            // Recreate the hash for the incoming report
-            const currentHash = `${report.ReportID}_${report.UpdatedAt}`;
-            
-            // Only hide it if BOTH the ID and the exact timestamp match what was cleared
-            return !clearedReportHashes.includes(currentHash);
+            // 1. Hide if mute all is enabled
+            if (mutePrefs.muteAll) return false;
+
+            // 2. Hide if specific ward is muted
+            if (mutePrefs.mutedWards && mutePrefs.mutedWards.includes(String(report.WardID))) {
+                return false;
+            }
+
+            // 3. 🚨 FIXED: Show reports if they were UPDATED after clearing
+            // OR if they were created after clearing (new reports)
+            if (lastClearedAt) {
+                const createdTime = new Date(report.CreatedAt || report.createdAt);
+                const updatedTime = new Date(report.UpdatedAt || report.updatedAt || report.CreatedAt || report.createdAt);
+                const clearTime = new Date(lastClearedAt);
+                
+                // Show the report if:
+                // - It was created AFTER clearing (new report), OR
+                // - It was updated AFTER clearing (updated report)
+                const isNew = createdTime > clearTime;
+                const isUpdated = updatedTime > clearTime;
+                
+                if (!isNew && !isUpdated) {
+                    return false; // Hide old reports that weren't updated
+                }
+            }
+            return true;
         });
         
-        allReports.sort((a, b) => new Date(b.CreatedAt) - new Date(a.CreatedAt));
+        allReports.sort((a, b) => {
+            const timeA = new Date(a.UpdatedAt || a.updatedAt || a.CreatedAt || a.createdAt);
+            const timeB = new Date(b.UpdatedAt || b.updatedAt || b.CreatedAt || b.createdAt);
+            return timeB - timeA;
+        });
 
         loadedReports = allReports;
         renderAlerts(allReports);
@@ -558,22 +711,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const pollingInterval = setInterval(() => loadResidentNotifications(currentResidentId), 30000);
 
     // Clear All Button
+// Clear All Button
     const clearAllBtn = document.getElementById('clear-alerts-btn');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', async () => {
             if (!confirm('Are you sure you want to clear all alerts? This action cannot be undone.')) return;
             
             try {
+                if(!loadedReports || loadedReports.length === 0) return;
 
-                if(!loadedReports || loadedReports.length === 0) {
-                    return;
-                }
-                const reportHashesToClear = loadedReports.map(report => `${report.ReportID}_${report.UpdatedAt}`);
-
-                const existingCleared = getClearedReports(currentResidentId);
-                const updatedCleared = [...new Set([...existingCleared, ...reportHashesToClear])];
-
-                saveClearedReports(currentResidentId, updatedCleared);  
+                //save the exact time they cleared the alerts
+                saveLastClearedTimestamp(currentResidentId);  
+                
                 // Clear the UI immediately
                 loadedReports = [];
                 renderAlerts([]);
@@ -609,7 +758,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── Notification Settings Logic ──────────────────────────────────────────
+// ── Notification Settings Logic ──────────────────────────────────────────
     const bellBtn = document.getElementById('notification-bell-btn');
     const muteModal = document.getElementById('mute-settings-modal');
     const closeMuteIcon = document.getElementById('close-mute-modal-icon');
@@ -617,109 +766,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const muteAllCheckbox = document.getElementById('mute-all');
     const mutedWardsList = document.getElementById('muted-wards-list');
 
-<<<<<<< HEAD
-    // Helpers: load/save mute prefs per resident in localStorage
-    function getMutePrefs(residentId) {
-        const raw = localStorage.getItem(`notifPrefs_${residentId}`);
-        return raw ? JSON.parse(raw) : { muteAll: false };
-    }
-    function saveMutePrefs(residentId, prefs) {
-        localStorage.setItem(`notifPrefs_${residentId}`, JSON.stringify(prefs));
-=======
-// Open the Modal
-if(bellBtn) {
-    bellBtn.addEventListener('click', async () => {
-        const residentId = localStorage.getItem('residentId');
-        if (!residentId) {
-            console.error('No resident ID found');
-            return;
-        }
+    // We'll store the wards globally so the checkbox toggle can access them
+    let currentWardsForMute = []; 
 
-        try {
-            // Fetch subscribed wards to populate the select
-            const response = await fetch(`/api/residents/${residentId}/subscriptions`);
-            if (!response.ok) throw new Error('Failed to fetch subscriptions');
-
-            const wards = await response.json();
-
-            // Clear existing options
-            muteWardSelect.innerHTML = '';
-
-            // Populate with subscribed wards
-            // Inside bellBtn listener:
-            wards.forEach(ward => {
-                const option = document.createElement('option');
-                // 🚨 Store a composite value like "WardID-MunicipalityID"
-                option.value = `${ward.WardID}-${ward.MunicipalityID}`;
-                option.textContent = `Ward ${ward.WardID} (${ward.Ward?.WardCouncillor || 'No Councillor'})`;
-                muteWardSelect.appendChild(option);
-            });
-            // Show the modal
-            muteModal.showModal();
-        } catch (error) {
-            console.error('Error loading wards for mute settings:', error);
-            // Optionally show an error message to the user
-        }
-    });
-}
-
-//Close Modal Handlers
-const closeMuteModal = () => muteModal.close();
-if(closeMuteIcon) closeMuteIcon.addEventListener('click', closeMuteModal);
-if(closeMuteBtn) closeMuteBtn.addEventListener('click', closeMuteModal);
-
-// Close the modal if the user clicks the darkened background outside the modal
-if (muteModal) {
-    muteModal.addEventListener('click', (e) => {
-        if (e.target === muteModal) {
-            closeMuteModal();
-        }
-    });
-}
-
-// If "Mute All" is checked, disable the specific ward select
-muteAllCheckbox.addEventListener('change', (e) => {
-    if(e.target.checked) {
-        muteWardSelect.disabled = true;
-        specificWardsFieldset.classList.add('opacity-30', 'pointer-events-none');
-    } else {
-        muteWardSelect.disabled = false;
-        specificWardsFieldset.classList.remove('opacity-30', 'pointer-events-none');
->>>>>>> ef2eabac09e469f8beb9004cf30b2cb7b91003d1
-    }
-
-    // Renders the "Currently Muted Wards" list inside the modal
-    function renderMutedWardsList(wards, isMutedAll) {
-        if (!mutedWardsList) return;
-        if (isMutedAll && wards.length > 0) {
-            mutedWardsList.innerHTML = wards.map(ward => `
-                <li class="flex items-center gap-2 text-sm font-bold text-on-surface-variant py-1">
-                    <i aria-hidden="true" class="material-symbols-outlined text-[14px] text-orange-500">location_on</i>
-                    Ward ${ward.WardID}
-                </li>
-            `).join('');
-        } else {
-            mutedWardsList.innerHTML = `<li class="text-sm text-on-surface-variant opacity-50 italic">No wards are currently muted.</li>`;
-        }
-    }
-
-    // Keeps a reference to the loaded wards so the toggle handler can use them
-    let _modalWards = [];
-
+    // Open the Modal
     if (bellBtn) {
         bellBtn.addEventListener('click', async () => {
-            const residentId = localStorage.getItem('residentId');
-            if (!residentId) { console.error('No resident ID found'); return; }
+            const residentId = localStorage.getItem('residentId') || 1;
+            if (!residentId) {
+                console.error('No resident ID found');
+                return;
+            }
 
             try {
                 const response = await fetch(`/api/residents/${residentId}/subscriptions`);
                 if (!response.ok) throw new Error('Failed to fetch subscriptions');
-                _modalWards = await response.json();
+
+                currentWardsForMute = await response.json();
 
                 // Restore saved preference
                 const prefs = getMutePrefs(residentId);
                 muteAllCheckbox.checked = prefs.muteAll || false;
-                renderMutedWardsList(_modalWards, muteAllCheckbox.checked);
+                
+                // Render the visual list of muted wards based on preferences
+                renderMutedWardsList(currentWardsForMute, prefs);
 
                 muteModal.showModal();
             } catch (error) {
@@ -728,57 +798,70 @@ muteAllCheckbox.addEventListener('change', (e) => {
         });
     }
 
-    // Auto-save whenever the toggle changes — no Save button needed
-    if (muteAllCheckbox) {
-        muteAllCheckbox.addEventListener('change', (e) => {
-            const residentId = localStorage.getItem('residentId');
-            if (!residentId) return;
-            saveMutePrefs(residentId, { muteAll: e.target.checked });
-            renderMutedWardsList(_modalWards, e.target.checked);
-            // Refresh the notification panel immediately
-            loadResidentNotifications(residentId);
-        });
-    }
-
-    // Close handlers — also persist current state on every close path
-    const closeMuteModal = () => {
-        const residentId = localStorage.getItem('residentId');
-        if (residentId && muteAllCheckbox) {
-            saveMutePrefs(residentId, { muteAll: muteAllCheckbox.checked });
-        }
-        muteModal.close();
-    };
-
+    // Close Modal Handlers
+    const closeMuteModal = () => muteModal.close();
     if (closeMuteIcon) closeMuteIcon.addEventListener('click', closeMuteModal);
-    if (closeMuteBtn)  closeMuteBtn.addEventListener('click', closeMuteModal);
+    if (closeMuteBtn) closeMuteBtn.addEventListener('click', closeMuteModal);
 
     if (muteModal) {
-        // Close on backdrop click
         muteModal.addEventListener('click', (e) => {
             if (e.target === muteModal) closeMuteModal();
         });
-        // Auto-save when dialog closes
-        muteModal.addEventListener('close', () => {
-            const residentId = localStorage.getItem('residentId');
-            if (residentId && muteAllCheckbox) {
-                saveMutePrefs(residentId, { muteAll: muteAllCheckbox.checked });
-            }
-        });
     }
 
-    // Also persist on page unload / tab close
-    window.addEventListener('beforeunload', () => {
-        const residentId = localStorage.getItem('residentId');
-        if (residentId && muteAllCheckbox) {
-            saveMutePrefs(residentId, { muteAll: muteAllCheckbox.checked });
-        }
+    // Mute All Checkbox
+    muteAllCheckbox.addEventListener('change', (e) => {
+        const isMuted = e.target.checked;
+        
+        //if muteall show all if mute some show some
+        const prefs = getMutePrefs(currentResidentId);
+        prefs.muteAll = isMuted;
+
+        // Save preferences and reload notifications visually
+        saveMutePrefs(currentResidentId, prefs);
+        loadResidentNotifications(currentResidentId);
+
+        // Dynamically update the Muted Wards list in the UI 
+        renderMutedWardsList(currentWardsForMute, prefs);
     });
+
+    // Helper to render muted wards list
+    function renderMutedWardsList(wards, prefs) {
+        const listElement = document.getElementById('muted-wards-list');
+        if (!listElement) return;
+        
+        let wardsToDisplay = [];
+        
+        if (prefs.muteAll) {
+            wardsToDisplay = wards;
+        } else if (prefs.mutedWards && prefs.mutedWards.length > 0) {
+            wardsToDisplay = wards.filter(ward => {
+                const extractedId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
+                return prefs.mutedWards.includes(String(extractedId));
+            });
+        }
+        
+        if (wardsToDisplay.length > 0) {
+            listElement.innerHTML = wardsToDisplay.map(ward => {
+                const extractedId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
+                return `
+                    <li class="flex items-center gap-2 text-sm font-bold text-on-surface-variant py-1 border-b border-white/5 last:border-0">
+                        <i aria-hidden="true" class="material-symbols-outlined text-[16px] text-red-400">notifications_off</i>
+                        Ward ${extractedId}
+                    </li>
+                `;
+            }).join('');
+        }
+        else {
+            listElement.innerHTML = `<li class="text-sm text-on-surface-variant opacity-50 italic">No wards are currently muted.</li>`;
+        }
+    }
 });
 
 // Closes account dropdown when clicking outside
-document.addEventListener('click', (event) => {
-    const detailsElement = document.querySelector('nav details');
-    if (detailsElement && !detailsElement.contains(event.target)) {
-        detailsElement.removeAttribute('open');
-    }
-});
+    document.addEventListener('click', (event) => {
+        const detailsElement = document.querySelector('nav details');
+        if (detailsElement && !detailsElement.contains(event.target)) {
+            detailsElement.removeAttribute('open');
+        }
+    });

@@ -93,7 +93,7 @@
     <hr class="border-white/5 my-1">
 
     <li>
-        <a href="../Login/Login.html" onclick="localStorage.clear()" class="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors">
+        <a href="../Login/Login.html" onclick="localStorage.removeItem('residentId')" class="flex items-center px-4 py-3 text-sm font-bold uppercase tracking-widest text-red-400 hover:bg-red-500/10 transition-colors">
             <span class="material-symbols-outlined mr-3 text-lg">logout</span>
             Sign Out
         </a>
@@ -101,7 +101,6 @@
 </ul>
                 </details>
             </nav>
-            <!-- ======================= -->
         </section>
     </header>
 
@@ -258,13 +257,12 @@
             </div>
             <input type="checkbox" id="mute-all" class="w-6 h-6 rounded border-outline-variant bg-surface-container-high text-orange-500 focus:ring-orange-500 focus:ring-offset-background cursor-pointer transition-all">
         </fieldset>
-
-        <fieldset id="specific-wards-fieldset" class="group border-none p-0 m-0 transition-opacity">
-            <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-2" for="mute-ward-select">Mute Specific Wards</label>
-            <p class="text-[10px] text-on-surface-variant uppercase mb-3">Hold Ctrl/Cmd to select multiple</p>
+        <fieldset class="group border-none p-0 m-0 transition-opacity">
+            <label class="block font-bold text-xs uppercase tracking-widest text-[#FFB77D] mb-3">Muted Wards</label>
             
-            <select multiple class="w-full bg-[#0E0E0E] text-white border border-outline-variant focus:border-primary-container focus:ring-0 py-3 px-3 text-sm rounded-lg transition-all" id="mute-ward-select" name="mute-ward-select">
-            </select>
+            <ul id="muted-wards-list" class="bg-[#0E0E0E] border border-outline-variant focus:border-primary-container focus:ring-0 py-3 px-3 text-sm rounded-lg transition-all space-y-2 min-h-[60px] max-h-48 overflow-y-auto">
+                <li class="text-sm text-on-surface-variant opacity-50 italic">No wards are currently muted.</li>
+            </ul>
         </fieldset>
 
         <footer class="pt-4 flex flex-col space-y-4">

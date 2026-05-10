@@ -1,6 +1,6 @@
 const express=require('express');
 const router=express.Router();
-const {Report, ReportImage, Allocation,Notification}=require('../models');
+const {Report, ReportImage, Allocation,Notification, Resident, Subscription}=require('../models');
 const { Op } = require('sequelize');
 const { MunicipalWorker } = require('../models');
 
@@ -19,7 +19,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const { Resident } = require('../models');
 const ADMIN_EMAIL = '2820314@students.wits.ac.za, 2799656@students.wits.ac.za, 2805279@students.wits.ac.za';
 
 // ─── Email helper 
@@ -154,27 +153,29 @@ router.post('/', async (req, res) => {
             </div>
             `
             );
+        } else {
+            console.log('[Email] Skipped — notifications paused by user');
         }
-     
-        const resident = await Resident.findOne({ where: { Email: 'user@example.com' } });
+        // email residents subscribed to this ward
         const subscriptions = await Subscription.findAll({ 
             where: { WardID: newReport.WardID } 
         });
-        
-        const residentE = await Resident.findByPk(residentId);
-        const RESIDENT_EMAIL = resident ? resident.Email : null;
 
-        for(const sub of subscriptions){
-            if(sub.WardID === newReport.WardID){
-                await notify(sub.ResidentID, 'WARD_REPORT',
+        for (const sub of subscriptions) {
+            
+            await notify(sub.ResidentID, 'WARD_REPORT',
                 `New Report in Your Area: ${newReport.Type}`,
                 `A new report has been logged in Ward ${newReport.WardID}. Report #${newReport.ReportID} is pending assignment.`,
                 newReport.ReportID
             );
 
-            if (!paused /* && RESIDENT_EMAIL */) {
+            // Fetch the specific resident for THIS subscription to get their email
+            const residentToNotify = await Resident.findByPk(sub.ResidentID);
+
+            // Only email if not paused, the resident exists, and they have an email address
+            if (!paused && residentToNotify && residentToNotify.Email) {
                 await sendEmail(
-                    RESIDENT_EMAIL, // Be sure this is defined for each specific user
+                    residentToNotify.Email, 
                     `🔔 New Report: ${newReport.Type}`,
                     `
                     <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#1a1a1a;color:#e2e2e2;padding:32px;border-radius:12px;">
@@ -192,10 +193,6 @@ router.post('/', async (req, res) => {
                 );
             }
         }
-        else {
-            console.log('[Email] Skipped — notifications paused by user');
-        }
-    }
 
     res.status(201).json({ message: 'Report logged successfully', report: newReport });
     } catch (err) {

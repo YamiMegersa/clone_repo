@@ -24,9 +24,9 @@ router.get('/report/:reportId', async (req, res) => {
             if (imgData.Image) {
                 imgData.base64 = Buffer.from(imgData.Image).toString('base64');
             }
-        
-        res.json(formattedImages);
+        return imgData;
         });
+        res.json(formattedImages);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
