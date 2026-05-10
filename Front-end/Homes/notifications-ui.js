@@ -544,11 +544,14 @@
             .notif-accent-new-report { background: #ff8c00; }
             .notif-accent-assigned { background: #22d3ee; }
             .notif-accent-default { background: #6b7280; }
+            .notif-accent-completed { background: #4ade80; }
+
 
             .notif-icon-declined { background: rgba(239,68,68,0.12); color: #fca5a5; }
             .notif-icon-new-report { background: rgba(255,140,0,0.12); color: #ffb77d; }
             .notif-icon-assigned { background: rgba(34,211,238,0.12); color: #7dd3fc; }
             .notif-icon-default { background: rgba(107,114,128,0.12); color: #9ca3af; }
+            .notif-icon-completed { background: rgba(74,222,128,0.12); color: #4ade80; }
 
             /* ── Body text ── */
             .notif-body {
@@ -735,6 +738,7 @@
             'TASK_DECLINED': '⚠',
             'NEW_REPORT':    '📋',
             'TASK_ASSIGNED': '📌',
+            'REPORT_COMPLETED':  '✅',
         };
         return icons[type] || '🔔';
     }
@@ -744,6 +748,7 @@
             'TASK_DECLINED': 'notif-accent-declined notif-icon-declined',
             'NEW_REPORT':    'notif-accent-new-report notif-icon-new-report',
             'TASK_ASSIGNED': 'notif-accent-assigned notif-icon-assigned',
+            'REPORT_COMPLETED': 'notif-accent-completed notif-icon-completed',
         };
         return map[type] || 'notif-accent-default notif-icon-default';
     }
@@ -860,7 +865,7 @@
 
                     <section aria-labelledby="briefing-title">
                         <h3 id="briefing-title" style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#737373;margin-bottom:8px;">Situation Briefing</h3>
-                        <p style="color:#d4d4d4;font-size:14px;line-height:1.7;margin:0;">${report.Description || 'No additional briefing provided.'}</p>
+                        <p style="color:#d4d4d4;font-size:14px;line-height:1.7;margin:0;">${report.Brief || 'No additional briefing provided.'}</p>
                     </section>
 
                     <footer style="margin-top:24px;">

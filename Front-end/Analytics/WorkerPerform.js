@@ -1,14 +1,14 @@
 // ==========================================
 // 1. GLOBAL STATE
 // ==========================================
-let currentDisplayedReports = []; // Stores whatever reports are currently on the map
-let workerMap = null;
-let pinLayerGroup = null;
+// Allow variables to be initialized from global scope for testing
+let currentDisplayedReports = []; 
+let workerMap = typeof global !== 'undefined' && global.workerMap ? global.workerMap : null;
+let pinLayerGroup = typeof global !== 'undefined' && global.pinLayerGroup ? global.pinLayerGroup : null;
 let MunicipalityMap = {};
-let currentActiveMuniId = null; // Keeps track of which municipality is currently clicked
+let currentActiveMuniId = null;
 let currentWorkerReports = [];
-
-let currentWorkerId = ''; 
+let currentWorkerId = '';
 
 
 
@@ -59,7 +59,7 @@ const historyTable = new CivicTable('worker-ledger-container', async (clickedRep
     issueViewer.open({
         id: clickedReport.ReportID,
         type: clickedReport.Type,
-        description: clickedReport.Description,
+        description: clickedReport.Brief,
         date: clickedReport.CreatedAt,
         status: clickedReport.Progress,
         ward: clickedReport.WardID || 'N/A',
@@ -272,7 +272,7 @@ marker.on('click',async () => {
             issueViewer.open({
                 id: report.ReportID,
                 type: report.Type,
-                description: report.Description,
+                description: report.Brief,
                 date: report.CreatedAt,
                 status: report.Progress,
                 ward: report.WardID || 'N/A',
@@ -481,4 +481,23 @@ function updateAnalyticsUI(reports, acceptanceData) {
             </tr>
         `;
     });
+}
+
+/* istanbul ignore next */
+// At the bottom of WorkerPerform.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        normalizeName,
+        getDateRange, // Added this export
+        fetchMunicipalityReports,
+        drawPinsOnMap,
+        fetchAndPopulateWorkers,
+        fetchSelectedWorkerStats,
+        updateAnalyticsUI,
+        // Setters for testing internal state
+        setWorkerMap: (map) => { workerMap = map; },
+        setPinLayerGroup: (group) => { pinLayerGroup = group; },
+        setWorkerId: (id) => { currentWorkerId = id; },
+        setActiveMuni: (id) => { currentActiveMuniId = id; }
+    };
 }

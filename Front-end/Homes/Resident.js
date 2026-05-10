@@ -1,3 +1,6 @@
+// Global variable to store loaded reports for modal access
+let loadedReports = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     // For testing, replace '1' with your actual logic to get the logged-in user's ID
     const residentId = localStorage.getItem('residentId');
@@ -26,19 +29,8 @@ async function renderSubscribedWards(residentId) {
         }
 
         // 2. Map through the array and create cards
-        wards.forEach( async (subscription) => {
+        wards.forEach( async (ward) => {
             totalIssues=0;
-
-            const wardId = subscription.WardID;
-            const municipalityId = subscription.MunicipalityID;
-
-            const prefs = getMutePrefs(residentId);
-            const isMuted = prefs.mutedWards && prefs.mutedWards.includes(String(wardId));
-
-            const muteText = isMuted ? 'Unmute Alerts' : 'Mute Alerts';
-            const muteIcon = isMuted ? 'notifications_active' : 'notifications_off';
-            const muteColorClass = isMuted ? 'text-primary' : 'text-on-background'; 
-
             // Array of municipal-themed Material Symbols
             const wardIcons = [
                 'location_city', 
@@ -422,18 +414,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 // ==========================================
-// CASCADING DROPDOWNS CONTROLLER FOR WARD SUBSCRIPTIONS
+// CASCADING DROPDOWNS CONTROLLER
 // ==========================================
 const provinceSelect = document.getElementById('province');
 const municipalitySelect = document.getElementById('municipality');
 const wardSelect = document.getElementById('ward');
 
-// Helper to clear and reset a dropdown
 const resetDropdown = (selectElement, defaultText) => {
     selectElement.innerHTML = `<option disabled selected value="">${defaultText}</option>`;
 };
 
-// 1. Initial Load: Fetch all Provinces
+// Extracted Fetch Functions so the Map can call them
 async function loadProvinces() {
     try {
         const response = await fetch('/api/geography/provinces');
@@ -446,19 +437,12 @@ async function loadProvinces() {
                 provinceSelect.appendChild(option);
             });
         }
-    } catch (error) {
-        console.error('Error loading provinces:', error);
-    }
+    } catch (error) { console.error('Error loading provinces:', error); }
 }
 
-// 2. Listen for Province Change -> Load Municipalities
-provinceSelect.addEventListener('change', async (e) => {
-    const provinceId = e.target.value;
-    
-    // Reset downstream dropdowns
+async function fetchMunicipalitiesForSelect(provinceId) {
     resetDropdown(municipalitySelect, 'Choose a municipality');
     resetDropdown(wardSelect, 'Choose a ward');
-
     try {
         const response = await fetch(`/api/geography/provinces/${provinceId}/municipalities`);
         if (response.ok) {
@@ -470,18 +454,11 @@ provinceSelect.addEventListener('change', async (e) => {
                 municipalitySelect.appendChild(option);
             });
         }
-    } catch (error) {
-        console.error('Error loading municipalities:', error);
-    }
-});
+    } catch (error) { console.error('Error loading municipalities:', error); }
+}
 
-// 3. Listen for Municipality Change -> Load Wards
-municipalitySelect.addEventListener('change', async (e) => {
-    const municipalityId = e.target.value;
-    
-    // Reset downstream dropdown
+async function fetchWardsForSelect(municipalityId) {
     resetDropdown(wardSelect, 'Choose a ward');
-
     try {
         const response = await fetch(`/api/geography/municipalities/${municipalityId}/wards`);
         if (response.ok) {
@@ -493,12 +470,13 @@ municipalitySelect.addEventListener('change', async (e) => {
                 wardSelect.appendChild(option);
             });
         }
-    } catch (error) {
-        console.error('Error loading wards:', error);
-    }
-});
+    } catch (error) { console.error('Error loading wards:', error); }
+}
 
-// Trigger the initial load of provinces when the script runs
+// Keep the manual event listeners intact!
+provinceSelect.addEventListener('change', (e) => fetchMunicipalitiesForSelect(e.target.value));
+municipalitySelect.addEventListener('change', (e) => fetchWardsForSelect(e.target.value));
+
 loadProvinces();
 
 
@@ -612,15 +590,7 @@ async function openReportModal(index) {
             <div class="mt-6 pt-4">
                 <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Details</span>
                 <div class="bg-black/20 p-4 rounded-lg text-sm font-medium leading-relaxed">
-                    ${notif.Message || 'No further details have been provided for this notification.'}
-                </div>
-            </div>
-
-            <!-- Image section: populated below once the fetch resolves -->
-            <div id="modal-images-section" class="mt-4 pt-4 border-t border-white/10">
-                <span class="text-xs uppercase tracking-widest opacity-50 block mb-3">Attached Images</span>
-                <div id="modal-images-container" class="flex gap-2 flex-wrap">
-                    <span class="text-xs opacity-40 italic">Loading images…</span>
+                    ${report.Progress || report.Description || 'No further details have been provided for this report.'}
                 </div>
             </div>
         </div>
@@ -942,16 +912,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             }).join('');
         }
-        else {
-            listElement.innerHTML = `<li class="text-sm text-on-surface-variant opacity-50 italic">No wards are currently muted.</li>`;
-        }
+    } catch (error) {
+        console.error("Error saving notification settings:", error);
+        alert("Failed to save settings. Please try again.");
     }
 });
+});
 
-// Closes account dropdown when clicking outside
-    document.addEventListener('click', (event) => {
-        const detailsElement = document.querySelector('nav details');
-        if (detailsElement && !detailsElement.contains(event.target)) {
-            detailsElement.removeAttribute('open');
-        }
-    });
+
+// Closes account when clicking outside
+document.addEventListener('click', (event) => {
+    const detailsElement = document.querySelector('nav details');
+    
+    // Check if the click was outside the dropdown menu
+    if (detailsElement && !detailsElement.contains(event.target)) {
+        detailsElement.removeAttribute('open');
+    }
+});
