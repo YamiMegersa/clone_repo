@@ -30,6 +30,11 @@ async function renderSubscribedWards(residentId) {
 
         // 2. Map through the array and create cards
         wards.forEach( async (ward) => {
+            // 🚨 Extract the IDs from the subscription object
+            const wardId = ward.WardID;
+            const municipalityId = ward.MunicipalityID;
+            const subscription = ward;
+            
             totalIssues=0;
             // Array of municipal-themed Material Symbols
             const wardIcons = [
@@ -912,12 +917,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             }).join('');
         }
-    } catch (error) {
-        console.error("Error saving notification settings:", error);
-        alert("Failed to save settings. Please try again.");
     }
 });
-});
+
 
 
 // Closes account when clicking outside
