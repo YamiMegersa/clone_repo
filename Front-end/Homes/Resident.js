@@ -26,13 +26,16 @@ async function renderSubscribedWards(residentId) {
         }
 
         // 2. Map through the array and create cards
-        wards.forEach( async (ward) => {
-            // 🚨 Extract the IDs from the subscription object
-            const wardId = ward.WardID;
-            const municipalityId = ward.MunicipalityID;
-            const subscription = ward;
+        for (const ward of wards) {
+            try{
+            const wardId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
+            const municipalityId = ward.MunicipalityID || ward.MunicipalityId || (ward.Municipality && ward.Municipality.MunicipalityID);
             
-            totalIssues=0;
+            if(!wardId || !municipalityId) {
+                console.warn('Skipping ward with missing IDs:', ward);
+                continue;
+            }
+            let totalIssues=0;
             // Array of municipal-themed Material Symbols
             const wardIcons = [
                 'location_city', 
@@ -61,14 +64,13 @@ async function renderSubscribedWards(residentId) {
                 fetch(`/api/geography/wards/${wardId}`)
             ]);
             
-            const municipalityData = await muniResponse.json();
-            const wardData = await wardResponse.json();
+            const municipalityData = (muniResponse && muniResponse.ok) ? await muniResponse.json() : {};
+            const wardData = (wardResponse && wardResponse.ok) ? await wardResponse.json() : {};
             
             const MunicipalityName = municipalityData.MunicipalityName.toUpperCase();
             const councillorName = (wardData && wardData.WardCouncillor) 
                            ? wardData.WardCouncillor 
                            : 'Unassigned';
-            console.log(subscription);
             card.innerHTML = `
             <nav aria-label="Ward management options" class="absolute top-6 right-6 z-20">
                 <button aria-haspopup="menu" aria-expanded="false" aria-controls="menu-${wardId}" class="menu-btn text-on-surface-variant hover:text-primary transition-colors" data-ward="${wardId}">
@@ -122,11 +124,14 @@ async function renderSubscribedWards(residentId) {
                 return; 
             }
 
-        window.location.href = `/NittyGritty/WardPage.html?wardId=${wardId}&muniId=${municipalityId}`;
-    });
-        wardsGrid.insertBefore(card, addButton);
-        });
-
+            window.location.href = `/NittyGritty/WardPage.html?wardId=${wardId}&muniId=${municipalityId}`;
+            });
+            wardsGrid.insertBefore(card, addButton);
+            
+        } catch(innerErr){
+            console.error('Error rendering a ward card:', innerErr);
+        }
+    }
     } catch (error) {
         console.error('Error populating wards:', error);
     }
@@ -923,3 +928,7 @@ document.addEventListener('click', (event) => {
         detailsElement.removeAttribute('open');
     }
 });
+
+// Expose functions to the global window object so inline HTML onclicks can use them
+window.manageNotifications = manageNotifications;
+window.unsubscribeWard = unsubscribeWard;
