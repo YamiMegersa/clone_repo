@@ -1,6 +1,3 @@
-// Global variable to store loaded reports for modal access
-let loadedReports = [];
-
 document.addEventListener('DOMContentLoaded', () => {
     // For testing, replace '1' with your actual logic to get the logged-in user's ID
     const residentId = localStorage.getItem('residentId');
@@ -595,7 +592,7 @@ async function openReportModal(index) {
             <div class="mt-6 pt-4">
                 <span class="text-xs uppercase tracking-widest opacity-50 block mb-2">Details</span>
                 <div class="bg-black/20 p-4 rounded-lg text-sm font-medium leading-relaxed">
-                    ${report.Progress || report.Description || 'No further details have been provided for this report.'}
+                    ${notif.Progress || notif.Description || 'No further details have been provided for this report.'}
                 </div>
             </div>
         </div>
@@ -675,7 +672,7 @@ function saveMutePrefs(residentId, prefs) {
 // the resident's subscribed ward reports, then filters by mute preferences.
 async function loadResidentNotifications(residentId) {
     try {
-        // 1. Fetch subscriptions so we know which wards this resident tracks
+        // Fetch subscriptions so we know which wards this resident tracks
         const subRes = await fetch(`/api/residents/${residentId}/subscriptions`);
         if (!subRes.ok) throw new Error('Failed to fetch subscriptions');
         const subscribedWards = await subRes.json();
@@ -686,14 +683,13 @@ async function loadResidentNotifications(residentId) {
             return;
         }
 
-        // 2. Fetch real Notification records for this resident
+        // Fetch real Notification records for this resident
         const notifRes = await fetch(`/api/notifications/${residentId}`);
         if (!notifRes.ok) throw new Error('Failed to fetch notifications');
         let notifications = await notifRes.json();
 
-        // 3. Build ReportID → WardID lookup from ward report lists.
-        //    This lets us filter notifications by ward for muting without
-        //    needing a WardID column on the Notification table.
+        // Build ReportID → WardID lookup from ward report lists.
+        //This lets us filter notifications by ward for muting
         const reportWardMap = {};
         const reportFetches = subscribedWards.map(ward => {
             const wardId = ward.WardID || ward.WardId || ward.wardId || (ward.Ward && ward.Ward.WardID);
@@ -750,8 +746,7 @@ async function loadResidentNotifications(residentId) {
             return true;
         });
 
-        // 6. Sort newest first (notifications API already returns DESC but sort
-        //    again in case the filter changed the order)
+        // Sort newest first
         notifications.sort((a, b) => {
             return new Date(b.CreatedAt || b.createdAt) - new Date(a.CreatedAt || a.createdAt);
         });
@@ -773,10 +768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadResidentNotifications(currentResidentId);
     setInterval(() => loadResidentNotifications(currentResidentId), 30000);
 
-    // ── Clear All Button ──────────────────────────────────────────────────
-    // Uses DELETE /api/notifications/:recipientId/clear-all which physically
-    // removes all notification records from the DB, making the clear permanent
-    // across devices, browsers, and sessions — no timestamp tricks needed.
+    //Clear All Button
     const clearAllBtn = document.getElementById('clear-alerts-btn');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', async () => {
@@ -912,7 +904,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return `
                     <li class="flex items-center gap-2 text-sm font-bold text-on-surface-variant py-1 border-b border-white/5 last:border-0">
                         <i aria-hidden="true" class="material-symbols-outlined text-[16px] text-red-400">notifications_off</i>
-                        Ward ${extractedId}
+                       Ward ${extractedId}
                     </li>
                 `;
             }).join('');
